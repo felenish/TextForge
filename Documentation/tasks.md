@@ -146,9 +146,9 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Update `ModifiedUtc` on the parent book manifest
 
 ### 3.7 Path & Folder Utilities
-- [ ] Create `Utilities/FolderPathBuilder.cs` — generates `chapter-001-title-slug` style folder names
-- [ ] Ensure collision avoidance: if `chapter-001` exists, try `chapter-001-b` etc.
-- [ ] Create `Utilities/SafeFileWriter.cs` — encapsulates the temp-replace-delete write pattern; reusable for both manifests and scene files
+- [x] Create `Utilities/FolderPathBuilder.cs` — generates `chapter-001-title-slug` style folder names
+- [x] Ensure collision avoidance: if `chapter-001` exists, try `chapter-001-b` etc.
+- [x] Create `Utilities/SafeFileWriter.cs` — encapsulates the temp-replace-delete write pattern; reusable for both manifests and scene files
 
 ### 3.8 Storage Tests (must all pass before Phase 4)
 - [ ] `CreateBookAsync_ProducesCorrectFolderStructure` — verify all expected folders and manifest file exist
