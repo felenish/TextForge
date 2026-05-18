@@ -24,11 +24,10 @@ public partial class MainWindow : Window
         WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
 #if DEBUG
         WebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
-        WebView.CoreWebView2.Navigate("http://localhost:5173");
 #else
         WebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
-        WebView.CoreWebView2.Navigate($"http://localhost:{_port}");
 #endif
+        WebView.CoreWebView2.Navigate($"http://localhost:{_port}");
     }
 
     private async void OnClosing(object? sender, CancelEventArgs e)
