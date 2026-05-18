@@ -60,49 +60,49 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 2 — Domain Models
 
 ### 2.1 Core Model Classes
-- [ ] Create `Models/BookProject.cs` in `TextForge.Core`
+- [x] Create `Models/BookProject.cs` in `TextForge.Core`
   - Properties: `Guid Id`, `string Title`, `string RootPath`, `List<Chapter> Chapters`, `DateTimeOffset CreatedUtc`, `DateTimeOffset ModifiedUtc`
   - Use `init` setters where appropriate; `List<Chapter>` initialized in declaration
-- [ ] Create `Models/Chapter.cs`
+- [x] Create `Models/Chapter.cs`
   - Properties: `Guid Id`, `string Title`, `int SortOrder`, `List<Scene> Scenes`
-- [ ] Create `Models/Scene.cs`
+- [x] Create `Models/Scene.cs`
   - Properties: `Guid Id`, `string Title`, `string FilePath`, `int SortOrder`, `string Content`
   - `Content` is not persisted in the manifest; it is loaded separately on demand
 
 ### 2.2 Manifest Models
-- [ ] Create `Manifests/BookManifest.cs` — JSON-serializable root manifest
+- [x] Create `Manifests/BookManifest.cs` — JSON-serializable root manifest
   - Properties: `int Version`, `Guid Id`, `string Title`, `DateTimeOffset CreatedUtc`, `DateTimeOffset ModifiedUtc`, `List<ChapterManifest> Chapters`
-- [ ] Create `Manifests/ChapterManifest.cs`
+- [x] Create `Manifests/ChapterManifest.cs`
   - Properties: `Guid Id`, `string Title`, `string Folder`, `int SortOrder`, `List<SceneManifest> Scenes`
-- [ ] Create `Manifests/SceneManifest.cs`
+- [x] Create `Manifests/SceneManifest.cs`
   - Properties: `Guid Id`, `string Title`, `string File`, `int SortOrder`
-- [ ] Set manifest `Version = 1` as a constant; document that future migrations will increment this
+- [x] Set manifest `Version = 1` as a constant; document that future migrations will increment this
 
 ### 2.3 Interfaces
-- [ ] Create `Interfaces/IBookStorageService.cs`
+- [x] Create `Interfaces/IBookStorageService.cs`
   - `Task<BookProject> CreateBookAsync(CreateBookRequest request, CancellationToken ct = default)`
   - `Task<BookProject> OpenBookAsync(string bookFilePath, CancellationToken ct = default)`
   - `Task SaveBookAsync(BookProject book, CancellationToken ct = default)`
   - `Task<Scene?> GetSceneAsync(Guid sceneId, CancellationToken ct = default)`
   - `Task SaveSceneContentAsync(Guid sceneId, string content, CancellationToken ct = default)`
-- [ ] Create `Interfaces/IShellDialogService.cs` — interface only; WPF implementation is in Desktop
+- [x] Create `Interfaces/IShellDialogService.cs` — interface only; WPF implementation is in Desktop
   - `Task<string?> ShowOpenFileDialogAsync(string title, string filter)`
   - `Task<string?> ShowSaveFileDialogAsync(string title, string filter, string defaultFileName)`
   - `Task<string?> ShowFolderDialogAsync(string title)`
 
 ### 2.4 Request Types
-- [ ] Create `Requests/CreateBookRequest.cs` — `string Title`, `string ParentDirectory`
-- [ ] Create `Requests/AddChapterRequest.cs` — `string Title`
-- [ ] Create `Requests/AddSceneRequest.cs` — `string Title`
+- [x] Create `Requests/CreateBookRequest.cs` — `string Title`, `string ParentDirectory` (created in 2.3 as IBookStorageService dependency)
+- [x] Create `Requests/AddChapterRequest.cs` — `string Title`
+- [x] Create `Requests/AddSceneRequest.cs` — `string Title`
 
 ### 2.5 Exception Types
-- [ ] Create `Exceptions/ManifestNotFoundException.cs`
-- [ ] Create `Exceptions/InvalidManifestException.cs`
-- [ ] Create `Exceptions/SceneFileNotFoundException.cs`
+- [x] Create `Exceptions/ManifestNotFoundException.cs`
+- [x] Create `Exceptions/InvalidManifestException.cs`
+- [x] Create `Exceptions/SceneFileNotFoundException.cs`
 
 ### 2.6 Validation
-- [ ] Create `Validation/TitleValidator.cs` — validates title is not empty, not exceeding 200 chars, not whitespace-only
-- [ ] Create `Validation/PathSanitizer.cs` — strips reserved filesystem characters; trims; truncates; ensures non-empty result
+- [x] Create `Validation/TitleValidator.cs` — validates title is not empty, not exceeding 200 chars, not whitespace-only
+- [x] Create `Validation/PathSanitizer.cs` — strips reserved filesystem characters; trims; truncates; ensures non-empty result
 
 **Phase 2 exit criteria:** `dotnet build TextForge.Core` produces zero warnings. All types exist with correct namespaces. `IBookStorageService` is the only public dependency surface between Core and Storage.
 

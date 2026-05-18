@@ -3,7 +3,13 @@
     "allow": [
       "Bash(dotnet build *)",
       "PowerShell(winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements 2>&1)",
-      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\.github\\\\workflows\" -Force)"
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\.github\\\\workflows\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Models\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Manifests\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Interfaces\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Requests\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Exceptions\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Validation\" -Force)"
     ]
   }
 }
