@@ -11,7 +11,13 @@
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Exceptions\" -Force)",
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Validation\" -Force)",
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Storage\\\\Services\" -Force)",
-      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Storage\\\\Utilities\" -Force)"
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Storage\\\\Utilities\" -Force)",
+      "Bash(dotnet test *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npm run *)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); Set-Location ui/textforge-ui; npm run build)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); Set-Location c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui; npm run build)"
     ]
   }
 }
