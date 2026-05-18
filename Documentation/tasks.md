@@ -278,32 +278,32 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 7 — Book Explorer (React)
 
 ### 7.1 Layout Shell
-- [ ] Create `src/components/layout/AppLayout.tsx` — three-panel layout: left sidebar, main editor area, bottom bar
-- [ ] Create `src/components/layout/Sidebar.tsx` — contains `BookExplorer`
-- [ ] Wire `AppLayout` into `App.tsx`; remove placeholder health-check content
+- [x] Create `src/components/layout/AppLayout.tsx` — three-panel layout: left sidebar, main editor area, bottom bar
+- [x] Create `src/components/layout/Sidebar.tsx` — contains `BookExplorer`
+- [x] Wire `AppLayout` into `App.tsx`; remove placeholder health-check content
 
 ### 7.2 BookExplorer Component
-- [ ] Create `src/components/explorer/BookExplorer.tsx` — root container
-- [ ] Create `src/components/explorer/ChapterNode.tsx` — collapsible chapter row with expand/collapse toggle
-- [ ] Create `src/components/explorer/SceneNode.tsx` — scene row; double-click triggers open event
-- [ ] Empty state: "No book open — create or open a book" with two action buttons
+- [x] Create `src/components/explorer/BookExplorer.tsx` — root container
+- [x] Create `src/components/explorer/ChapterNode.tsx` — collapsible chapter row with expand/collapse toggle
+- [x] Create `src/components/explorer/SceneNode.tsx` — scene row; double-click triggers open event
+- [x] Empty state: "No book open — create or open a book" with two action buttons
 
 ### 7.3 useBookExplorer Hook
-- [ ] Create `src/hooks/useBookExplorer.ts`
-- [ ] State: `book: BookDto | null`, `loading: boolean`, `error: string | null`
-- [ ] Actions: `createBook()`, `openBook()`, `addChapter(title)`, `renameChapter(id, title)`, `deleteChapter(id)`, `addScene(chapterId, title)`, `renameScene(id, title)`, `deleteScene(id)`
-- [ ] `createBook` and `openBook` trigger the respective shell dialog APIs first to get the path, then call the book API
-- [ ] Optimistic updates for rename operations; revert on error
+- [x] Create `src/hooks/useBookExplorer.ts`
+- [x] State: `book: BookDto | null`, `loading: boolean`, `error: string | null`
+- [x] Actions: `createBook()`, `openBook()`, `addChapter(title)`, `renameChapter(id, title)`, `deleteChapter(id)`, `addScene(chapterId, title)`, `renameScene(id, title)`, `deleteScene(id)`
+- [x] `createBook` and `openBook` trigger the respective shell dialog APIs first to get the path, then call the book API
+- [x] Optimistic updates for rename operations; revert on error
 
 ### 7.4 Context Menus
-- [ ] Context menu on chapter node: Rename, Add Scene, Delete
-- [ ] Context menu on scene node: Open, Rename, Delete
-- [ ] Context menu on empty explorer area: New Book, Open Book
-- [ ] Implement a reusable `ContextMenu` component (positioned absolutely, dismisses on outside click)
+- [x] Context menu on chapter node: Rename, Add Scene, Delete
+- [x] Context menu on scene node: Open, Rename, Delete
+- [x] Context menu on empty explorer area: New Book, Open Book
+- [x] Implement a reusable `ContextMenu` component (positioned absolutely, dismisses on outside click)
 
 ### 7.5 Scene Open Event
-- [ ] Emit `onSceneOpen(sceneId: string, sceneTitle: string)` from `SceneNode` double-click
-- [ ] Wire event through `BookExplorer` → `AppLayout` → `SceneEditorArea` (Phase 8)
+- [x] Emit `onSceneOpen(sceneId: string, sceneTitle: string)` from `SceneNode` double-click
+- [x] Wire event through `BookExplorer` → `AppLayout` → `SceneEditorArea` (Phase 8)
 
 **Phase 7 exit criteria:** Book explorer displays a tree of chapters and scenes. Context menus work. Opening a book loads and renders the full hierarchy. Adding/removing chapters and scenes updates the tree without a full reload.
 

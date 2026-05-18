@@ -14,6 +14,9 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
     }
     throw error;
   }
+  if (response.status === 204) {
+    return null as T;
+  }
   return response.json() as Promise<T>;
 }
 
