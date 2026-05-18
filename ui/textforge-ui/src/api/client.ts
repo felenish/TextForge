@@ -36,5 +36,12 @@ export const put = <T>(url: string, body: unknown): Promise<T> =>
     body: JSON.stringify(body),
   });
 
+export const patch = <T>(url: string, body: unknown): Promise<T> =>
+  request<T>(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
 export const del = (url: string): Promise<void> =>
   request<void>(url, { method: 'DELETE' });

@@ -44,6 +44,22 @@ public sealed class ScenesController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> RenameScene(Guid id, [FromBody] RenameSceneBody request, CancellationToken ct)
+    {
+        var book = _workspace.GetCurrentBook();
+        if (book is null)
+            return NotFound(new ErrorDto("No book is open."));
+
+        var found = FindSceneWithChapter(book, id);
+        if (found is null)
+            return NotFound(new ErrorDto("Scene not found."));
+
+        found.Value.scene.Title = request.Title;
+        await _storage.SaveBookAsync(book, ct);
+        return NoContent();
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteScene(Guid id, CancellationToken ct)
     {
@@ -81,3 +97,4 @@ public sealed class ScenesController : ControllerBase
 }
 
 public sealed record SaveSceneBody(string Content);
+public sealed record RenameSceneBody(string Title);

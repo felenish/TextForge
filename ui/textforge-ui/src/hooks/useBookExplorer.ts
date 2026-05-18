@@ -93,7 +93,8 @@ export function useBookExplorer(): UseBookExplorerResult {
   });
 
   const renameScene = (id: string, newTitle: string) => run(async () => {
-    // Local-only optimistic rename; backend rename endpoint to be added in Phase 9
+    if (!book) return;
+    const prevTitle = book.chapters.flatMap(c => c.scenes).find(s => s.id === id)?.title ?? newTitle;
     setBook(b => b ? {
       ...b,
       chapters: b.chapters.map(c => ({
@@ -101,6 +102,18 @@ export function useBookExplorer(): UseBookExplorerResult {
         scenes: c.scenes.map(s => s.id === id ? { ...s, title: newTitle } : s),
       })),
     } : b);
+    try {
+      await scenesApi.renameScene(id, newTitle);
+    } catch (e) {
+      setBook(b => b ? {
+        ...b,
+        chapters: b.chapters.map(c => ({
+          ...c,
+          scenes: c.scenes.map(s => s.id === id ? { ...s, title: prevTitle } : s),
+        })),
+      } : b);
+      throw e;
+    }
   });
 
   const deleteScene = (id: string) => run(async () => {

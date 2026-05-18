@@ -1,4 +1,4 @@
-import { del, get, post, put } from './client';
+import { del, get, patch, post, put } from './client';
 
 export interface SceneDto {
   id: string;
@@ -16,6 +16,9 @@ export const saveScene = (sceneId: string, content: string): Promise<void> =>
 
 export const addScene = (bookId: string, chapterId: string, title: string): Promise<SceneDto> =>
   post(`/api/books/${bookId}/chapters/${chapterId}/scenes`, { title });
+
+export const renameScene = (sceneId: string, title: string): Promise<void> =>
+  patch(`/api/scenes/${sceneId}`, { title });
 
 export const deleteScene = (sceneId: string): Promise<void> =>
   del(`/api/scenes/${sceneId}`);

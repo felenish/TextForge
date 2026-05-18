@@ -1,7 +1,15 @@
 import { post } from './client';
 
-export const openFolderDialog = (title: string): Promise<string | null> =>
-  post('/api/shell/folder-dialog', { title });
+interface PathResponse {
+  path: string;
+}
 
-export const openFileDialog = (title: string, filter: string): Promise<string | null> =>
-  post('/api/shell/file-dialog', { title, filter });
+export const openFolderDialog = async (title: string): Promise<string | null> => {
+  const result = await post<PathResponse | null>('/api/shell/folder-dialog', { title });
+  return result?.path ?? null;
+};
+
+export const openFileDialog = async (title: string, filter: string): Promise<string | null> => {
+  const result = await post<PathResponse | null>('/api/shell/open-dialog', { title, filter });
+  return result?.path ?? null;
+};

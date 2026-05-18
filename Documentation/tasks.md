@@ -351,10 +351,20 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 9 — Native Shell Endpoints
 
 ### 9.1 Wire Up Dialog Service
-- [ ] Register `IShellDialogService` → `WpfShellDialogService` as singleton in `App.xaml.cs`
-- [ ] Ensure `ShellController` in `TextForge.Api` correctly receives the interface via DI
+- [x] Register `IShellDialogService` → `WpfShellDialogService` as singleton in `App.xaml.cs`
+- [x] Ensure `ShellController` in `TextForge.Api` correctly receives the interface via DI
 
-### 9.2 Test Dialog Flows
+### 9.2 Fix Shell API Client
+- [x] Fix `shell.ts` route: `/api/shell/file-dialog` → `/api/shell/open-dialog` (matched controller route)
+- [x] Fix `shell.ts` response extraction: unwrap `{ path }` response object to plain string
+- [x] 204 (dialog cancelled) → `null` handled in `client.ts`; `useBookExplorer` guards with `if (!path) return`
+
+### 9.3 Scene Rename Endpoint
+- [x] Add `PATCH /api/scenes/{id}` → updates scene title in manifest, saves book; returns 204
+- [x] Add `patch()` helper to `client.ts`; add `renameScene()` to `scenes.ts`
+- [x] Wire `renameScene` in `useBookExplorer.ts` with optimistic update + revert on error
+
+### 9.4 Dialog Flow Verification (manual)
 - [ ] "New Book" flow: folder dialog → create book → explorer updates
 - [ ] "Open Book" flow: file open dialog filtered to `*.tfbook` → open book → explorer updates
 - [ ] Verify dialog cancellation (user hits Cancel) returns 204 and the UI handles it gracefully (no error state)
