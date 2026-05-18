@@ -136,9 +136,9 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Log each file operation at Debug level
 
 ### 3.5 GetSceneAsync
-- [ ] Look up scene `FilePath` from the in-memory book model
-- [ ] Read `.md` file content from disk; throw `SceneFileNotFoundException` if missing
-- [ ] Return `Scene` with `Content` populated
+- [x] Look up scene `FilePath` from the in-memory book model
+- [x] Read `.md` file content from disk; throw `SceneFileNotFoundException` if missing
+- [x] Return `Scene` with `Content` populated
 
 ### 3.6 SaveSceneContentAsync
 - [ ] Locate scene by GUID

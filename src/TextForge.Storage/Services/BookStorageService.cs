@@ -132,8 +132,32 @@ public sealed class BookStorageService : IBookStorageService
         _logger.LogInformation("Saved book '{Title}'", book.Title);
     }
 
-    public Task<Scene?> GetSceneAsync(BookProject book, Guid sceneId, CancellationToken ct = default)
-        => throw new NotImplementedException();
+    public async Task<Scene?> GetSceneAsync(BookProject book, Guid sceneId, CancellationToken ct = default)
+    {
+        var scene = FindScene(book, sceneId);
+        if (scene is null)
+            return null;
+
+        var absPath = Path.Combine(book.RootPath, scene.FilePath);
+
+        if (!File.Exists(absPath))
+            throw new SceneFileNotFoundException(
+                $"Scene file not found: {absPath}");
+
+        try
+        {
+            scene.Content = await File.ReadAllTextAsync(absPath, ct);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new SceneFileNotFoundException(
+                $"Could not read scene file: {absPath}", ex);
+        }
+
+        _logger.LogDebug("Loaded scene '{Title}' from {Path}", scene.Title, absPath);
+
+        return scene;
+    }
 
     public Task SaveSceneContentAsync(BookProject book, Guid sceneId, string content, CancellationToken ct = default)
         => throw new NotImplementedException();
@@ -205,6 +229,19 @@ public sealed class BookStorageService : IBookStorageService
                 })
                 .ToList(),
         };
+    }
+
+    private static Scene? FindScene(BookProject book, Guid sceneId)
+    {
+        foreach (var chapter in book.Chapters)
+        {
+            foreach (var scene in chapter.Scenes)
+            {
+                if (scene.Id == sceneId)
+                    return scene;
+            }
+        }
+        return null;
     }
 
     private static string Serialize(BookManifest manifest) =>
