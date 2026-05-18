@@ -88,17 +88,19 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          height: '100%',
-          color: '#555',
-          fontSize: '14px',
+          flex: 1,
+          minHeight: 0,
+          color: 'var(--text-faint)',
+          fontSize: 'var(--fs-mono-sm)',
+          fontFamily: 'var(--font-mono)',
         }}>
-          Open a scene from the Book Explorer
+          Open a scene from the sidebar
         </div>
       );
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <TabBar
           tabs={tabs}
           activeId={activeId}

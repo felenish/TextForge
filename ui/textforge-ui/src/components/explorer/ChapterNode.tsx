@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ChapterDto } from '../../api/books';
 import { ContextMenu, type ContextMenuItem } from '../ui/ContextMenu';
 import { SceneNode } from './SceneNode';
+import { Icon } from '../ui/Icon';
 
 interface ChapterNodeProps {
   chapter: ChapterDto;
@@ -24,7 +25,6 @@ export function ChapterNode({
 }: ChapterNodeProps) {
   const [expanded, setExpanded] = useState(true);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
-  const [hovered, setHovered] = useState(false);
 
   const menuItems: ContextMenuItem[] = [
     {
@@ -54,30 +54,18 @@ export function ChapterNode({
   return (
     <div>
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '4px 8px',
-          cursor: 'pointer',
-          color: '#d4d4d4',
-          fontSize: '13px',
-          fontWeight: 500,
-          userSelect: 'none',
-          background: hovered ? '#2a2d2e' : 'transparent',
-          gap: '4px',
-        }}
+        className="tree-row is-chapter"
         onClick={() => setExpanded(x => !x)}
         onContextMenu={e => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY }); }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
       >
-        <span style={{ fontSize: '9px', color: '#888', width: '10px' }}>
-          {expanded ? '▼' : '▶'}
+        <span className={`chev${expanded ? ' open' : ''}`}>
+          <Icon name="chev-right" size={12} stroke={2} />
         </span>
-        {chapter.title}
-        <span style={{ marginLeft: 'auto', color: '#666', fontSize: '11px' }}>
-          {chapter.scenes.length}
+        <span className="icon">
+          <Icon name="folder" size={13} stroke={1.5} />
         </span>
+        <span className="label">{chapter.title}</span>
+        <span className="meta-right">{chapter.scenes.length}</span>
       </div>
 
       {expanded && chapter.scenes.map(scene => (

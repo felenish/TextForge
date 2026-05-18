@@ -55,7 +55,7 @@ export function SceneEditor({ sceneId, isActive, onRegisterSave, onUnregisterSav
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100%', color: '#888', fontSize: '13px',
+        flex: 1, color: 'var(--text-faint)', fontSize: 'var(--fs-mono-sm)',
       }}>
         Loading…
       </div>
@@ -63,45 +63,46 @@ export function SceneEditor({ sceneId, isActive, onRegisterSave, onUnregisterSav
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {error && (
         <div style={{
-          background: '#5a1e1e', color: '#f48771', fontSize: '12px',
-          padding: '4px 10px', flexShrink: 0,
+          background: 'var(--signal-error)', color: 'var(--text-strong)', fontSize: 'var(--fs-mono-sm)',
+          padding: '4px 10px', flexShrink: 0, opacity: 0.9,
         }}>
           {error}
         </div>
       )}
-      <textarea
-        value={content}
-        onChange={e => onChange(e.target.value)}
-        spellCheck={false}
-        style={{
-          flex: 1,
-          background: '#1e1e1e',
-          color: '#d4d4d4',
-          border: 'none',
-          outline: 'none',
-          resize: 'none',
-          padding: '24px 32px',
-          fontFamily: "'Georgia', 'Times New Roman', serif",
-          fontSize: '15px',
-          lineHeight: '1.8',
-          boxSizing: 'border-box',
-        }}
-      />
+      <div className="editor-scroll" style={{ flex: 1 }}>
+        <div className="editor-doc">
+          <textarea
+            value={content}
+            onChange={e => onChange(e.target.value)}
+            spellCheck={false}
+            className="prose"
+            style={{
+              width: '100%',
+              minHeight: '60vh',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              resize: 'none',
+              padding: 0,
+              lineHeight: 'var(--editor-lh)',
+            }}
+          />
+        </div>
+      </div>
       <div style={{
-        height: '22px',
-        background: '#252526',
-        borderTop: '1px solid #333',
+        padding: '4px 16px',
+        borderTop: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 10px',
-        fontSize: '11px',
-        color: '#888',
+        fontSize: 'var(--fs-mono-xs)',
+        color: 'var(--text-faint)',
         flexShrink: 0,
+        background: 'var(--bg-editor)',
       }}>
-        {saving ? 'Saving…' : isDirty ? 'Unsaved changes  (Ctrl+S to save)' : 'Saved'}
+        {saving ? 'Saving…' : isDirty ? 'Unsaved · Ctrl+S to save' : 'Saved'}
       </div>
     </div>
   );

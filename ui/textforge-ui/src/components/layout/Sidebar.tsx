@@ -6,15 +6,7 @@ interface SidebarProps {
 
 export function Sidebar({ onSceneOpen }: SidebarProps) {
   return (
-    <aside style={{
-      width: '240px',
-      minWidth: '180px',
-      borderRight: '1px solid #333',
-      overflow: 'hidden',
-      background: '#252526',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+    <aside className="sidebar">
       <BookExplorer onSceneOpen={onSceneOpen} />
     </aside>
   );
