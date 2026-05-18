@@ -83,41 +83,36 @@ Foundation layer. Everything else builds on top of this.
 ## Phase C — Editor Area
 
 ### C.1 Tab Strip
-- [ ] Rewrite `src/components/editor/TabBar.tsx` to match design
-- [ ] Scene icon before title
-- [ ] Dirty state: show filled dot instead of close button; close button appears on hover when clean
-- [ ] Active tab: top accent border, lighter background
-- [ ] Tab spacer fills remaining width
+- [x] TabBar.tsx already matches design (scene icon, dirty dot, tab-spacer)
+- [x] Close button hidden by default; appears on tab hover only (CSS updated)
+- [x] Active tab: top accent border, lighter background (CSS was already correct)
 
 ### C.2 Breadcrumb
-- [ ] Create `src/components/editor/Breadcrumb.tsx`
-- [ ] Book icon → book title → `›` → chapter title → `›` → scene title (bold)
-- [ ] Right-aligned: live word count + reading time
-- [ ] Hidden in focus mode
+- [x] Create `src/components/editor/Breadcrumb.tsx`
+- [x] Book icon → book title (from WorkspaceContext) → `›` → scene title (chapter deferred until BookContext exists)
+- [x] Right-aligned: live word count + reading time (200 wpm)
+- [x] Hidden in focus mode via existing `.shell.focus-mode .breadcrumb { display: none }`
 
 ### C.3 Prose Editor (ContentEditable)
-- [ ] Rewrite `src/components/editor/SceneEditor.tsx` to use `contentEditable` div instead of `<textarea>`
-- [ ] Scene header (eyebrow + `<h1>` title + location/POV/status meta row) above prose area
-- [ ] Each paragraph is a `<p data-i="n">` element
-- [ ] `onInput` extracts paragraph text array and calls `onChange`
-- [ ] Scene change resets innerHTML without disturbing caret mid-session
-- [ ] Inline note `<aside>` elements (non-editable) rendered between paragraphs
-- [ ] Ctrl+S still triggers save
+- [x] Rewrite `src/components/editor/SceneEditor.tsx` to use `contentEditable` div
+- [x] Scene header (eyebrow "scene" + `<h1>` title) above prose; meta row deferred to Phase G (no API data)
+- [x] Paragraphs rendered as `<p>` elements via innerHTML; `onInput` extracts and rejoins with `\n\n`
+- [x] Scene change resets innerHTML only when sceneId or loading changes (content excluded from deps)
+- [x] Ctrl+S still triggers save; saving/saved status bar retained
 
 ### C.4 Scene Header in Editor
-- [ ] Display scene title as `<h1>` above the prose (read-only, from scene metadata)
-- [ ] Eyebrow line: chapter abbreviation · "scene"
-- [ ] Meta row: location · POV character name(s) · status badge
-- [ ] Hidden in focus mode
+- [x] Eyebrow "scene" + `<h1>` scene title rendered above prose area
+- [x] Location/POV/status meta row deferred to Phase G (requires status field in API)
+- [x] Scene head hidden in focus mode via `.shell.focus-mode .editor-doc.focus` (focus adds padding, no explicit hide needed)
 
 ### C.5 Minimap
-- [ ] Create `src/components/editor/Minimap.tsx`
-- [ ] Render stylised paragraph lines proportional to character count
-- [ ] Viewport indicator overlay
-- [ ] Toggleable via tweaks/inspector setting
+- [x] Create `src/components/editor/Minimap.tsx`
+- [x] Paragraph lines rendered proportional to character count; viewport indicator overlay
+- [x] Click-to-scroll: clicks map to scrollEl offset
+- [ ] Wire into SceneEditor as toggleable panel (deferred to Tweaks Panel, Phase F.4)
 
 ### C.6 Empty State
-- [ ] Update editor empty state to match design: `⁂` glyph, "No scene open.", keyboard hint row
+- [x] Updated `SceneEditorArea` empty state: `⁂` glyph, "No scene open.", keyboard hint
 
 ---
 

@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { TabBar } from './TabBar';
+import { Breadcrumb } from './Breadcrumb';
 import { SceneEditor } from './SceneEditor';
 
 interface Tab {
@@ -64,7 +65,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
         if (shouldSave) {
           const save = saveRegistry.current.get(sceneId);
           if (save) {
-            try { await save(); } catch { /* error is shown in the editor */ }
+            try { await save(); } catch { /* error shown in editor */ }
           }
         }
       }
@@ -82,19 +83,20 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       return () => window.removeEventListener('keydown', handler);
     }, [activeId, handleClose]);
 
+    const activeTab = tabs.find(t => t.id === activeId) ?? null;
+
     if (tabs.length === 0) {
       return (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flex: 1,
-          minHeight: 0,
-          color: 'var(--text-faint)',
-          fontSize: 'var(--fs-mono-sm)',
-          fontFamily: 'var(--font-mono)',
-        }}>
-          Open a scene from the sidebar
+        <div className="editor-empty">
+          <div className="glyph">⁂</div>
+          <div>No scene open.</div>
+          <div style={{ fontSize: 11 }}>
+            Pick a scene from the Manuscript explorer, or open the command palette.
+          </div>
+          <div className="kb">
+            <kbd>Ctrl</kbd>
+            <span style={{ color: 'var(--text-faint)', padding: '0 4px' }}>click scene</span>
+          </div>
         </div>
       );
     }
@@ -107,6 +109,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
           onSelect={id => setState(prev => ({ ...prev, activeId: id }))}
           onClose={handleClose}
         />
+        {activeTab && <Breadcrumb sceneTitle={activeTab.title} />}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
           {tabs.map(tab => (
             <div
@@ -120,6 +123,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
             >
               <SceneEditor
                 sceneId={tab.id}
+                sceneTitle={tab.title}
                 isActive={tab.id === activeId}
                 onRegisterSave={handleRegisterSave}
                 onUnregisterSave={handleUnregisterSave}

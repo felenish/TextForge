@@ -5,6 +5,7 @@ import { useSceneEditor } from '../../hooks/useSceneEditor';
 
 interface SceneEditorProps {
   sceneId: string;
+  sceneTitle: string;
   isActive: boolean;
   onRegisterSave: (sceneId: string, save: () => Promise<void>) => void;
   onUnregisterSave: (sceneId: string) => void;
@@ -15,10 +16,15 @@ function countWords(text: string): number {
   return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
 }
 
-export function SceneEditor({ sceneId, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
   const { content, isDirty, loading, saving, error, onChange, save } = useSceneEditor(sceneId);
   const { markDirty, markClean, setWordCount } = useWorkspace();
-
+  const editorRef = useRef<HTMLDivElement>(null);
+  const initializedSceneRef = useRef<string | null>(null);
   const saveRef = useRef(save);
   saveRef.current = save;
 
@@ -51,6 +57,24 @@ export function SceneEditor({ sceneId, isActive, onRegisterSave, onUnregisterSav
     if (isActive) setWordCount(countWords(content));
   }, [isActive, content, setWordCount]);
 
+  // Initialize contenteditable DOM once per scene load; gated by ref so typing doesn't reset it
+  useEffect(() => {
+    if (loading || !editorRef.current) return;
+    if (initializedSceneRef.current === sceneId) return;
+    initializedSceneRef.current = sceneId;
+    const paras = (content || '').split(/\n{2,}/).filter(p => p.trim());
+    editorRef.current.innerHTML = paras.length > 0
+      ? paras.map(p => `<p>${escapeHtml(p)}</p>`).join('')
+      : '<p></p>';
+  }, [sceneId, loading, content]);
+
+  function handleInput() {
+    if (!editorRef.current) return;
+    const paras = Array.from(editorRef.current.querySelectorAll('p'))
+      .map(p => p.textContent ?? '');
+    onChange(paras.join('\n\n'));
+  }
+
   if (loading) {
     return (
       <div style={{
@@ -66,41 +90,34 @@ export function SceneEditor({ sceneId, isActive, onRegisterSave, onUnregisterSav
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {error && (
         <div style={{
-          background: 'var(--signal-error)', color: 'var(--text-strong)', fontSize: 'var(--fs-mono-sm)',
-          padding: '4px 10px', flexShrink: 0, opacity: 0.9,
+          background: 'var(--signal-error)', color: 'var(--text-strong)',
+          fontSize: 'var(--fs-mono-sm)', padding: '4px 10px', flexShrink: 0, opacity: 0.9,
         }}>
           {error}
         </div>
       )}
-      <div className="editor-scroll" style={{ flex: 1 }}>
-        <div className="editor-doc">
-          <textarea
-            value={content}
-            onChange={e => onChange(e.target.value)}
-            spellCheck={false}
-            className="prose"
-            style={{
-              width: '100%',
-              minHeight: '60vh',
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              padding: 0,
-              lineHeight: 'var(--editor-lh)',
-            }}
-          />
+      <div className="editor-area no-minimap">
+        <div className="editor-scroll">
+          <div className="editor-doc">
+            <div className="scene-head">
+              <div className="eyebrow">scene</div>
+              <h1>{sceneTitle}</h1>
+            </div>
+            <div
+              ref={editorRef}
+              className="prose prose-editable"
+              contentEditable
+              suppressContentEditableWarning
+              spellCheck
+              onInput={handleInput}
+            />
+          </div>
         </div>
       </div>
       <div style={{
-        padding: '4px 16px',
-        borderTop: '1px solid var(--border-subtle)',
-        display: 'flex',
-        alignItems: 'center',
-        fontSize: 'var(--fs-mono-xs)',
-        color: 'var(--text-faint)',
-        flexShrink: 0,
-        background: 'var(--bg-editor)',
+        padding: '4px 16px', borderTop: '1px solid var(--border-subtle)',
+        display: 'flex', alignItems: 'center', fontSize: 'var(--fs-mono-xs)',
+        color: 'var(--text-faint)', flexShrink: 0, background: 'var(--bg-editor)',
       }}>
         {saving ? 'Saving…' : isDirty ? 'Unsaved · Ctrl+S to save' : 'Saved'}
       </div>
