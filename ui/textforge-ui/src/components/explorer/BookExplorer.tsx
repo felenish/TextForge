@@ -23,6 +23,26 @@ export function BookExplorer({ onSceneOpen }: BookExplorerProps) {
 
   const [emptyMenu, setEmptyMenu] = useState<{ x: number; y: number } | null>(null);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'N')) return;
+      e.preventDefault();
+      if (!book || book.chapters.length === 0) return;
+      let chapterId = book.chapters[0].id;
+      if (book.chapters.length > 1) {
+        const list = book.chapters.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
+        const input = window.prompt(`Select chapter:\n${list}`, '1');
+        const idx = parseInt(input ?? '', 10) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= book.chapters.length) return;
+        chapterId = book.chapters[idx].id;
+      }
+      const title = window.prompt('Scene title:');
+      if (title?.trim()) addScene(chapterId, title.trim());
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [book, addScene]);
+
   const emptyAreaMenuItems: ContextMenuItem[] = [
     { label: 'New Book', onClick: createBook },
     { label: 'Open Book', onClick: openBook },

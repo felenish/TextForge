@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { TabBar } from './TabBar';
 import { SceneEditor } from './SceneEditor';
@@ -69,6 +69,17 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       }
       closeTab(sceneId);
     }, [dirtySceneIds, tabs, closeTab]);
+
+    useEffect(() => {
+      const handler = (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'w') {
+          e.preventDefault();
+          if (activeId) handleClose(activeId);
+        }
+      };
+      window.addEventListener('keydown', handler);
+      return () => window.removeEventListener('keydown', handler);
+    }, [activeId, handleClose]);
 
     if (tabs.length === 0) {
       return (

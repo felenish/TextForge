@@ -15,13 +15,19 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+    const mouseHandler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
         onClose();
-      }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('mousedown', mouseHandler);
+    document.addEventListener('keydown', keyHandler);
+    return () => {
+      document.removeEventListener('mousedown', mouseHandler);
+      document.removeEventListener('keydown', keyHandler);
+    };
   }, [onClose]);
 
   return (

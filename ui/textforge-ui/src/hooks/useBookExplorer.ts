@@ -4,6 +4,7 @@ import * as booksApi from '../api/books';
 import * as chaptersApi from '../api/chapters';
 import * as scenesApi from '../api/scenes';
 import * as shellApi from '../api/shell';
+import { useToast } from '../contexts/ToastContext';
 
 export interface UseBookExplorerResult {
   book: BookDto | null;
@@ -23,6 +24,7 @@ export function useBookExplorer(): UseBookExplorerResult {
   const [book, setBook] = useState<BookDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   async function run(fn: () => Promise<void>): Promise<void> {
     setLoading(true);
@@ -30,7 +32,9 @@ export function useBookExplorer(): UseBookExplorerResult {
     try {
       await fn();
     } catch (e: unknown) {
-      setError((e as { message?: string }).message ?? 'An error occurred.');
+      const message = (e as { message?: string }).message ?? 'An error occurred.';
+      setError(message);
+      showToast(message);
     } finally {
       setLoading(false);
     }

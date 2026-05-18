@@ -48,11 +48,11 @@ public partial class MainWindow : Window
                 if (dirty.Length > 0)
                 {
                     var result = MessageBox.Show(
-                        "You have unsaved changes. Save before closing?",
-                        "TextForge Studio",
-                        MessageBoxButton.YesNoCancel,
+                        "You have unsaved changes. Exit anyway? Changes will be lost.",
+                        "TextForge Studio — Unsaved Changes",
+                        MessageBoxButton.YesNo,
                         MessageBoxImage.Warning);
-                    if (result == MessageBoxResult.Cancel)
+                    if (result == MessageBoxResult.No)
                         return;
                 }
             }

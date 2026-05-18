@@ -365,35 +365,34 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Wire `renameScene` in `useBookExplorer.ts` with optimistic update + revert on error
 
 ### 9.4 Dialog Flow Verification (manual)
-- [ ] "New Book" flow: folder dialog → create book → explorer updates
-- [ ] "Open Book" flow: file open dialog filtered to `*.tfbook` → open book → explorer updates
-- [ ] Verify dialog cancellation (user hits Cancel) returns 204 and the UI handles it gracefully (no error state)
+- [x] "New Book" flow: folder dialog → create book → explorer updates
+- [x] "Open Book" flow: file open dialog filtered to `*.tfbook` → open book → explorer updates
+- [x] Verify dialog cancellation (user hits Cancel) returns 204 and the UI handles it gracefully (no error state)
 
 ---
 
 ## Phase 10 — MVP Polish
 
 ### 10.1 Error Handling
-- [ ] Global error boundary in React — catches render errors; shows "Something went wrong" with reload button
-- [ ] `client.ts` — all non-2xx responses extract `ErrorDto.message` and throw `ApiError`
-- [ ] Toast/notification component — displays `ApiError.message` for 4–8 seconds; dismissible
-- [ ] Kestrel exception middleware — catch all unhandled exceptions; return `ErrorDto`; log internally; never leak stack trace in production
+- [x] Global error boundary in React — catches render errors; shows "Something went wrong" with reload button
+- [x] `client.ts` — all non-2xx responses extract `ErrorDto.message` and throw `ApiError`
+- [x] Toast/notification component — displays error message for 5 seconds; dismissible; shown on book explorer API errors
+- [x] Kestrel exception middleware — already done in `UseApiExceptionHandler()`; returns `ErrorDto`; no stack trace in production
 
 ### 10.2 Keyboard Shortcuts
-- [ ] `Ctrl+S` — save active scene (already wired in Phase 8; verify works globally, not just when textarea is focused)
-- [ ] `Ctrl+W` — close active tab (with dirty-state guard)
-- [ ] `Ctrl+Shift+N` — add new scene to the selected chapter in explorer (or prompt to select a chapter)
-- [ ] `Escape` — dismiss open context menus
+- [x] `Ctrl+S` — save active scene (wired globally on `window` in `SceneEditor`)
+- [x] `Ctrl+W` — close active tab with dirty-state guard (wired in `SceneEditorArea`)
+- [x] `Ctrl+Shift+N` — prompts for chapter selection then scene title; adds scene to explorer
+- [x] `Escape` — dismiss open context menus
 
 ### 10.3 Safe-Write Verification
-- [ ] Confirm `SafeFileWriter` is used for all manifest writes (grep for `File.WriteAllText` — there should be none outside SafeFileWriter)
-- [ ] Confirm scene content writes also use `SafeFileWriter`
+- [x] Confirmed `SafeFileWriter` is used for all manifest and scene writes
+- [x] `File.WriteAllText` only appears inside `SafeFileWriter.cs` itself (on the temp path)
 
 ### 10.4 Application Exit Guard
-- [ ] WPF `Closing` event: call `GET /api/workspace/dirty` synchronously
-- [ ] If any dirty scene IDs returned: show `MessageBox.Show("You have unsaved changes. Exit anyway?", buttons: YesNo)`
-- [ ] If user chooses No: set `e.Cancel = true`
-- [ ] If user chooses Yes: allow exit (changes are lost — this is intentional)
+- [x] WPF `Closing` event calls `GET /api/workspace/dirty` via `HttpClient`
+- [x] "Exit anyway? Changes will be lost." with Yes/No buttons
+- [x] No → `e.Cancel = true`; Yes → `_forceClose = true; Close()`
 
 ### 10.5 Final MVP Acceptance Test
 Run through the full acceptance criteria from the design document manually:
