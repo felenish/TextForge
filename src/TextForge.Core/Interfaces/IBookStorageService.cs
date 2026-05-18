@@ -14,9 +14,12 @@ public interface IBookStorageService
     /// <summary>Persists the book manifest and any dirty scene files to disk.</summary>
     Task SaveBookAsync(BookProject book, CancellationToken ct = default);
 
-    /// <summary>Loads scene content from its <c>.md</c> file. Returns <c>null</c> if the scene ID is unknown.</summary>
-    Task<Scene?> GetSceneAsync(Guid sceneId, CancellationToken ct = default);
+    /// <summary>
+    /// Loads scene content from its <c>.md</c> file.
+    /// Returns <c>null</c> if no scene with <paramref name="sceneId"/> exists in the book.
+    /// </summary>
+    Task<Scene?> GetSceneAsync(BookProject book, Guid sceneId, CancellationToken ct = default);
 
     /// <summary>Writes updated content for a single scene to its <c>.md</c> file.</summary>
-    Task SaveSceneContentAsync(Guid sceneId, string content, CancellationToken ct = default);
+    Task SaveSceneContentAsync(BookProject book, Guid sceneId, string content, CancellationToken ct = default);
 }

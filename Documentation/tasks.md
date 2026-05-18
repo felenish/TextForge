@@ -115,11 +115,11 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Inject `ILogger<BookStorageService>` for structured logging
 
 ### 3.2 CreateBookAsync
-- [ ] Accept `CreateBookRequest`; validate title and parent directory exist
-- [ ] Generate root folder name from title using `PathSanitizer`
-- [ ] Create folder structure: `{rootFolder}/manuscript/`, `{rootFolder}/assets/`, `{rootFolder}/.textforge/`
-- [ ] Create initial `book.tfbook` manifest with one empty chapter list, using safe-write pattern
-- [ ] Return populated `BookProject` with `RootPath` set to the created folder
+- [x] Accept `CreateBookRequest`; validate title and parent directory exist
+- [x] Generate root folder name from title using `PathSanitizer`
+- [x] Create folder structure: `{rootFolder}/manuscript/`, `{rootFolder}/assets/`, `{rootFolder}/.textforge/`
+- [x] Create initial `book.tfbook` manifest with one empty chapter list, using safe-write pattern
+- [x] Return populated `BookProject` with `RootPath` set to the created folder
 
 ### 3.3 OpenBookAsync
 - [ ] Accept path to `book.tfbook` manifest file

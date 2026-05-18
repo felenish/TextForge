@@ -1,12 +1,24 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using TextForge.Core.Interfaces;
+using TextForge.Core.Manifests;
 using TextForge.Core.Models;
 using TextForge.Core.Requests;
+using TextForge.Core.Validation;
+using TextForge.Storage.Utilities;
 
 namespace TextForge.Storage.Services;
 
 public sealed class BookStorageService : IBookStorageService
 {
+    private const string ManifestFileName = "book.tfbook";
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
+
     private readonly ILogger<BookStorageService> _logger;
 
     public BookStorageService(ILogger<BookStorageService> logger)
@@ -14,8 +26,37 @@ public sealed class BookStorageService : IBookStorageService
         _logger = logger;
     }
 
-    public Task<BookProject> CreateBookAsync(CreateBookRequest request, CancellationToken ct = default)
-        => throw new NotImplementedException();
+    public async Task<BookProject> CreateBookAsync(CreateBookRequest request, CancellationToken ct = default)
+    {
+        TitleValidator.Validate(request.Title, nameof(request.Title));
+
+        if (!Directory.Exists(request.ParentDirectory))
+            throw new DirectoryNotFoundException(
+                $"Parent directory does not exist: {request.ParentDirectory}");
+
+        var rootPath = FolderPathBuilder.BuildBookFolder(request.ParentDirectory, request.Title);
+
+        Directory.CreateDirectory(rootPath);
+        Directory.CreateDirectory(Path.Combine(rootPath, "manuscript"));
+        Directory.CreateDirectory(Path.Combine(rootPath, "assets"));
+        Directory.CreateDirectory(Path.Combine(rootPath, ".textforge"));
+
+        var now = DateTimeOffset.UtcNow;
+        var manifest = new BookManifest
+        {
+            Id = Guid.NewGuid(),
+            Title = request.Title,
+            CreatedUtc = now,
+            ModifiedUtc = now,
+        };
+
+        var manifestPath = Path.Combine(rootPath, ManifestFileName);
+        await SafeFileWriter.WriteAsync(manifestPath, Serialize(manifest), ct);
+
+        _logger.LogInformation("Created book '{Title}' at {RootPath}", request.Title, rootPath);
+
+        return MapToProject(manifest, rootPath);
+    }
 
     public Task<BookProject> OpenBookAsync(string bookFilePath, CancellationToken ct = default)
         => throw new NotImplementedException();
@@ -23,9 +64,49 @@ public sealed class BookStorageService : IBookStorageService
     public Task SaveBookAsync(BookProject book, CancellationToken ct = default)
         => throw new NotImplementedException();
 
-    public Task<Scene?> GetSceneAsync(Guid sceneId, CancellationToken ct = default)
+    public Task<Scene?> GetSceneAsync(BookProject book, Guid sceneId, CancellationToken ct = default)
         => throw new NotImplementedException();
 
-    public Task SaveSceneContentAsync(Guid sceneId, string content, CancellationToken ct = default)
+    public Task SaveSceneContentAsync(BookProject book, Guid sceneId, string content, CancellationToken ct = default)
         => throw new NotImplementedException();
+
+    private static BookProject MapToProject(BookManifest manifest, string rootPath)
+    {
+        var project = new BookProject
+        {
+            Id = manifest.Id,
+            Title = manifest.Title,
+            RootPath = rootPath,
+            CreatedUtc = manifest.CreatedUtc,
+            ModifiedUtc = manifest.ModifiedUtc,
+        };
+
+        foreach (var cm in manifest.Chapters.OrderBy(c => c.SortOrder))
+        {
+            var chapter = new Chapter
+            {
+                Id = cm.Id,
+                Title = cm.Title,
+                SortOrder = cm.SortOrder,
+            };
+
+            foreach (var sm in cm.Scenes.OrderBy(s => s.SortOrder))
+            {
+                chapter.Scenes.Add(new Scene
+                {
+                    Id = sm.Id,
+                    Title = sm.Title,
+                    FilePath = sm.File,
+                    SortOrder = sm.SortOrder,
+                });
+            }
+
+            project.Chapters.Add(chapter);
+        }
+
+        return project;
+    }
+
+    private static string Serialize(BookManifest manifest) =>
+        JsonSerializer.Serialize(manifest, JsonOptions);
 }

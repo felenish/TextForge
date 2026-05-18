@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextForge.Storage")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dc5f250f08e28911e84592998f7086959f12ac22")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8a8b2e24e875f3080872e546a9cecbf50484ffd9")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextForge.Storage")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextForge.Storage")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
