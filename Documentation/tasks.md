@@ -207,20 +207,20 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 5 — React Scaffold
 
 ### 5.1 Base API Client
-- [ ] Create `src/api/client.ts` — typed `fetch` wrapper; extracts structured error messages; throws on non-2xx
-- [ ] Define `ApiError` type: `{ message: string; code?: string }`
-- [ ] All API modules import from `client.ts` — no raw `fetch` calls outside this module
+- [x] Create `src/api/client.ts` — typed `fetch` wrapper; extracts structured error messages; throws on non-2xx
+- [x] Define `ApiError` type: `{ message: string; code?: string }`
+- [x] All API modules import from `client.ts` — no raw `fetch` calls outside this module
 
 ### 5.2 API Modules (stubs — implement fully in Phase 6+)
-- [ ] Create `src/api/books.ts` — `createBook`, `openBook`, `getBook` function stubs
-- [ ] Create `src/api/chapters.ts` — `addChapter`, `updateChapter`, `deleteChapter` stubs
-- [ ] Create `src/api/scenes.ts` — `getScene`, `saveScene`, `addScene`, `deleteScene` stubs
-- [ ] Create `src/api/workspace.ts` — `getDirtyScenes` stub
-- [ ] Create `src/api/shell.ts` — `openFolderDialog`, `openFileDialog` stubs
+- [x] Create `src/api/books.ts` — `createBook`, `openBook`, `getBook` function stubs
+- [x] Create `src/api/chapters.ts` — `addChapter`, `updateChapter`, `deleteChapter` stubs
+- [x] Create `src/api/scenes.ts` — `getScene`, `saveScene`, `addScene`, `deleteScene` stubs
+- [x] Create `src/api/workspace.ts` — `getDirtyScenes` stub
+- [x] Create `src/api/shell.ts` — `openFolderDialog`, `openFileDialog` stubs
 
 ### 5.3 App Shell
-- [ ] Replace Vite default `App.tsx` with a placeholder that calls `GET /api/health` on mount and displays "TextForge is running" + the response
-- [ ] Confirm the Vite proxy correctly forwards the request to Kestrel in development
+- [x] Replace Vite default `App.tsx` with a placeholder that calls `GET /api/health` on mount and displays "TextForge is running" + the response
+- [x] Confirm the Vite proxy correctly forwards the request to Kestrel in development
 
 **Phase 5 exit criteria:** `npm run dev` starts. Opening the WPF window in DEBUG shows the Vite dev page. Health check API call succeeds. `npm run build` produces `wwwroot/index.html`.
 
