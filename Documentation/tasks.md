@@ -396,16 +396,16 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 
 ### 10.5 Final MVP Acceptance Test
 Run through the full acceptance criteria from the design document manually:
-- [ ] Create a new book — correct folder structure appears on disk
-- [ ] Add two chapters via Book Explorer context menu
-- [ ] Add two scenes per chapter
-- [ ] Open each scene in an editor tab; type content
-- [ ] Save with `Ctrl+S` — dirty indicator clears
-- [ ] Close the application
-- [ ] Reopen the project — all chapters, scenes, ordering, titles, and content are restored exactly
-- [ ] Verify `book.tfbook` is valid JSON and human-readable
+- [x] Create a new book — correct folder structure appears on disk
+- [x] Add two chapters via Book Explorer context menu
+- [x] Add two scenes per chapter
+- [x] Open each scene in an editor tab; type content
+- [x] Save with `Ctrl+S` — dirty indicator clears
+- [x] Close the application
+- [x] Reopen the project — all chapters, scenes, ordering, titles, and content are restored exactly
+- [x] Verify `book.tfbook` is valid JSON and human-readable
 
-**MVP is complete when all acceptance test steps pass without errors.**
+**MVP is complete. All acceptance test steps pass.**
 
 ---
 
