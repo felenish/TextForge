@@ -129,11 +129,11 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Validate manifest `Version` field; log warning on unknown version
 
 ### 3.4 SaveBookAsync
-- [ ] Serialize updated `BookProject` → `BookManifest`
-- [ ] Write manifest using safe-write pattern (temp → replace → delete backup)
-- [ ] Update `ModifiedUtc` on the manifest before writing
-- [ ] Save any scenes with non-empty `Content` that differ from disk (dirty detection via hash or flag)
-- [ ] Log each file operation at Debug level
+- [x] Serialize updated `BookProject` → `BookManifest`
+- [x] Write manifest using safe-write pattern (temp → replace → delete backup)
+- [x] Update `ModifiedUtc` on the manifest before writing
+- [x] Save any scenes with non-empty `Content` that differ from disk (dirty detection via hash or flag)
+- [x] Log each file operation at Debug level
 
 ### 3.5 GetSceneAsync
 - [ ] Look up scene `FilePath` from the in-memory book model

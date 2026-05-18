@@ -103,8 +103,34 @@ public sealed class BookStorageService : IBookStorageService
         return MapToProject(manifest, rootPath);
     }
 
-    public Task SaveBookAsync(BookProject book, CancellationToken ct = default)
-        => throw new NotImplementedException();
+    public async Task SaveBookAsync(BookProject book, CancellationToken ct = default)
+    {
+        book.ModifiedUtc = DateTimeOffset.UtcNow;
+
+        var manifest = MapToManifest(book);
+        var manifestPath = Path.Combine(book.RootPath, ManifestFileName);
+        await SafeFileWriter.WriteAsync(manifestPath, Serialize(manifest), ct);
+        _logger.LogDebug("Saved manifest for '{Title}' to {Path}", book.Title, manifestPath);
+
+        foreach (var chapter in book.Chapters)
+        {
+            foreach (var scene in chapter.Scenes)
+            {
+                if (string.IsNullOrEmpty(scene.Content))
+                    continue;
+
+                var absPath = Path.Combine(book.RootPath, scene.FilePath);
+                var dir = Path.GetDirectoryName(absPath);
+                if (dir is not null && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
+                await SafeFileWriter.WriteAsync(absPath, scene.Content, ct);
+                _logger.LogDebug("Saved scene '{Title}' to {Path}", scene.Title, absPath);
+            }
+        }
+
+        _logger.LogInformation("Saved book '{Title}'", book.Title);
+    }
 
     public Task<Scene?> GetSceneAsync(BookProject book, Guid sceneId, CancellationToken ct = default)
         => throw new NotImplementedException();
@@ -129,6 +155,7 @@ public sealed class BookStorageService : IBookStorageService
             {
                 Id = cm.Id,
                 Title = cm.Title,
+                FolderPath = cm.Folder,
                 SortOrder = cm.SortOrder,
             };
 
@@ -147,6 +174,37 @@ public sealed class BookStorageService : IBookStorageService
         }
 
         return project;
+    }
+
+    private static BookManifest MapToManifest(BookProject book)
+    {
+        return new BookManifest
+        {
+            Id = book.Id,
+            Title = book.Title,
+            CreatedUtc = book.CreatedUtc,
+            ModifiedUtc = book.ModifiedUtc,
+            Chapters = book.Chapters
+                .OrderBy(c => c.SortOrder)
+                .Select(c => new ChapterManifest
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    Folder = c.FolderPath,
+                    SortOrder = c.SortOrder,
+                    Scenes = c.Scenes
+                        .OrderBy(s => s.SortOrder)
+                        .Select(s => new SceneManifest
+                        {
+                            Id = s.Id,
+                            Title = s.Title,
+                            File = s.FilePath,
+                            SortOrder = s.SortOrder,
+                        })
+                        .ToList(),
+                })
+                .ToList(),
+        };
     }
 
     private static string Serialize(BookManifest manifest) =>
