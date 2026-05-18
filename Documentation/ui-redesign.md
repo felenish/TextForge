@@ -44,41 +44,39 @@ Foundation layer. Everything else builds on top of this.
 ## Phase B — Activity Bar & Sidebar Redesign
 
 ### B.1 Activity Bar
-- [ ] Create `src/components/layout/ActivityBar.tsx`
-- [ ] Four mode buttons: Manuscript (book icon), Characters (users), Versions (git), Search (search)
-- [ ] Settings button pinned to bottom
-- [ ] Dirty count badge on Manuscript button
-- [ ] Active mode highlighted with accent left-border
+- [x] Create `src/components/layout/ActivityBar.tsx`
+- [x] Four mode buttons: Manuscript (book icon), Characters (users), Versions (git), Search (search)
+- [x] Settings button pinned to bottom
+- [x] Dirty count badge on Manuscript button
+- [x] Active mode highlighted with accent left-border
 
 ### B.2 Manuscript Sidebar
-- [ ] Rewrite `src/components/explorer/ManuscriptSidebar.tsx` (replacing `BookExplorer`)
-- [ ] Header with "Manuscript" label + icon buttons (add chapter, collapse all, refresh, more)
-- [ ] Inline search bar (`Find in manuscript… ⌘P`)
-- [ ] Tree: book row → chapter rows (with `chWords` word count) → scene rows (with status dot + unsaved dot)
-- [ ] Chapter expand/collapse with chevron
-- [ ] Scene single-click opens tab; right-click shows context menu
-- [ ] Footer: total scenes count + total word count
-- [ ] Wire `onSceneOpen` through to `SceneEditorArea` ref (same mechanism as current)
+- [x] Create `src/components/explorer/ManuscriptSidebar.tsx` (replaces BookExplorer as active manuscript view)
+- [x] Header with "Manuscript" label + icon buttons (add chapter, collapse all, more)
+- [x] Inline search bar filters tree by scene/chapter title
+- [x] Tree: book row → chapter rows → scene rows (with unsaved dot from `dirtySceneIds`)
+- [x] Chapter expand/collapse with chevron; all-collapse button
+- [x] Scene single-click opens tab; right-click shows context menu with separator + danger delete
+- [x] Footer: scene count + chapter count (word count deferred — not in API)
+- [x] Book state lifted to Sidebar.tsx so all panels share it; no-book empty state with New/Open buttons
 
 ### B.3 Characters Sidebar (stub)
-- [ ] Create `src/components/explorer/CharactersSidebar.tsx`
-- [ ] Header, search bar, empty state: "No characters yet"
-- [ ] Footer stub
+- [x] Create `src/components/explorer/CharactersSidebar.tsx`
+- [x] Header with action buttons, search bar, empty state "No characters yet", footer
 
 ### B.4 Versions Sidebar (stub)
-- [ ] Create `src/components/explorer/VersionsSidebar.tsx`
-- [ ] Header, branch bar showing `main`, empty commit list
-- [ ] Footer stub
+- [x] Create `src/components/explorer/VersionsSidebar.tsx`
+- [x] Header, branch bar showing `main`, empty state, footer
 
 ### B.5 Search Sidebar
-- [ ] Create `src/components/explorer/SearchSidebar.tsx`
-- [ ] Search input, full-text search across open scene content in `WorkspaceContext`
-- [ ] Result rows: scene title + matching excerpt; click opens tab
+- [x] Create `src/components/explorer/SearchSidebar.tsx`
+- [x] Search input, title-based search across chapters/scenes (full-text deferred to Phase G — no content in API)
+- [x] Result rows: scene title + chapter name; click opens tab
 
 ### B.6 Context Menus
-- [ ] Update `ContextMenu.tsx` to support `type` = book | chapter | scene with appropriate item sets
-- [ ] Add separator rows, icon slots, and keyboard shortcut labels (`F2`, `⌘N`, etc.)
-- [ ] Danger styling for delete items
+- [x] Update `ContextMenu.tsx` to support `ContextMenuEntry` union (separator | item)
+- [x] Add separator rows (`.ctx-sep`), icon slots, keyboard shortcut label slots
+- [x] Danger styling for delete items
 
 ---
 

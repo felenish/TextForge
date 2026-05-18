@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     {
         await WebView.EnsureCoreWebView2Async();
         WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+        WebView.CoreWebView2.Settings.IsNonClientRegionSupportEnabled = true;
 #if DEBUG
         WebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
 #else

@@ -2,12 +2,20 @@ import { useEffect, useRef } from 'react';
 
 export interface ContextMenuItem {
   label: string;
+  icon?: React.ReactNode;
+  kbd?: string;
   onClick: () => void;
   danger?: boolean;
 }
 
+export interface ContextMenuSeparator {
+  type: 'separator';
+}
+
+export type ContextMenuEntry = ContextMenuItem | ContextMenuSeparator;
+
 interface ContextMenuProps {
-  items: ContextMenuItem[];
+  items: ContextMenuEntry[];
   position: { x: number; y: number };
   onClose: () => void;
 }
@@ -37,15 +45,21 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
       className="context-menu"
       style={{ left: position.x, top: position.y }}
     >
-      {items.map((item) => (
-        <div
-          key={item.label}
-          className={`ctx-item${item.danger ? ' danger' : ''}`}
-          onClick={() => { item.onClick(); onClose(); }}
-        >
-          <span>{item.label}</span>
-        </div>
-      ))}
+      {items.map((entry, i) => {
+        if ('type' in entry)
+          return <div key={i} className="ctx-sep" />;
+        return (
+          <div
+            key={entry.label}
+            className={`ctx-item${entry.danger ? ' danger' : ''}`}
+            onClick={() => { entry.onClick(); onClose(); }}
+          >
+            {entry.icon && <span className="icon">{entry.icon}</span>}
+            <span>{entry.label}</span>
+            {entry.kbd && <span className="kbd">{entry.kbd}</span>}
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { SceneMetaDto } from '../../api/books';
-import { ContextMenu, type ContextMenuItem } from '../ui/ContextMenu';
+import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 
 interface SceneNodeProps {
@@ -13,7 +13,7 @@ interface SceneNodeProps {
 export function SceneNode({ scene, onOpen, onRename, onDelete }: SceneNodeProps) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
-  const menuItems: ContextMenuItem[] = [
+  const menuItems: ContextMenuEntry[] = [
     { label: 'Open', onClick: () => onOpen(scene.id, scene.title) },
     {
       label: 'Rename',

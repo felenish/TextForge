@@ -47,7 +47,7 @@ export function AppLayout() {
           onModeChange={setSidebarMode}
           dirtyCount={dirtySceneIds.size}
         />
-        <Sidebar onSceneOpen={handleSceneOpen} />
+        <Sidebar mode={sidebarMode} onSceneOpen={handleSceneOpen} />
         <div className="editor-col">
           <SceneEditorArea ref={editorRef} />
         </div>

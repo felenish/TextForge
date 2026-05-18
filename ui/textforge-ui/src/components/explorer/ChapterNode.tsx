@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ChapterDto } from '../../api/books';
-import { ContextMenu, type ContextMenuItem } from '../ui/ContextMenu';
+import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { SceneNode } from './SceneNode';
 import { Icon } from '../ui/Icon';
 
@@ -26,7 +26,7 @@ export function ChapterNode({
   const [expanded, setExpanded] = useState(true);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
-  const menuItems: ContextMenuItem[] = [
+  const menuItems: ContextMenuEntry[] = [
     {
       label: 'Add Scene',
       onClick: () => {
