@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  dotnet:
+    name: .NET Build & Test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restore
+        run: dotnet restore TextForge.slnx
+
+      - name: Build
+        run: dotnet build TextForge.slnx --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test TextForge.slnx --no-build --configuration Release --logger "trx;LogFileName=results.trx" --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+
+  frontend:
+    name: React Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+          cache-dependency-path: ui/textforge-ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ui/textforge-ui
+        run: npm ci
+
+      - name: Lint
+        working-directory: ui/textforge-ui
+        run: npm run lint
+
+      - name: Build
+        working-directory: ui/textforge-ui
+        run: npm run build

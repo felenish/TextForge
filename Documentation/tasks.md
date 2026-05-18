@@ -50,8 +50,8 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Add `ui/textforge-ui/node_modules/` to `.gitignore`
 
 ### 1.6 CI
-- [ ] Create `.github/workflows/ci.yml` (or equivalent) — jobs: `dotnet build`, `dotnet test`, `npm ci && npm run build`
-- [ ] Verify CI passes on a clean clone
+- [x] Create `.github/workflows/ci.yml` (or equivalent) — jobs: `dotnet build`, `dotnet test`, `npm ci && npm run build`
+- [x] Verify CI passes on a clean clone
 
 **Phase 1 exit criteria:** `dotnet build TextForge.sln` succeeds. `dotnet test` runs (0 tests pass, 0 fail — stubs are fine). `npm run build` produces output in `wwwroot/`.
 

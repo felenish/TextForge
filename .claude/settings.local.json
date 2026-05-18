@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(dotnet build *)",
-      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements 2>&1)"
+      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements 2>&1)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\.github\\\\workflows\" -Force)"
     ]
   }
 }
