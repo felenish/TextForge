@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextForge.Core.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9a5605c037c4568dfb4d78d25ce8271a2bb14a7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+059d56bd78c94a5d5b9788fd55c90f7c56f3aacc")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextForge.Core.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextForge.Core.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
