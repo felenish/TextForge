@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TextForge.Api/TextForge.Api.csproj" />
+    <Project Path="src/TextForge.Core/TextForge.Core.csproj" />
+    <Project Path="src/TextForge.Desktop/TextForge.Desktop.csproj" />
+    <Project Path="src/TextForge.Export/TextForge.Export.csproj" />
+    <Project Path="src/TextForge.Storage/TextForge.Storage.csproj" />
+    <Project Path="src/TextForge.Versioning/TextForge.Versioning.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TextForge.Core.Tests/TextForge.Core.Tests.csproj" />
+    <Project Path="tests/TextForge.Storage.Tests/TextForge.Storage.Tests.csproj" />
+    <Project Path="tests/TextForge.Versioning.Tests/TextForge.Versioning.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,11 @@
+C:\Projects\TextForge\src\TextForge.Core\bin\Debug\net10.0\TextForge.Core.deps.json
+C:\Projects\TextForge\src\TextForge.Core\bin\Debug\net10.0\TextForge.Core.dll
+C:\Projects\TextForge\src\TextForge.Core\bin\Debug\net10.0\TextForge.Core.pdb
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\TextForge.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\TextForge.Core.AssemblyInfoInputs.cache
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\TextForge.Core.AssemblyInfo.cs
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\TextForge.Core.csproj.CoreCompileInputs.cache
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\TextForge.Core.dll
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\refint\TextForge.Core.dll
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\TextForge.Core.pdb
+C:\Projects\TextForge\src\TextForge.Core\obj\Debug\net10.0\ref\TextForge.Core.dll

@@ -9,17 +9,17 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 1 — Solution Foundation
 
 ### 1.1 Solution & Project Scaffolding
-- [ ] Create `TextForge.sln` at repo root
-- [ ] Create `src/TextForge.Core/` — class library, target `net10.0`
-- [ ] Create `src/TextForge.Storage/` — class library, target `net10.0`
-- [ ] Create `src/TextForge.Versioning/` — class library, target `net10.0` (stub only for now)
-- [ ] Create `src/TextForge.Export/` — class library, target `net10.0` (stub only for now)
-- [ ] Create `src/TextForge.Api/` — ASP.NET Core Web API, target `net10.0`
-- [ ] Create `src/TextForge.Desktop/` — WPF application, target `net10.0-windows`
-- [ ] Create `tests/TextForge.Core.Tests/` — xUnit, target `net10.0`
-- [ ] Create `tests/TextForge.Storage.Tests/` — xUnit, target `net10.0`
-- [ ] Create `tests/TextForge.Versioning.Tests/` — xUnit, target `net10.0` (stub only for now)
-- [ ] Add all projects to `TextForge.sln`
+- [x] Create `TextForge.sln` at repo root
+- [x] Create `src/TextForge.Core/` — class library, target `net10.0`
+- [x] Create `src/TextForge.Storage/` — class library, target `net10.0`
+- [x] Create `src/TextForge.Versioning/` — class library, target `net10.0` (stub only for now)
+- [x] Create `src/TextForge.Export/` — class library, target `net10.0` (stub only for now)
+- [x] Create `src/TextForge.Api/` — ASP.NET Core Web API, target `net10.0`
+- [x] Create `src/TextForge.Desktop/` — WPF application, target `net10.0-windows`
+- [x] Create `tests/TextForge.Core.Tests/` — xUnit, target `net10.0`
+- [x] Create `tests/TextForge.Storage.Tests/` — xUnit, target `net10.0`
+- [x] Create `tests/TextForge.Versioning.Tests/` — xUnit, target `net10.0` (stub only for now)
+- [x] Add all projects to `TextForge.sln`
 
 ### 1.2 Project References
 - [ ] `TextForge.Storage` → references `TextForge.Core`

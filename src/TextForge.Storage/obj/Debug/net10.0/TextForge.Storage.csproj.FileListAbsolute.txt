@@ -1,0 +1,11 @@
+C:\Projects\TextForge\src\TextForge.Storage\bin\Debug\net10.0\TextForge.Storage.deps.json
+C:\Projects\TextForge\src\TextForge.Storage\bin\Debug\net10.0\TextForge.Storage.dll
+C:\Projects\TextForge\src\TextForge.Storage\bin\Debug\net10.0\TextForge.Storage.pdb
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\TextForge.Storage.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\TextForge.Storage.AssemblyInfoInputs.cache
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\TextForge.Storage.AssemblyInfo.cs
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\TextForge.Storage.csproj.CoreCompileInputs.cache
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\TextForge.Storage.dll
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\refint\TextForge.Storage.dll
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\TextForge.Storage.pdb
+C:\Projects\TextForge\src\TextForge.Storage\obj\Debug\net10.0\ref\TextForge.Storage.dll
