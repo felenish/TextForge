@@ -26,3 +26,9 @@ C:\Projects\TextForge\src\TextForge.Api\obj\Debug\net10.0\refint\TextForge.Api.d
 C:\Projects\TextForge\src\TextForge.Api\obj\Debug\net10.0\TextForge.Api.pdb
 C:\Projects\TextForge\src\TextForge.Api\obj\Debug\net10.0\TextForge.Api.genruntimeconfig.cache
 C:\Projects\TextForge\src\TextForge.Api\obj\Debug\net10.0\ref\TextForge.Api.dll
+C:\Projects\TextForge\src\TextForge.Api\bin\Debug\net10.0\TextForge.Core.dll
+C:\Projects\TextForge\src\TextForge.Api\bin\Debug\net10.0\TextForge.Storage.dll
+C:\Projects\TextForge\src\TextForge.Api\bin\Debug\net10.0\TextForge.Core.pdb
+C:\Projects\TextForge\src\TextForge.Api\bin\Debug\net10.0\TextForge.Storage.pdb
+C:\Projects\TextForge\src\TextForge.Api\obj\Debug\net10.0\TextForge.Api.csproj.AssemblyReference.cache
+C:\Projects\TextForge\src\TextForge.Api\obj\Debug\net10.0\TextForg.255A8823.Up2Date

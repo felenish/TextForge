@@ -94,3 +94,7 @@ C:\Projects\TextForge\tests\TextForge.Core.Tests\obj\Debug\net10.0\refint\TextFo
 C:\Projects\TextForge\tests\TextForge.Core.Tests\obj\Debug\net10.0\TextForge.Core.Tests.pdb
 C:\Projects\TextForge\tests\TextForge.Core.Tests\obj\Debug\net10.0\TextForge.Core.Tests.genruntimeconfig.cache
 C:\Projects\TextForge\tests\TextForge.Core.Tests\obj\Debug\net10.0\ref\TextForge.Core.Tests.dll
+C:\Projects\TextForge\tests\TextForge.Core.Tests\bin\Debug\net10.0\.msCoverageSourceRootsMapping_TextForge.Core.Tests
+C:\Projects\TextForge\tests\TextForge.Core.Tests\bin\Debug\net10.0\CoverletSourceRootsMapping_TextForge.Core.Tests
+C:\Projects\TextForge\tests\TextForge.Core.Tests\bin\Debug\net10.0\TextForge.Core.dll
+C:\Projects\TextForge\tests\TextForge.Core.Tests\bin\Debug\net10.0\TextForge.Core.pdb

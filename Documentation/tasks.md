@@ -22,11 +22,11 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Add all projects to `TextForge.sln`
 
 ### 1.2 Project References
-- [ ] `TextForge.Storage` → references `TextForge.Core`
-- [ ] `TextForge.Api` → references `TextForge.Core`, `TextForge.Storage`
-- [ ] `TextForge.Desktop` → references `TextForge.Api`
-- [ ] `TextForge.Core.Tests` → references `TextForge.Core`
-- [ ] `TextForge.Storage.Tests` → references `TextForge.Storage`, `TextForge.Core`
+- [x] `TextForge.Storage` → references `TextForge.Core`
+- [x] `TextForge.Api` → references `TextForge.Core`, `TextForge.Storage`
+- [x] `TextForge.Desktop` → references `TextForge.Api`
+- [x] `TextForge.Core.Tests` → references `TextForge.Core`
+- [x] `TextForge.Storage.Tests` → references `TextForge.Storage`, `TextForge.Core`
 
 ### 1.3 Shared Build Configuration
 - [ ] Create `Directory.Build.props` at repo root — set `<Nullable>enable</Nullable>`, `<ImplicitUsings>enable</ImplicitUsings>`, `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` for Core and Storage

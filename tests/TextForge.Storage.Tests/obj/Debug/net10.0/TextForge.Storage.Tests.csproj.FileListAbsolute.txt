@@ -94,3 +94,9 @@ C:\Projects\TextForge\tests\TextForge.Storage.Tests\obj\Debug\net10.0\refint\Tex
 C:\Projects\TextForge\tests\TextForge.Storage.Tests\obj\Debug\net10.0\TextForge.Storage.Tests.pdb
 C:\Projects\TextForge\tests\TextForge.Storage.Tests\obj\Debug\net10.0\TextForge.Storage.Tests.genruntimeconfig.cache
 C:\Projects\TextForge\tests\TextForge.Storage.Tests\obj\Debug\net10.0\ref\TextForge.Storage.Tests.dll
+C:\Projects\TextForge\tests\TextForge.Storage.Tests\bin\Debug\net10.0\.msCoverageSourceRootsMapping_TextForge.Storage.Tests
+C:\Projects\TextForge\tests\TextForge.Storage.Tests\bin\Debug\net10.0\CoverletSourceRootsMapping_TextForge.Storage.Tests
+C:\Projects\TextForge\tests\TextForge.Storage.Tests\bin\Debug\net10.0\TextForge.Core.dll
+C:\Projects\TextForge\tests\TextForge.Storage.Tests\bin\Debug\net10.0\TextForge.Storage.dll
+C:\Projects\TextForge\tests\TextForge.Storage.Tests\bin\Debug\net10.0\TextForge.Storage.pdb
+C:\Projects\TextForge\tests\TextForge.Storage.Tests\bin\Debug\net10.0\TextForge.Core.pdb

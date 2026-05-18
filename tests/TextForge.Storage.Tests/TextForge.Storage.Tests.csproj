@@ -18,4 +18,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TextForge.Storage\TextForge.Storage.csproj" />
+    <ProjectReference Include="..\..\src\TextForge.Core\TextForge.Core.csproj" />
+  </ItemGroup>
+
 </Project>

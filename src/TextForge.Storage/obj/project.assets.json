@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net10.0": {}
+    "net10.0": {
+      "TextForge.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/TextForge.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TextForge.Core.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "TextForge.Core/1.0.0": {
+      "type": "project",
+      "path": "../TextForge.Core/TextForge.Core.csproj",
+      "msbuildProject": "../TextForge.Core/TextForge.Core.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0": []
+    "net10.0": [
+      "TextForge.Core >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\ScottMorgan\\.nuget\\packages\\": {},
@@ -41,7 +60,11 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Projects\\TextForge\\src\\TextForge.Core\\TextForge.Core.csproj": {
+              "projectPath": "C:\\Projects\\TextForge\\src\\TextForge.Core\\TextForge.Core.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

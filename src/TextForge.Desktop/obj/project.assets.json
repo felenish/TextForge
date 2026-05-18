@@ -1,11 +1,70 @@
 {
   "version": 3,
   "targets": {
-    "net10.0-windows7.0": {}
+    "net10.0-windows7.0": {
+      "TextForge.Api/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "TextForge.Core": "1.0.0",
+          "TextForge.Storage": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/TextForge.Api.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TextForge.Api.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
+      "TextForge.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/TextForge.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TextForge.Core.dll": {}
+        }
+      },
+      "TextForge.Storage/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "TextForge.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/TextForge.Storage.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TextForge.Storage.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "TextForge.Api/1.0.0": {
+      "type": "project",
+      "path": "../TextForge.Api/TextForge.Api.csproj",
+      "msbuildProject": "../TextForge.Api/TextForge.Api.csproj"
+    },
+    "TextForge.Core/1.0.0": {
+      "type": "project",
+      "path": "../TextForge.Core/TextForge.Core.csproj",
+      "msbuildProject": "../TextForge.Core/TextForge.Core.csproj"
+    },
+    "TextForge.Storage/1.0.0": {
+      "type": "project",
+      "path": "../TextForge.Storage/TextForge.Storage.csproj",
+      "msbuildProject": "../TextForge.Storage/TextForge.Storage.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0-windows7.0": []
+    "net10.0-windows7.0": [
+      "TextForge.Api >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\ScottMorgan\\.nuget\\packages\\": {},
@@ -41,7 +100,11 @@
       "frameworks": {
         "net10.0-windows7.0": {
           "targetAlias": "net10.0-windows",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Projects\\TextForge\\src\\TextForge.Api\\TextForge.Api.csproj": {
+              "projectPath": "C:\\Projects\\TextForge\\src\\TextForge.Api\\TextForge.Api.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

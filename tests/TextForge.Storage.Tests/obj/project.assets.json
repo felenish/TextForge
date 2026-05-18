@@ -393,6 +393,29 @@
         "build": {
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
+      },
+      "TextForge.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/TextForge.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TextForge.Core.dll": {}
+        }
+      },
+      "TextForge.Storage/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "TextForge.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/TextForge.Storage.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TextForge.Storage.dll": {}
+        }
       }
     }
   },
@@ -903,11 +926,23 @@
         "xunit.runner.visualstudio.3.1.4.nupkg.sha512",
         "xunit.runner.visualstudio.nuspec"
       ]
+    },
+    "TextForge.Core/1.0.0": {
+      "type": "project",
+      "path": "../../src/TextForge.Core/TextForge.Core.csproj",
+      "msbuildProject": "../../src/TextForge.Core/TextForge.Core.csproj"
+    },
+    "TextForge.Storage/1.0.0": {
+      "type": "project",
+      "path": "../../src/TextForge.Storage/TextForge.Storage.csproj",
+      "msbuildProject": "../../src/TextForge.Storage/TextForge.Storage.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
       "Microsoft.NET.Test.Sdk >= 17.14.1",
+      "TextForge.Core >= 1.0.0",
+      "TextForge.Storage >= 1.0.0",
       "coverlet.collector >= 6.0.4",
       "xunit >= 2.9.3",
       "xunit.runner.visualstudio >= 3.1.4"
@@ -947,7 +982,14 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Projects\\TextForge\\src\\TextForge.Core\\TextForge.Core.csproj": {
+              "projectPath": "C:\\Projects\\TextForge\\src\\TextForge.Core\\TextForge.Core.csproj"
+            },
+            "C:\\Projects\\TextForge\\src\\TextForge.Storage\\TextForge.Storage.csproj": {
+              "projectPath": "C:\\Projects\\TextForge\\src\\TextForge.Storage\\TextForge.Storage.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
