@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using TextForge.Api;
 using TextForge.Core.Interfaces;
+using TextForge.Desktop.Services;
 using TextForge.Storage.Services;
 
 namespace TextForge.Desktop;
@@ -50,10 +51,12 @@ public partial class App : Application
         builder.WebHost.UseUrls($"http://localhost:{port}");
         builder.WebHost.UseContentRoot(AppContext.BaseDirectory);
 
-        builder.Services.AddApiControllers();
+        builder.Services.AddApiServices();
         builder.Services.AddSingleton<IBookStorageService, BookStorageService>();
+        builder.Services.AddSingleton<IShellDialogService, WpfShellDialogService>();
 
         var app = builder.Build();
+        app.UseApiExceptionHandler();
         app.UseDefaultFiles();
         app.UseStaticFiles();
         app.MapControllers();

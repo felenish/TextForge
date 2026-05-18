@@ -229,47 +229,47 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 6 — API Controllers
 
 ### 6.1 BooksController
-- [ ] `POST /api/books` — accepts `CreateBookRequest`; calls `IBookWorkspaceService.CreateBookAsync`; returns `BookDto`
-- [ ] `GET /api/books/{id}` — returns current open book structure as `BookDto` (chapters + scene metadata, no content)
-- [ ] `POST /api/books/open` — accepts `{ "path": "..." }`; calls `OpenBookAsync`; returns `BookDto`
+- [x] `POST /api/books` — accepts `CreateBookRequest`; calls `IBookWorkspaceService.CreateBookAsync`; returns `BookDto`
+- [x] `GET /api/books/{id}` — returns current open book structure as `BookDto` (chapters + scene metadata, no content)
+- [x] `POST /api/books/open` — accepts `{ "path": "..." }`; calls `OpenBookAsync`; returns `BookDto`
 
 ### 6.2 ChaptersController
-- [ ] `POST /api/books/{bookId}/chapters` — adds chapter; returns `ChapterDto`
-- [ ] `PUT /api/books/{bookId}/chapters/{chapterId}` — renames or reorders chapter; returns `ChapterDto`
-- [ ] `DELETE /api/books/{bookId}/chapters/{chapterId}` — removes chapter and its scene files; returns 204
+- [x] `POST /api/books/{bookId}/chapters` — adds chapter; returns `ChapterDto`
+- [x] `PUT /api/books/{bookId}/chapters/{chapterId}` — renames or reorders chapter; returns `ChapterDto`
+- [x] `DELETE /api/books/{bookId}/chapters/{chapterId}` — removes chapter and its scene files; returns 204
 
 ### 6.3 ScenesController
-- [ ] `POST /api/books/{bookId}/chapters/{chapterId}/scenes` — adds scene; returns `SceneDto`
-- [ ] `GET /api/scenes/{id}` — returns scene with `Content` populated
-- [ ] `PUT /api/scenes/{id}` — accepts `SaveSceneRequest { Content }`; saves to disk; returns 204
-- [ ] `DELETE /api/scenes/{id}` — removes scene file and manifest entry; returns 204
+- [x] `POST /api/books/{bookId}/chapters/{chapterId}/scenes` — adds scene; returns `SceneDto`
+- [x] `GET /api/scenes/{id}` — returns scene with `Content` populated
+- [x] `PUT /api/scenes/{id}` — accepts `SaveSceneRequest { Content }`; saves to disk; returns 204
+- [x] `DELETE /api/scenes/{id}` — removes scene file and manifest entry; returns 204
 
 ### 6.4 WorkspaceController
-- [ ] `GET /api/workspace/dirty` — returns `{ "dirtySceneIds": ["..."] }` from `IBookWorkspaceService`
+- [x] `GET /api/workspace/dirty` — returns `{ "dirtySceneIds": ["..."] }` from `IBookWorkspaceService`
 
 ### 6.5 ShellController
-- [ ] `POST /api/shell/folder-dialog` — calls `IShellDialogService.ShowFolderDialogAsync`; returns `{ "path": "..." }` or 204 if cancelled
-- [ ] `POST /api/shell/open-dialog` — calls `ShowOpenFileDialogAsync`; returns path or 204
-- [ ] `POST /api/shell/save-dialog` — calls `ShowSaveFileDialogAsync`; returns path or 204
+- [x] `POST /api/shell/folder-dialog` — calls `IShellDialogService.ShowFolderDialogAsync`; returns `{ "path": "..." }` or 204 if cancelled
+- [x] `POST /api/shell/open-dialog` — calls `ShowOpenFileDialogAsync`; returns path or 204
+- [x] `POST /api/shell/save-dialog` — calls `ShowSaveFileDialogAsync`; returns path or 204
 
 ### 6.6 BookWorkspaceService
-- [ ] Create `Services/BookWorkspaceService.cs` in `TextForge.Api`
-- [ ] Owns the single `BookProject?` currently open in memory (singleton scope)
-- [ ] Exposes `OpenBook`, `CreateBook`, `GetCurrentBook`, `TrackDirtyScene`, `ClearDirtyScene`, `GetDirtySceneIds`
-- [ ] Delegates file IO to `IBookStorageService`
+- [x] Create `Services/BookWorkspaceService.cs` in `TextForge.Api`
+- [x] Owns the single `BookProject?` currently open in memory (singleton scope)
+- [x] Exposes `OpenBook`, `CreateBook`, `GetCurrentBook`, `TrackDirtyScene`, `ClearDirtyScene`, `GetDirtySceneIds`
+- [x] Delegates file IO to `IBookStorageService`
 
 ### 6.7 DTOs
-- [ ] Create `Dtos/BookDto.cs` — id, title, rootPath, chapters
-- [ ] Create `Dtos/ChapterDto.cs` — id, title, sortOrder, scenes
-- [ ] Create `Dtos/SceneDto.cs` — id, title, filePath, sortOrder, content (nullable)
-- [ ] Create `Dtos/ErrorDto.cs` — message, code
-- [ ] Add global exception handler middleware → returns `ErrorDto` JSON for all unhandled exceptions; never leaks stack traces in production
+- [x] Create `Dtos/BookDto.cs` — id, title, rootPath, chapters
+- [x] Create `Dtos/ChapterDto.cs` — id, title, sortOrder, scenes
+- [x] Create `Dtos/SceneDto.cs` — id, title, filePath, sortOrder, content (nullable)
+- [x] Create `Dtos/ErrorDto.cs` — message, code
+- [x] Add global exception handler middleware → returns `ErrorDto` JSON for all unhandled exceptions; never leaks stack traces in production
 
 ### 6.8 WpfShellDialogService
-- [ ] Create `Services/WpfShellDialogService.cs` in `TextForge.Desktop`
-- [ ] Implements `IShellDialogService` from `TextForge.Core`
-- [ ] All dialog calls marshalled via `Application.Current.Dispatcher.Invoke`
-- [ ] Registered as singleton in `App.xaml.cs` DI setup
+- [x] Create `Services/WpfShellDialogService.cs` in `TextForge.Desktop`
+- [x] Implements `IShellDialogService` from `TextForge.Core`
+- [x] All dialog calls marshalled via `Application.Current.Dispatcher.Invoke`
+- [x] Registered as singleton in `App.xaml.cs` DI setup
 
 **Phase 6 exit criteria:** All API endpoints return correct responses when called with a REST client (curl, Bruno, or browser console). `BookWorkspaceService` correctly tracks dirty state. Shell dialogs open native OS dialogs when called.
 

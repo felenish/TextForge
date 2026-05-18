@@ -1,0 +1,34 @@
+using TextForge.Core.Models;
+
+namespace TextForge.Api.Dtos;
+
+internal static class DtoMapper
+{
+    public static BookDto ToBookDto(BookProject book) => new(
+        book.Id,
+        book.Title,
+        book.RootPath,
+        book.CreatedUtc,
+        book.ModifiedUtc,
+        book.Chapters.Select(ToChapterDto).ToArray());
+
+    public static ChapterDto ToChapterDto(Chapter chapter) => new(
+        chapter.Id,
+        chapter.Title,
+        chapter.SortOrder,
+        chapter.Scenes.Select(ToSceneMeta).ToArray());
+
+    public static SceneDto ToSceneDto(Scene scene) => new(
+        scene.Id,
+        scene.Title,
+        scene.FilePath,
+        scene.SortOrder,
+        string.IsNullOrEmpty(scene.Content) ? null : scene.Content);
+
+    public static SceneDto ToSceneMeta(Scene scene) => new(
+        scene.Id,
+        scene.Title,
+        scene.FilePath,
+        scene.SortOrder,
+        null);
+}
