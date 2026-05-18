@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using TextForge.Core.Exceptions;
 using TextForge.Core.Interfaces;
 using TextForge.Core.Manifests;
 using TextForge.Core.Models;
@@ -58,8 +59,49 @@ public sealed class BookStorageService : IBookStorageService
         return MapToProject(manifest, rootPath);
     }
 
-    public Task<BookProject> OpenBookAsync(string bookFilePath, CancellationToken ct = default)
-        => throw new NotImplementedException();
+    public async Task<BookProject> OpenBookAsync(string bookFilePath, CancellationToken ct = default)
+    {
+        if (!File.Exists(bookFilePath))
+            throw new ManifestNotFoundException(
+                $"Book manifest not found: {bookFilePath}");
+
+        string json;
+        try
+        {
+            json = await File.ReadAllTextAsync(bookFilePath, ct);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new ManifestNotFoundException(
+                $"Could not read book manifest: {bookFilePath}", ex);
+        }
+
+        BookManifest manifest;
+        try
+        {
+            manifest = JsonSerializer.Deserialize<BookManifest>(json, JsonOptions)
+                ?? throw new InvalidManifestException(
+                    $"Manifest file deserialized to null: {bookFilePath}");
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidManifestException(
+                $"Book manifest contains invalid JSON: {bookFilePath}", ex);
+        }
+
+        if (manifest.Version != BookManifest.CurrentVersion)
+            _logger.LogWarning(
+                "Manifest version {Version} differs from expected {Expected}. File: {Path}",
+                manifest.Version, BookManifest.CurrentVersion, bookFilePath);
+
+        var rootPath = Path.GetDirectoryName(bookFilePath)
+            ?? throw new InvalidManifestException(
+                $"Could not determine root path from manifest path: {bookFilePath}");
+
+        _logger.LogInformation("Opened book '{Title}' from {Path}", manifest.Title, bookFilePath);
+
+        return MapToProject(manifest, rootPath);
+    }
 
     public Task SaveBookAsync(BookProject book, CancellationToken ct = default)
         => throw new NotImplementedException();

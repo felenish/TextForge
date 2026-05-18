@@ -122,11 +122,11 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Return populated `BookProject` with `RootPath` set to the created folder
 
 ### 3.3 OpenBookAsync
-- [ ] Accept path to `book.tfbook` manifest file
-- [ ] Read and deserialize manifest; throw `InvalidManifestException` on JSON parse failure
-- [ ] Throw `ManifestNotFoundException` if file does not exist
-- [ ] Map `BookManifest` → `BookProject`; map chapters and scenes (content not loaded yet)
-- [ ] Validate manifest `Version` field; log warning on unknown version
+- [x] Accept path to `book.tfbook` manifest file
+- [x] Read and deserialize manifest; throw `InvalidManifestException` on JSON parse failure
+- [x] Throw `ManifestNotFoundException` if file does not exist
+- [x] Map `BookManifest` → `BookProject`; map chapters and scenes (content not loaded yet)
+- [x] Validate manifest `Version` field; log warning on unknown version
 
 ### 3.4 SaveBookAsync
 - [ ] Serialize updated `BookProject` → `BookManifest`
