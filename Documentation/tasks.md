@@ -174,31 +174,31 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 4 — WPF Shell
 
 ### 4.1 App.xaml.cs
-- [ ] Implement `GetAvailablePort()` using `TcpListener(IPAddress.Loopback, 0)` pattern
-- [ ] Implement `BuildApi(int port)` — creates `WebApplication`, registers services, configures middleware
+- [x] Implement `GetAvailablePort()` using `TcpListener(IPAddress.Loopback, 0)` pattern
+- [x] Implement `BuildApi(int port)` — creates `WebApplication`, registers services, configures middleware
   - `builder.WebHost.UseUrls($"http://localhost:{port}")`
   - `builder.Services.AddControllers()`
   - `builder.Services.AddSingleton<IBookStorageService, BookStorageService>()`
   - `app.UseDefaultFiles()`, `app.UseStaticFiles()`, `app.MapControllers()`, `app.MapFallbackToFile("index.html")`
-- [ ] Implement `OnStartup` — call `GetAvailablePort`, `BuildApi`, `await _api.StartAsync()`, then `new MainWindow(_port).Show()`
-- [ ] Implement `OnExit` — `await _api.StopAsync()` before base call
-- [ ] Handle `DispatcherUnhandledException` — log and show user-friendly message; do not crash silently
+- [x] Implement `OnStartup` — call `GetAvailablePort`, `BuildApi`, `await _api.StartAsync()`, then `new MainWindow(_port).Show()`
+- [x] Implement `OnExit` — `await _api.StopAsync()` before base call
+- [x] Handle `DispatcherUnhandledException` — log and show user-friendly message; do not crash silently
 
 ### 4.2 MainWindow.xaml
-- [ ] Define single `<wpf:WebView2>` control filling the window (`HorizontalAlignment="Stretch"`, `VerticalAlignment="Stretch"`)
-- [ ] Set initial window size (1280 × 800), minimum size (800 × 600)
-- [ ] Set `Title` to "TextForge Studio"
+- [x] Define single `<wpf:WebView2>` control filling the window (`HorizontalAlignment="Stretch"`, `VerticalAlignment="Stretch"`)
+- [x] Set initial window size (1280 × 800), minimum size (800 × 600)
+- [x] Set `Title` to "TextForge Studio"
 
 ### 4.3 MainWindow.xaml.cs
-- [ ] Constructor accepts `int port`; stores as `_port`
-- [ ] `OnLoaded` — calls `await WebView.EnsureCoreWebView2Async()`
-- [ ] Configure `CoreWebView2.Settings.AreDefaultContextMenusEnabled = false`
-- [ ] `#if DEBUG` — enable dev tools, navigate to `http://localhost:5173`
-- [ ] `#if !DEBUG` — disable dev tools, navigate to `http://localhost:{_port}`
-- [ ] Wire `Closing` event — call `GET /api/workspace/dirty`; if dirty scenes exist, show WPF `MessageBox` ("You have unsaved changes. Save before closing?"); cancel close if user declines
+- [x] Constructor accepts `int port`; stores as `_port`
+- [x] `OnLoaded` — calls `await WebView.EnsureCoreWebView2Async()`
+- [x] Configure `CoreWebView2.Settings.AreDefaultContextMenusEnabled = false`
+- [x] `#if DEBUG` — enable dev tools, navigate to `http://localhost:5173`
+- [x] `#if !DEBUG` — disable dev tools, navigate to `http://localhost:{_port}`
+- [x] Wire `Closing` event — call `GET /api/workspace/dirty`; if dirty scenes exist, show WPF `MessageBox` ("You have unsaved changes. Save before closing?"); cancel close if user declines
 
 ### 4.4 Health Check Endpoint
-- [ ] Add `HealthController` to `TextForge.Api` — `GET /api/health` returns `{ "status": "ok" }`
+- [x] Add `HealthController` to `TextForge.Api` — `GET /api/health` returns `{ "status": "ok" }`
 
 **Phase 4 exit criteria:** Application launches without errors. WPF window opens. WebView2 navigates to either Vite or Kestrel static files depending on build configuration. `GET /api/health` returns 200 when called from the browser console inside WebView2.
 
