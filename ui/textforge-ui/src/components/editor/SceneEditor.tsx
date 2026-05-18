@@ -5,13 +5,19 @@ import { useSceneEditor } from '../../hooks/useSceneEditor';
 
 interface SceneEditorProps {
   sceneId: string;
+  isActive: boolean;
   onRegisterSave: (sceneId: string, save: () => Promise<void>) => void;
   onUnregisterSave: (sceneId: string) => void;
 }
 
-export function SceneEditor({ sceneId, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
+function countWords(text: string): number {
+  const trimmed = text.trim();
+  return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
+}
+
+export function SceneEditor({ sceneId, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
   const { content, isDirty, loading, saving, error, onChange, save } = useSceneEditor(sceneId);
-  const { markDirty, markClean } = useWorkspace();
+  const { markDirty, markClean, setWordCount } = useWorkspace();
 
   const saveRef = useRef(save);
   saveRef.current = save;
@@ -40,6 +46,10 @@ export function SceneEditor({ sceneId, onRegisterSave, onUnregisterSave }: Scene
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [save]);
+
+  useEffect(() => {
+    if (isActive) setWordCount(countWords(content));
+  }, [isActive, content, setWordCount]);
 
   if (loading) {
     return (

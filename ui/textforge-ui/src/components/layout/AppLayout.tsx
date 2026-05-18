@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 
 export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
-  const { bookTitle, dirtySceneIds } = useWorkspace();
+  const { bookTitle, dirtySceneIds, wordCount } = useWorkspace();
 
   useEffect(() => {
     const hasUnsaved = dirtySceneIds.size > 0;
@@ -44,9 +44,13 @@ export function AppLayout() {
         padding: '0 10px',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'space-between',
         flexShrink: 0,
       }}>
-        TextForge Studio
+        <span>TextForge Studio</span>
+        {wordCount > 0 && (
+          <span>{wordCount.toLocaleString()} {wordCount === 1 ? 'word' : 'words'}</span>
+        )}
       </div>
     </div>
   );
