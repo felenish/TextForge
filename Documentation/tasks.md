@@ -35,11 +35,11 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Add `.gitignore` (bin, obj, node_modules, wwwroot/, *.user)
 
 ### 1.4 NuGet Packages
-- [ ] `TextForge.Storage` — no additional packages (BCL only for file IO)
-- [ ] `TextForge.Api` — `Microsoft.AspNetCore.App` framework reference
-- [ ] `TextForge.Desktop` — `Microsoft.AspNetCore.App` framework reference, `Microsoft.Web.WebView2`
-- [ ] `TextForge.Core.Tests` — `xunit`, `xunit.runner.visualstudio`, `FluentAssertions`, `coverlet.collector`
-- [ ] `TextForge.Storage.Tests` — same as Core.Tests
+- [x] `TextForge.Storage` — no additional packages (BCL only for file IO)
+- [x] `TextForge.Api` — `Microsoft.AspNetCore.App` framework reference (implicit via `Sdk.Web`)
+- [x] `TextForge.Desktop` — `Microsoft.AspNetCore.App` framework reference, `Microsoft.Web.WebView2`
+- [x] `TextForge.Core.Tests` — `xunit`, `xunit.runner.visualstudio`, `FluentAssertions`, `coverlet.collector`
+- [x] `TextForge.Storage.Tests` — same as Core.Tests
 
 ### 1.5 React Frontend Scaffold
 - [ ] Run `npm create vite@latest textforge-ui -- --template react-ts` inside `ui/`

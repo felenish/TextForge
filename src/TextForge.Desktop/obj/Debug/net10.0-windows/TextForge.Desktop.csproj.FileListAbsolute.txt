@@ -32,3 +32,13 @@ C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\TextForge.
 C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\TextForge.Storage.pdb
 C:\Projects\TextForge\src\TextForge.Desktop\obj\Debug\net10.0-windows\TextForge.Desktop.csproj.AssemblyReference.cache
 C:\Projects\TextForge\src\TextForge.Desktop\obj\Debug\net10.0-windows\TextForg.6C50F332.Up2Date
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\runtimes\win-x86\native\WebView2Loader.dll
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\runtimes\win-x64\native\WebView2Loader.dll
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\runtimes\win-arm64\native\WebView2Loader.dll
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Core.dll
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.WinForms.dll
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Wpf.dll
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Core.xml
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.WinForms.xml
+C:\Projects\TextForge\src\TextForge.Desktop\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Wpf.xml
+C:\Projects\TextForge\src\TextForge.Desktop\obj\Debug\net10.0-windows\TextForge.Desktop_Content.g.cs

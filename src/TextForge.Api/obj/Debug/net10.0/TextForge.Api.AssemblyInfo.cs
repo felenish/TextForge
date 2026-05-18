@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextForge.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b729802ce76bce4d49d6cc7703c8e497cbca824d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9a5605c037c4568dfb4d78d25ce8271a2bb14a7")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextForge.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextForge.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
