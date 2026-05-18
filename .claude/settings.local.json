@@ -17,7 +17,8 @@
       "Bash(git commit -m ' *)",
       "Bash(npm run *)",
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); Set-Location ui/textforge-ui; npm run build)",
-      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); Set-Location c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui; npm run build)"
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); Set-Location c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui; npm run build)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); Set-Location c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui; npm run build 2>&1)"
     ]
   }
 }
