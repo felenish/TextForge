@@ -29,10 +29,10 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] `TextForge.Storage.Tests` → references `TextForge.Storage`, `TextForge.Core`
 
 ### 1.3 Shared Build Configuration
-- [ ] Create `Directory.Build.props` at repo root — set `<Nullable>enable</Nullable>`, `<ImplicitUsings>enable</ImplicitUsings>`, `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` for Core and Storage
-- [ ] Create `Directory.Packages.props` for centralized NuGet version management
-- [ ] Add `.editorconfig` at repo root with C# and TypeScript formatting rules
-- [ ] Add `.gitignore` (bin, obj, node_modules, wwwroot/, *.user)
+- [x] Create `Directory.Build.props` at repo root — set `<Nullable>enable</Nullable>`, `<ImplicitUsings>enable</ImplicitUsings>`, `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` for Core and Storage
+- [x] Create `Directory.Packages.props` for centralized NuGet version management
+- [x] Add `.editorconfig` at repo root with C# and TypeScript formatting rules
+- [x] Add `.gitignore` (bin, obj, node_modules, wwwroot/, *.user)
 
 ### 1.4 NuGet Packages
 - [ ] `TextForge.Storage` — no additional packages (BCL only for file IO)

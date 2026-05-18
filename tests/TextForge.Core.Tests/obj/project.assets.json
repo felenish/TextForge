@@ -942,10 +942,12 @@
       "packagesPath": "C:\\Users\\ScottMorgan\\.nuget\\packages\\",
       "outputPath": "C:\\Projects\\TextForge\\tests\\TextForge.Core.Tests\\obj\\",
       "projectStyle": "PackageReference",
+      "centralPackageVersionsManagementEnabled": true,
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
+        "C:\\Projects\\TextForge\\NuGet.Config",
         "C:\\Users\\ScottMorgan\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -988,20 +990,32 @@
         "dependencies": {
           "Microsoft.NET.Test.Sdk": {
             "target": "Package",
-            "version": "[17.14.1, )"
+            "version": "[17.14.1, )",
+            "versionCentrallyManaged": true
           },
           "coverlet.collector": {
             "target": "Package",
-            "version": "[6.0.4, )"
+            "version": "[6.0.4, )",
+            "versionCentrallyManaged": true
           },
           "xunit": {
             "target": "Package",
-            "version": "[2.9.3, )"
+            "version": "[2.9.3, )",
+            "versionCentrallyManaged": true
           },
           "xunit.runner.visualstudio": {
             "target": "Package",
-            "version": "[3.1.4, )"
+            "version": "[3.1.4, )",
+            "versionCentrallyManaged": true
           }
+        },
+        "centralPackageVersions": {
+          "coverlet.collector": "6.0.4",
+          "FluentAssertions": "6.12.2",
+          "Microsoft.NET.Test.Sdk": "17.14.1",
+          "Microsoft.Web.WebView2": "1.0.3124.44",
+          "xunit": "2.9.3",
+          "xunit.runner.visualstudio": "3.1.4"
         },
         "imports": [
           "net461",
