@@ -5,4 +5,5 @@ public sealed record SceneDto(
     string Title,
     string FilePath,
     int SortOrder,
-    string? Content);
+    string? Content,
+    string Status);

@@ -22,7 +22,7 @@ function escapeHtml(s: string): string {
 
 export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
   const { content, isDirty, loading, saving, error, onChange, save } = useSceneEditor(sceneId);
-  const { markDirty, markClean, setWordCount } = useWorkspace();
+  const { markDirty, markClean, setWordCount, setContentStats } = useWorkspace();
   const editorRef = useRef<HTMLDivElement>(null);
   const initializedSceneRef = useRef<string | null>(null);
   const saveRef = useRef(save);
@@ -73,6 +73,16 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
     const paras = Array.from(editorRef.current.querySelectorAll('p'))
       .map(p => p.textContent ?? '');
     onChange(paras.join('\n\n'));
+    if (isActive) {
+      const nonEmpty = paras.filter(p => p.trim());
+      setContentStats({
+        paragraphCount: nonEmpty.length,
+        sentenceCount: nonEmpty.reduce(
+          (n, p) => n + (p.match(/[.!?]+/g)?.length ?? 0),
+          0
+        ),
+      });
+    }
   }
 
   if (loading) {

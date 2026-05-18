@@ -6,6 +6,7 @@ export interface SceneDto {
   filePath: string;
   sortOrder: number;
   content: string | null;
+  status: string;
 }
 
 export const getScene = (sceneId: string): Promise<SceneDto> =>
@@ -19,6 +20,9 @@ export const addScene = (bookId: string, chapterId: string, title: string): Prom
 
 export const renameScene = (sceneId: string, title: string): Promise<void> =>
   patch(`/api/scenes/${sceneId}`, { title });
+
+export const setSceneStatus = (sceneId: string, status: string): Promise<void> =>
+  patch(`/api/scenes/${sceneId}`, { status });
 
 export const deleteScene = (sceneId: string): Promise<void> =>
   del(`/api/scenes/${sceneId}`);

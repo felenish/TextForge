@@ -7,6 +7,7 @@ import { TitleBar } from './TitleBar';
 import { StatusBar } from './StatusBar';
 import { ActivityBar, type SidebarMode } from './ActivityBar';
 import { Sidebar } from './Sidebar';
+import { Inspector } from '../inspector/Inspector';
 
 export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
@@ -41,7 +42,7 @@ export function AppLayout() {
   return (
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
       <TitleBar focusMode={focusMode} onFocusToggle={toggleFocus} />
-      <ShellBody noInspector>
+      <ShellBody>
         <ActivityBar
           mode={sidebarMode}
           onModeChange={setSidebarMode}
@@ -51,6 +52,7 @@ export function AppLayout() {
         <div className="editor-col">
           <SceneEditorArea ref={editorRef} />
         </div>
+        <Inspector />
       </ShellBody>
       <StatusBar
         focusMode={focusMode}

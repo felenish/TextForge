@@ -2,15 +2,25 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 
 type Theme = 'dark' | 'light' | 'sepia';
 
+export interface ContentStats {
+  paragraphCount: number;
+  sentenceCount: number;
+}
+
 interface WorkspaceContextValue {
   dirtySceneIds: ReadonlySet<string>;
   bookTitle: string | null;
   wordCount: number;
   theme: Theme;
+  activeSceneId: string | null;
+  activeSceneTitle: string | null;
+  contentStats: ContentStats | null;
   markDirty: (sceneId: string) => void;
   markClean: (sceneId: string) => void;
   setBookTitle: (title: string | null) => void;
   setWordCount: (n: number) => void;
+  setActiveScene: (id: string | null, title: string | null) => void;
+  setContentStats: (stats: ContentStats | null) => void;
   cycleTheme: () => void;
 }
 
@@ -19,10 +29,15 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   bookTitle: null,
   wordCount: 0,
   theme: 'dark',
+  activeSceneId: null,
+  activeSceneTitle: null,
+  contentStats: null,
   markDirty: () => {},
   markClean: () => {},
   setBookTitle: () => {},
   setWordCount: () => {},
+  setActiveScene: () => {},
+  setContentStats: () => {},
   cycleTheme: () => {},
 });
 
@@ -38,6 +53,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [bookTitle, setBookTitleState] = useState<string | null>(null);
   const [wordCount, setWordCount] = useState(0);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
+  const [activeSceneTitle, setActiveSceneTitle] = useState<string | null>(null);
+  const [contentStats, setContentStatsState] = useState<ContentStats | null>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -60,6 +78,16 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setBookTitleState(title);
   }, []);
 
+  const setActiveScene = useCallback((id: string | null, title: string | null) => {
+    setActiveSceneId(id);
+    setActiveSceneTitle(title);
+    if (!id) setContentStatsState(null);
+  }, []);
+
+  const setContentStats = useCallback((stats: ContentStats | null) => {
+    setContentStatsState(stats);
+  }, []);
+
   const cycleTheme = useCallback(() => {
     setTheme(t => {
       const next: Theme = t === 'dark' ? 'light' : t === 'light' ? 'sepia' : 'dark';
@@ -74,10 +102,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       bookTitle,
       wordCount,
       theme,
+      activeSceneId,
+      activeSceneTitle,
+      contentStats,
       markDirty,
       markClean,
       setBookTitle,
       setWordCount,
+      setActiveScene,
+      setContentStats,
       cycleTheme,
     }}>
       {children}

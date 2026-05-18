@@ -23,12 +23,14 @@ internal static class DtoMapper
         scene.Title,
         scene.FilePath,
         scene.SortOrder,
-        string.IsNullOrEmpty(scene.Content) ? null : scene.Content);
+        string.IsNullOrEmpty(scene.Content) ? null : scene.Content,
+        scene.Status);
 
     public static SceneDto ToSceneMeta(Scene scene) => new(
         scene.Id,
         scene.Title,
         scene.FilePath,
         scene.SortOrder,
-        null);
+        null,
+        scene.Status);
 }

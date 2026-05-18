@@ -209,6 +209,7 @@ public sealed class BookStorageService : IBookStorageService
                     Title = sm.Title,
                     FilePath = sm.File,
                     SortOrder = sm.SortOrder,
+                    Status = sm.Status,
                 });
             }
 
@@ -242,6 +243,7 @@ public sealed class BookStorageService : IBookStorageService
                             Title = s.Title,
                             File = s.FilePath,
                             SortOrder = s.SortOrder,
+                            Status = s.Status,
                         })
                         .ToList(),
                 })

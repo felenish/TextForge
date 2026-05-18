@@ -21,7 +21,7 @@ export interface SceneEditorAreaHandle {
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
   function SceneEditorArea(_, ref) {
     const [{ tabs, activeId }, setState] = useState<TabsState>({ tabs: [], activeId: null });
-    const { dirtySceneIds, markClean, setWordCount } = useWorkspace();
+    const { dirtySceneIds, markClean, setWordCount, setActiveScene } = useWorkspace();
     const saveRegistry = useRef(new Map<string, () => Promise<void>>());
 
     const openScene = useCallback((sceneId: string, sceneTitle: string) => {
@@ -84,6 +84,10 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
     }, [activeId, handleClose]);
 
     const activeTab = tabs.find(t => t.id === activeId) ?? null;
+
+    useEffect(() => {
+      setActiveScene(activeTab?.id ?? null, activeTab?.title ?? null);
+    }, [activeTab?.id, activeTab?.title, setActiveScene]);
 
     if (tabs.length === 0) {
       return (

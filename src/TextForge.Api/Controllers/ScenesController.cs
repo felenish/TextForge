@@ -45,7 +45,7 @@ public sealed class ScenesController : ControllerBase
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> RenameScene(Guid id, [FromBody] RenameSceneBody request, CancellationToken ct)
+    public async Task<IActionResult> PatchScene(Guid id, [FromBody] PatchSceneBody request, CancellationToken ct)
     {
         var book = _workspace.GetCurrentBook();
         if (book is null)
@@ -55,7 +55,10 @@ public sealed class ScenesController : ControllerBase
         if (found is null)
             return NotFound(new ErrorDto("Scene not found."));
 
-        found.Value.scene.Title = request.Title;
+        var scene = found.Value.scene;
+        if (request.Title is not null) scene.Title = request.Title;
+        if (request.Status is not null) scene.Status = request.Status;
+
         await _storage.SaveBookAsync(book, ct);
         return NoContent();
     }
@@ -97,4 +100,4 @@ public sealed class ScenesController : ControllerBase
 }
 
 public sealed record SaveSceneBody(string Content);
-public sealed record RenameSceneBody(string Title);
+public sealed record PatchSceneBody(string? Title, string? Status);
