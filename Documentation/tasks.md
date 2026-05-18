@@ -42,12 +42,12 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] `TextForge.Storage.Tests` — same as Core.Tests
 
 ### 1.5 React Frontend Scaffold
-- [ ] Run `npm create vite@latest textforge-ui -- --template react-ts` inside `ui/`
-- [ ] Verify `ui/textforge-ui/` compiles with `npm run build`
-- [ ] Configure `vite.config.ts` — add proxy: `/api` → `http://localhost:5000`
-- [ ] Set `build.outDir` in `vite.config.ts` to `../../src/TextForge.Desktop/wwwroot`
-- [ ] Add `eslint` and `prettier` with project-consistent rules
-- [ ] Add `ui/textforge-ui/node_modules/` to `.gitignore`
+- [x] Run `npm create vite@latest textforge-ui -- --template react-ts` inside `ui/`
+- [x] Verify `ui/textforge-ui/` compiles with `npm run build`
+- [x] Configure `vite.config.ts` — add proxy: `/api` → `http://localhost:5000`
+- [x] Set `build.outDir` in `vite.config.ts` to `../../src/TextForge.Desktop/wwwroot`
+- [x] Add `eslint` and `prettier` with project-consistent rules
+- [x] Add `ui/textforge-ui/node_modules/` to `.gitignore`
 
 ### 1.6 CI
 - [ ] Create `.github/workflows/ci.yml` (or equivalent) — jobs: `dotnet build`, `dotnet test`, `npm ci && npm run build`

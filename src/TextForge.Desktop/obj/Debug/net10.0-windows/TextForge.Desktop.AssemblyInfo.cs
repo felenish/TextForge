@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextForge.Desktop")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9a5605c037c4568dfb4d78d25ce8271a2bb14a7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ece7cc2b91efe472773b577b504bba4d3d9ecef8")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextForge.Desktop")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextForge.Desktop")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
