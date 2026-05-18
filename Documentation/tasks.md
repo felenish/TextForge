@@ -151,21 +151,21 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Create `Utilities/SafeFileWriter.cs` — encapsulates the temp-replace-delete write pattern; reusable for both manifests and scene files
 
 ### 3.8 Storage Tests (must all pass before Phase 4)
-- [ ] `CreateBookAsync_ProducesCorrectFolderStructure` — verify all expected folders and manifest file exist
-- [ ] `CreateBookAsync_ManifestContainsCorrectMetadata` — id, title, createdUtc, version=1
-- [ ] `OpenBookAsync_ThrowsManifestNotFoundException_WhenFileDoesNotExist`
-- [ ] `OpenBookAsync_ThrowsInvalidManifestException_WhenJsonIsCorrupt`
-- [ ] `OpenBookAsync_RestoresChaptersAndScenesInSortOrder`
-- [ ] `SaveBookAsync_RoundTrips_AllChaptersAndScenes`
-- [ ] `SaveBookAsync_PreservesGuidIdentities`
-- [ ] `SaveBookAsync_UpdatesModifiedUtc`
-- [ ] `SaveBookAsync_SafeWrite_LeavesOriginalIntactOnSimulatedMidWriteCrash`
-- [ ] `GetSceneAsync_ThrowsSceneFileNotFoundException_WhenSceneFileMissing`
-- [ ] `GetSceneAsync_ReturnsCorrectContent`
-- [ ] `SaveSceneContentAsync_PersistsContentToDisk`
-- [ ] `PathSanitizer_StripsReservedCharacters`
-- [ ] `PathSanitizer_HandlesEmptyAndWhitespaceInput`
-- [ ] `FolderPathBuilder_ProducesUniqueNamesWhenCollisionExists`
+- [x] `CreateBookAsync_ProducesCorrectFolderStructure` — verify all expected folders and manifest file exist
+- [x] `CreateBookAsync_ManifestContainsCorrectMetadata` — id, title, createdUtc, version=1
+- [x] `OpenBookAsync_ThrowsManifestNotFoundException_WhenFileDoesNotExist`
+- [x] `OpenBookAsync_ThrowsInvalidManifestException_WhenJsonIsCorrupt`
+- [x] `OpenBookAsync_RestoresChaptersAndScenesInSortOrder`
+- [x] `SaveBookAsync_RoundTrips_AllChaptersAndScenes`
+- [x] `SaveBookAsync_PreservesGuidIdentities`
+- [x] `SaveBookAsync_UpdatesModifiedUtc`
+- [x] `SaveBookAsync_SafeWrite_LeavesOriginalIntactOnSimulatedMidWriteCrash`
+- [x] `GetSceneAsync_ThrowsSceneFileNotFoundException_WhenSceneFileMissing`
+- [x] `GetSceneAsync_ReturnsCorrectContent`
+- [x] `SaveSceneContentAsync_PersistsContentToDisk`
+- [x] `PathSanitizer_StripsReservedCharacters`
+- [x] `PathSanitizer_HandlesEmptyAndWhitespaceInput`
+- [x] `FolderPathBuilder_ProducesUniqueNamesWhenCollisionExists`
 
 **Phase 3 exit criteria:** All 15+ storage tests pass. Zero test failures permitted before advancing.
 

@@ -7,12 +7,6 @@ public static class PathSanitizer
     public const int MaxSegmentLength = 80;
     private const string Fallback = "untitled";
 
-    private static readonly char[] InvalidChars = Path.GetInvalidFileNameChars();
-
-    /// <summary>
-    /// Converts a title into a safe, lowercase, hyphenated filesystem segment.
-    /// e.g. "Chapter One: The Storm!" → "chapter-one-the-storm"
-    /// </summary>
     public static string Sanitize(string? input)
     {
         if (string.IsNullOrWhiteSpace(input))
@@ -23,10 +17,10 @@ public static class PathSanitizer
 
         foreach (var c in source)
         {
-            if (c == ' ' || Array.IndexOf(InvalidChars, c) >= 0)
-                sb.Append('-');
-            else
+            if (char.IsAsciiLetterOrDigit(c))
                 sb.Append(c);
+            else
+                sb.Append('-');
         }
 
         var result = CollapseHyphens(sb.ToString()).Trim('-');
