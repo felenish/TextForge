@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "L4ry2YxNg8A=",
+  "dgSpecHash": "S/JOBzXiiUo=",
   "success": true,
   "projectFilePath": "C:\\Projects\\TextForge\\src\\TextForge.Storage\\TextForge.Storage.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\ScottMorgan\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.0\\microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\ScottMorgan\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.0\\microsoft.extensions.logging.abstractions.10.0.0.nupkg.sha512"
+  ],
   "logs": []
 }

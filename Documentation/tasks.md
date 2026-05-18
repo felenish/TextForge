@@ -111,8 +111,8 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 3 — Storage Service
 
 ### 3.1 BookStorageService Implementation
-- [ ] Create `Services/BookStorageService.cs` in `TextForge.Storage`, implementing `IBookStorageService`
-- [ ] Inject `ILogger<BookStorageService>` for structured logging
+- [x] Create `Services/BookStorageService.cs` in `TextForge.Storage`, implementing `IBookStorageService`
+- [x] Inject `ILogger<BookStorageService>` for structured logging
 
 ### 3.2 CreateBookAsync
 - [ ] Accept `CreateBookRequest`; validate title and parent directory exist

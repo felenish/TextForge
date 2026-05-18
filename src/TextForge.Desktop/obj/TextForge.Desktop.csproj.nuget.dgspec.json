@@ -64,6 +64,7 @@
           "centralPackageVersions": {
             "coverlet.collector": "6.0.4",
             "FluentAssertions": "6.12.2",
+            "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
             "Microsoft.NET.Test.Sdk": "17.14.1",
             "Microsoft.Web.WebView2": "1.0.3124.44",
             "xunit": "2.9.3",
@@ -560,6 +561,7 @@
           "centralPackageVersions": {
             "coverlet.collector": "6.0.4",
             "FluentAssertions": "6.12.2",
+            "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
             "Microsoft.NET.Test.Sdk": "17.14.1",
             "Microsoft.Web.WebView2": "1.0.3124.44",
             "xunit": "2.9.3",
@@ -923,6 +925,7 @@
           "centralPackageVersions": {
             "coverlet.collector": "6.0.4",
             "FluentAssertions": "6.12.2",
+            "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
             "Microsoft.NET.Test.Sdk": "17.14.1",
             "Microsoft.Web.WebView2": "1.0.3124.44",
             "xunit": "2.9.3",
@@ -1437,9 +1440,17 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[10.0.0, )",
+              "versionCentrallyManaged": true
+            }
+          },
           "centralPackageVersions": {
             "coverlet.collector": "6.0.4",
             "FluentAssertions": "6.12.2",
+            "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
             "Microsoft.NET.Test.Sdk": "17.14.1",
             "Microsoft.Web.WebView2": "1.0.3124.44",
             "xunit": "2.9.3",

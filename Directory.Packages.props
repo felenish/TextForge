@@ -13,6 +13,11 @@
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
   </ItemGroup>
 
+  <!-- Logging abstractions (used by Storage service) -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
   <!-- Desktop shell -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.3124.44" />

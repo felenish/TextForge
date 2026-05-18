@@ -9,7 +9,8 @@
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Interfaces\" -Force)",
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Requests\" -Force)",
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Exceptions\" -Force)",
-      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Validation\" -Force)"
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Core\\\\Validation\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Storage\\\\Services\" -Force)"
     ]
   }
 }
