@@ -246,6 +246,17 @@ export function Icon({ name, size = 16, stroke = 1.5, className, style }: IconPr
         <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
       </svg>
     );
+    case 'win-maximize': return (
+      <svg {...base}>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+      </svg>
+    );
+    case 'win-restore': return (
+      <svg {...base}>
+        <rect x="6" y="3" width="15" height="15" rx="2" />
+        <path d="M3 9v10a2 2 0 0 0 2 2h10" />
+      </svg>
+    );
     default: return <svg {...base}><circle cx="12" cy="12" r="6" /></svg>;
   }
 }
