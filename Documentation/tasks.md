@@ -141,9 +141,9 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 - [x] Return `Scene` with `Content` populated
 
 ### 3.6 SaveSceneContentAsync
-- [ ] Locate scene by GUID
-- [ ] Write content to the scene's `.md` file using safe-write pattern
-- [ ] Update `ModifiedUtc` on the parent book manifest
+- [x] Locate scene by GUID
+- [x] Write content to the scene's `.md` file using safe-write pattern
+- [x] Update `ModifiedUtc` on the parent book manifest
 
 ### 3.7 Path & Folder Utilities
 - [ ] Create `Utilities/FolderPathBuilder.cs` — generates `chapter-001-title-slug` style folder names

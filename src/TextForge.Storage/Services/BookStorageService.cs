@@ -159,8 +159,26 @@ public sealed class BookStorageService : IBookStorageService
         return scene;
     }
 
-    public Task SaveSceneContentAsync(BookProject book, Guid sceneId, string content, CancellationToken ct = default)
-        => throw new NotImplementedException();
+    public async Task SaveSceneContentAsync(BookProject book, Guid sceneId, string content, CancellationToken ct = default)
+    {
+        var scene = FindScene(book, sceneId)
+            ?? throw new SceneFileNotFoundException(
+                $"Scene {sceneId} not found in book '{book.Title}'");
+
+        var absPath = Path.Combine(book.RootPath, scene.FilePath);
+        var dir = Path.GetDirectoryName(absPath);
+        if (dir is not null && !Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+
+        await SafeFileWriter.WriteAsync(absPath, content, ct);
+        scene.Content = content;
+        _logger.LogDebug("Saved scene '{Title}' to {Path}", scene.Title, absPath);
+
+        book.ModifiedUtc = DateTimeOffset.UtcNow;
+        var manifestPath = Path.Combine(book.RootPath, ManifestFileName);
+        await SafeFileWriter.WriteAsync(manifestPath, Serialize(MapToManifest(book)), ct);
+        _logger.LogDebug("Updated manifest ModifiedUtc for '{Title}'", book.Title);
+    }
 
     private static BookProject MapToProject(BookManifest manifest, string rootPath)
     {
