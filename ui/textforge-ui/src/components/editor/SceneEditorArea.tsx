@@ -1,0 +1,118 @@
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { TabBar } from './TabBar';
+import { SceneEditor } from './SceneEditor';
+
+interface Tab {
+  id: string;
+  title: string;
+}
+
+interface TabsState {
+  tabs: Tab[];
+  activeId: string | null;
+}
+
+export interface SceneEditorAreaHandle {
+  openScene: (sceneId: string, sceneTitle: string) => void;
+}
+
+export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
+  function SceneEditorArea(_, ref) {
+    const [{ tabs, activeId }, setState] = useState<TabsState>({ tabs: [], activeId: null });
+    const { dirtySceneIds, markClean } = useWorkspace();
+    const saveRegistry = useRef(new Map<string, () => Promise<void>>());
+
+    const openScene = useCallback((sceneId: string, sceneTitle: string) => {
+      setState(prev => {
+        if (prev.tabs.some(t => t.id === sceneId))
+          return { ...prev, activeId: sceneId };
+        return { tabs: [...prev.tabs, { id: sceneId, title: sceneTitle }], activeId: sceneId };
+      });
+    }, []);
+
+    useImperativeHandle(ref, () => ({ openScene }), [openScene]);
+
+    const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
+      saveRegistry.current.set(sceneId, save);
+    }, []);
+
+    const handleUnregisterSave = useCallback((sceneId: string) => {
+      saveRegistry.current.delete(sceneId);
+    }, []);
+
+    const closeTab = useCallback((id: string) => {
+      setState(prev => {
+        const idx = prev.tabs.findIndex(t => t.id === id);
+        const tabs = prev.tabs.filter(t => t.id !== id);
+        let activeId = prev.activeId;
+        if (activeId === id)
+          activeId = tabs.length > 0 ? tabs[Math.min(idx, tabs.length - 1)].id : null;
+        return { tabs, activeId };
+      });
+      markClean(id);
+      saveRegistry.current.delete(id);
+    }, [markClean]);
+
+    const handleClose = useCallback(async (sceneId: string) => {
+      if (dirtySceneIds.has(sceneId)) {
+        const tab = tabs.find(t => t.id === sceneId);
+        const shouldSave = window.confirm(
+          `"${tab?.title ?? 'Scene'}" has unsaved changes.\n\nClick OK to save, Cancel to discard.`
+        );
+        if (shouldSave) {
+          const save = saveRegistry.current.get(sceneId);
+          if (save) {
+            try { await save(); } catch { /* error is shown in the editor */ }
+          }
+        }
+      }
+      closeTab(sceneId);
+    }, [dirtySceneIds, tabs, closeTab]);
+
+    if (tabs.length === 0) {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          color: '#555',
+          fontSize: '14px',
+        }}>
+          Open a scene from the Book Explorer
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <TabBar
+          tabs={tabs}
+          activeId={activeId}
+          onSelect={id => setState(prev => ({ ...prev, activeId: id }))}
+          onClose={handleClose}
+        />
+        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+          {tabs.map(tab => (
+            <div
+              key={tab.id}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: tab.id === activeId ? 'flex' : 'none',
+                flexDirection: 'column',
+              }}
+            >
+              <SceneEditor
+                sceneId={tab.id}
+                onRegisterSave={handleRegisterSave}
+                onUnregisterSave={handleUnregisterSave}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+);

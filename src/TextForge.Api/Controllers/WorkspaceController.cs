@@ -17,4 +17,11 @@ public sealed class WorkspaceController : ControllerBase
         var ids = _workspace.GetDirtySceneIds().Select(id => id.ToString()).ToArray();
         return Ok(ids);
     }
+
+    [HttpPost("dirty/{sceneId:guid}")]
+    public IActionResult MarkDirty(Guid sceneId)
+    {
+        _workspace.TrackDirtyScene(sceneId);
+        return NoContent();
+    }
 }

@@ -1,11 +1,12 @@
+import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import { AppLayout } from './components/layout/AppLayout';
 
 function App() {
-  const handleSceneOpen = (sceneId: string, sceneTitle: string) => {
-    console.log('Open scene:', sceneId, sceneTitle);
-  };
-
-  return <AppLayout onSceneOpen={handleSceneOpen} />;
+  return (
+    <WorkspaceProvider>
+      <AppLayout />
+    </WorkspaceProvider>
+  );
 }
 
 export default App;

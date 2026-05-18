@@ -1,10 +1,25 @@
+import { useCallback, useEffect, useRef } from 'react';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { SceneEditorArea, type SceneEditorAreaHandle } from '../editor/SceneEditorArea';
 import { Sidebar } from './Sidebar';
 
-interface AppLayoutProps {
-  onSceneOpen: (sceneId: string, sceneTitle: string) => void;
-}
+export function AppLayout() {
+  const editorRef = useRef<SceneEditorAreaHandle>(null);
+  const { bookTitle, dirtySceneIds } = useWorkspace();
 
-export function AppLayout({ onSceneOpen }: AppLayoutProps) {
+  useEffect(() => {
+    const hasUnsaved = dirtySceneIds.size > 0;
+    if (bookTitle) {
+      document.title = `${hasUnsaved ? '● ' : ''}${bookTitle} — TextForge Studio`;
+    } else {
+      document.title = 'TextForge Studio';
+    }
+  }, [bookTitle, dirtySceneIds]);
+
+  const handleSceneOpen = useCallback((sceneId: string, sceneTitle: string) => {
+    editorRef.current?.openScene(sceneId, sceneTitle);
+  }, []);
+
   return (
     <div style={{
       display: 'flex',
@@ -16,18 +31,9 @@ export function AppLayout({ onSceneOpen }: AppLayoutProps) {
       fontFamily: "'Segoe UI', system-ui, sans-serif",
     }}>
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar onSceneOpen={onSceneOpen} />
-        <main style={{
-          flex: 1,
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#555',
-          fontSize: '14px',
-        }}>
-          {/* SceneEditorArea mounts here in Phase 8 */}
-          Open a scene from the Book Explorer
+        <Sidebar onSceneOpen={handleSceneOpen} />
+        <main style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <SceneEditorArea ref={editorRef} />
         </main>
       </div>
       <div style={{

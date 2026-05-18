@@ -312,37 +312,37 @@ Tasks are organized by phase. Complete each phase fully before starting the next
 ## Phase 8 — Scene Editor Tabs
 
 ### 8.1 Tab Container
-- [ ] Create `src/components/editor/SceneEditorArea.tsx` — manages `openTabs: TabState[]` and `activeTabId`
-- [ ] Receives `onSceneOpen` events from `BookExplorer` via shared context or prop drilling
-- [ ] Prevents duplicate tabs: if scene already open, activate its tab instead of opening a new one
-- [ ] Empty state: "Open a scene from the Book Explorer"
+- [x] Create `src/components/editor/SceneEditorArea.tsx` — manages `openTabs: TabState[]` and `activeTabId`
+- [x] Receives `onSceneOpen` events from `BookExplorer` via shared context or prop drilling
+- [x] Prevents duplicate tabs: if scene already open, activate its tab instead of opening a new one
+- [x] Empty state: "Open a scene from the Book Explorer"
 
 ### 8.2 Tab Bar
-- [ ] Create `src/components/editor/TabBar.tsx` — renders one tab chip per open scene
-- [ ] Each tab shows: scene title, dirty indicator (`*` prefix), close button (`×`)
-- [ ] Active tab is visually highlighted
-- [ ] Close button: if dirty, show `window.confirm("Save changes to '{title}'?")` before closing; if confirmed, save then close; if declined, close without saving; if cancelled, abort close
+- [x] Create `src/components/editor/TabBar.tsx` — renders one tab chip per open scene
+- [x] Each tab shows: scene title, dirty indicator (`●` prefix), close button (`×`)
+- [x] Active tab is visually highlighted
+- [x] Close button: if dirty, show `window.confirm("Save changes to '{title}'?")` before closing; if confirmed, save then close; if declined, close without saving
 
 ### 8.3 Scene Editor
-- [ ] Create `src/components/editor/SceneEditor.tsx` — renders a `<textarea>` for the active scene
-- [ ] On mount: calls `GET /api/scenes/{id}`; populates textarea with `content`
-- [ ] On change: marks scene dirty; does NOT auto-save on every keystroke
-- [ ] `Ctrl+S` keyboard handler: calls `PUT /api/scenes/{id}`; clears dirty flag on 204 response; shows error toast on failure
+- [x] Create `src/components/editor/SceneEditor.tsx` — renders a `<textarea>` for the active scene
+- [x] On mount: calls `GET /api/scenes/{id}`; populates textarea with `content`
+- [x] On change: marks scene dirty; does NOT auto-save on every keystroke
+- [x] `Ctrl+S` keyboard handler: calls `PUT /api/scenes/{id}`; clears dirty flag on 204 response; shows error on failure
 
 ### 8.4 useSceneEditor Hook
-- [ ] Create `src/hooks/useSceneEditor.ts`
-- [ ] State: `content`, `savedContent`, `isDirty`, `saving`, `error`
-- [ ] `isDirty = content !== savedContent`
-- [ ] `save()` — calls API, updates `savedContent` on success
+- [x] Create `src/hooks/useSceneEditor.ts`
+- [x] State: `content`, `savedContent`, `isDirty`, `saving`, `error`
+- [x] `isDirty = content !== savedContent`
+- [x] `save()` — calls API, updates `savedContent` on success
 
 ### 8.5 Dirty State Integration
-- [ ] `WorkspaceContext` (or equivalent) tracks which scene IDs are dirty across all open tabs
-- [ ] `GET /api/workspace/dirty` is called by the WPF shell on window close (via WebView2 or the exit handler)
-- [ ] Alternatively: WPF `Closing` event calls `GET /api/workspace/dirty` synchronously via `HttpClient`
+- [x] `WorkspaceContext` tracks which scene IDs are dirty across all open tabs
+- [x] `POST /api/workspace/dirty/{sceneId}` called by React when scene becomes dirty
+- [x] `GET /api/workspace/dirty` called by WPF shell on window close via `HttpClient`
 
 ### 8.6 Window Title
-- [ ] Update `document.title` (or post a message to WPF) to reflect current book name and dirty state
-- [ ] Format: `"My Novel — TextForge Studio"` or `"My Novel* — TextForge Studio"` when dirty
+- [x] Update `document.title` to reflect current book name and dirty state
+- [x] Format: `"My Novel — TextForge Studio"` or `"● My Novel — TextForge Studio"` when dirty
 
 **Phase 8 exit criteria:** Scenes open in tabs. Multiple scenes can be open simultaneously. Editing marks the tab dirty. `Ctrl+S` saves and clears the dirty indicator. Closing a dirty tab prompts the user. Re-opening the app after save restores all content correctly.
 

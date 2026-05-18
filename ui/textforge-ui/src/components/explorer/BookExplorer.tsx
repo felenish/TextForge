@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useBookExplorer } from '../../hooks/useBookExplorer';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { ContextMenu, type ContextMenuItem } from '../ui/ContextMenu';
 import { ChapterNode } from './ChapterNode';
 
@@ -14,6 +15,11 @@ export function BookExplorer({ onSceneOpen }: BookExplorerProps) {
     addChapter, renameChapter, deleteChapter,
     addScene, renameScene, deleteScene,
   } = useBookExplorer();
+  const { setBookTitle } = useWorkspace();
+
+  useEffect(() => {
+    setBookTitle(book?.title ?? null);
+  }, [book?.title, setBookTitle]);
 
   const [emptyMenu, setEmptyMenu] = useState<{ x: number; y: number } | null>(null);
 
