@@ -109,7 +109,7 @@ Foundation layer. Everything else builds on top of this.
 - [x] Create `src/components/editor/Minimap.tsx`
 - [x] Paragraph lines rendered proportional to character count; viewport indicator overlay
 - [x] Click-to-scroll: clicks map to scrollEl offset
-- [ ] Wire into SceneEditor as toggleable panel (deferred to Tweaks Panel, Phase F.4)
+- [x] Wire into SceneEditor as toggleable panel (deferred to Tweaks Panel, Phase F.4)
 
 ### C.6 Empty State
 - [x] Updated `SceneEditorArea` empty state: `⁂` glyph, "No scene open.", keyboard hint
@@ -174,34 +174,34 @@ Foundation layer. Everything else builds on top of this.
 ## Phase F — Command Palette & Modes
 
 ### F.1 Command Palette
-- [ ] Create `src/components/ui/CommandPalette.tsx`
-- [ ] Ctrl+P / ⌘P to open; Escape to close
-- [ ] Fuzzy search over: open scenes (from book explorer), theme commands, view toggle commands
-- [ ] Keyboard navigation: ↑↓ arrows, Enter to execute
-- [ ] Replace existing `Ctrl+P` behaviour if any
+- [x] Create `src/components/ui/CommandPalette.tsx`
+- [x] Ctrl+P / ⌘P to open; Escape to close
+- [x] Fuzzy search over: open scenes (from book explorer), theme commands, view toggle commands
+- [x] Keyboard navigation: ↑↓ arrows, Enter to execute
+- [x] Replace existing `Ctrl+P` behaviour if any
 
 ### F.2 Focus Mode
-- [ ] F11 or focus button toggles focus mode
-- [ ] Hides: title bar menu, sidebar, inspector, bottom panel, breadcrumb, scene header
-- [ ] Shows: "Exit focus · esc" floating button
-- [ ] Escape exits focus mode
-- [ ] CSS class `.focus-mode` on shell drives hiding via existing CSS
+- [x] F11 or focus button toggles focus mode
+- [x] Hides: title bar menu, sidebar, inspector, bottom panel, breadcrumb, scene header
+- [x] Shows: "Exit focus · esc" floating button
+- [x] Escape exits focus mode
+- [x] CSS class `.focus-mode` on shell drives hiding via existing CSS
 
 ### F.3 Typewriter Mode
-- [ ] Toggle from status bar or command palette
-- [ ] Adds `.is-current` class to the paragraph containing the caret
-- [ ] CSS fades all non-current paragraphs to `--text-faint`
-- [ ] Tracks `selectionchange` event
+- [x] Toggle from status bar or command palette
+- [x] Adds `.is-current` class to the paragraph containing the caret
+- [x] CSS fades all non-current paragraphs to `--text-faint`
+- [x] Tracks `selectionchange` event
 
 ### F.4 Tweaks Panel
-- [ ] Create `src/components/ui/TweaksPanel.tsx` — floating bottom-right panel
-- [ ] Theme radio: Dark / Light / Sepia
-- [ ] Editor font radio: Serif (Spectral) / Sans (Geist) / Mono (JetBrains Mono)
-- [ ] Font size slider: 13–24 px
-- [ ] Line height slider: 1.3–2.2
-- [ ] Inspector toggle
-- [ ] Minimap toggle
-- [ ] Persist settings to `localStorage`
+- [x] Create `src/components/ui/TweaksPanel.tsx` — floating bottom-right panel
+- [x] Theme radio: Dark / Light / Sepia
+- [x] Editor font radio: Serif (Spectral) / Sans (Geist) / Mono (JetBrains Mono)
+- [x] Font size slider: 13–24 px
+- [x] Line height slider: 1.3–2.2
+- [x] Inspector toggle
+- [x] Minimap toggle
+- [x] Persist settings to `localStorage`
 
 ---
 
@@ -213,7 +213,7 @@ Foundation layer. Everything else builds on top of this.
 - [x] Expose `status` in `SceneDto`
 - [x] `PATCH /api/scenes/{id}` extended to accept `status`
 - [x] Default status: `draft`
-- [ ] Status dot in sidebar tree uses real data
+- [x] Status dot in sidebar tree uses real data
 
 ---
 

@@ -202,6 +202,9 @@ export function ManuscriptSidebar({
                       <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
                       <span className="icon"><Icon name="scene" size={12} /></span>
                       <span className="label">{sc.title}</span>
+                      {sc.status && sc.status !== 'draft' && (
+                        <span className={`dot ${sc.status}`} title={sc.status} />
+                      )}
                       {dirtySceneIds.has(sc.id) && (
                         <span className="unsaved" title="Unsaved" />
                       )}

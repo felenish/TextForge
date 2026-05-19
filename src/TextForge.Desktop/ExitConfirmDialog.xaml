@@ -1,0 +1,70 @@
+<Window x:Class="TextForge.Desktop.ExitConfirmDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TextForge Studio"
+        Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStyle="ToolWindow"
+        Background="#1f2127"
+        Foreground="#d8d9dc">
+
+    <Window.Resources>
+        <Style x:Key="DlgBtn" TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="14,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.82"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.65"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="24,20,24,20">
+        <TextBlock Text="Unsaved Changes"
+                   FontFamily="Segoe UI" FontSize="14" FontWeight="SemiBold"
+                   Foreground="#f0f1f3" Margin="0,0,0,8"/>
+        <TextBlock x:Name="DetailText"
+                   FontFamily="Segoe UI" FontSize="12"
+                   Foreground="#8a8d94" TextWrapping="Wrap"
+                   Margin="0,0,0,24"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="BtnCancel" Content="Cancel" Click="BtnCancel_Click"
+                    Style="{StaticResource DlgBtn}"
+                    Width="76"
+                    Background="#2a2d34" Foreground="#d8d9dc" BorderBrush="#353942"
+                    Margin="0,0,8,0"/>
+            <Button x:Name="BtnDiscard" Content="Discard" Click="BtnDiscard_Click"
+                    Style="{StaticResource DlgBtn}"
+                    Width="84"
+                    Background="#2a2d34" Foreground="#d8d9dc" BorderBrush="#353942"
+                    Margin="0,0,8,0"/>
+            <Button x:Name="BtnSaveAll" Content="Save All" Click="BtnSaveAll_Click"
+                    Style="{StaticResource DlgBtn}"
+                    Width="84"
+                    Background="#c8a96e" Foreground="#16140f" BorderBrush="#c8a96e"
+                    FontWeight="SemiBold"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

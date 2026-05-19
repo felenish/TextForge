@@ -87,7 +87,7 @@ export function useBookExplorer(): UseBookExplorerResult {
   const addScene = (chapterId: string, title: string) => run(async () => {
     if (!book) return;
     const scene = await scenesApi.addScene(book.id, chapterId, title);
-    const meta: SceneMetaDto = { id: scene.id, title: scene.title, sortOrder: scene.sortOrder };
+    const meta: SceneMetaDto = { id: scene.id, title: scene.title, sortOrder: scene.sortOrder, status: scene.status };
     setBook(b => b ? {
       ...b,
       chapters: b.chapters.map(c =>

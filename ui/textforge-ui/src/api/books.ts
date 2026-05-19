@@ -4,6 +4,7 @@ export interface SceneMetaDto {
   id: string;
   title: string;
   sortOrder: number;
+  status: string;
 }
 
 export interface ChapterDto {

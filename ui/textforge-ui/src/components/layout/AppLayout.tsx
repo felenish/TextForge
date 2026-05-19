@@ -54,6 +54,19 @@ export function AppLayout() {
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
   const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
 
+  // WebView2 message bridge — C# posts "save-all" before exit; we save and reply "save-complete"
+  useEffect(() => {
+    const webview = (window as { chrome?: { webview?: { addEventListener: (type: string, fn: (e: MessageEvent) => void) => void; removeEventListener: (type: string, fn: (e: MessageEvent) => void) => void; postMessage: (msg: string) => void } } }).chrome?.webview;
+    if (!webview) return;
+    const handler = async (e: MessageEvent) => {
+      if (e.data !== 'save-all') return;
+      await editorRef.current?.saveAll();
+      webview.postMessage('save-complete');
+    };
+    webview.addEventListener('message', handler);
+    return () => webview.removeEventListener('message', handler);
+  }, []);
+
   return (
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
       <TitleBar focusMode={focusMode} onFocusToggle={toggleFocus} />

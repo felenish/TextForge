@@ -16,6 +16,7 @@ interface TabsState {
 
 export interface SceneEditorAreaHandle {
   openScene: (sceneId: string, sceneTitle: string) => void;
+  saveAll: () => Promise<void>;
 }
 
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
@@ -32,7 +33,13 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       });
     }, []);
 
-    useImperativeHandle(ref, () => ({ openScene }), [openScene]);
+    const saveAll = useCallback(async () => {
+      await Promise.all(
+        Array.from(saveRegistry.current.values()).map(save => save().catch(() => {}))
+      );
+    }, []);
+
+    useImperativeHandle(ref, () => ({ openScene, saveAll }), [openScene, saveAll]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
