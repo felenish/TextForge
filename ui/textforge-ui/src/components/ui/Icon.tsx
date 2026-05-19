@@ -269,6 +269,40 @@ export function Icon({ name, size = 16, stroke = 1.5, className, style }: IconPr
         <path d="M3 9v10a2 2 0 0 0 2 2h10" />
       </svg>
     );
+    case 'layout-grid': return (
+      <svg {...base}>
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+    );
+    case 'list': return (
+      <svg {...base}>
+        <line x1="8" y1="6" x2="21" y2="6" />
+        <line x1="8" y1="12" x2="21" y2="12" />
+        <line x1="8" y1="18" x2="21" y2="18" />
+        <line x1="3" y1="6" x2="3.01" y2="6" />
+        <line x1="3" y1="12" x2="3.01" y2="12" />
+        <line x1="3" y1="18" x2="3.01" y2="18" />
+      </svg>
+    );
+    case 'list-ordered': return (
+      <svg {...base}>
+        <line x1="10" y1="6" x2="21" y2="6" />
+        <line x1="10" y1="12" x2="21" y2="12" />
+        <line x1="10" y1="18" x2="21" y2="18" />
+        <path d="M4 6h.5v4" />
+        <path d="M3 11h2" />
+        <path d="M3 15h2a1 1 0 0 1 0 2H3v1h2" />
+      </svg>
+    );
+    case 'table': return (
+      <svg {...base}>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M3 9h18M3 15h18M9 3v18" />
+      </svg>
+    );
     default: return <svg {...base}><circle cx="12" cy="12" r="6" /></svg>;
   }
 }

@@ -54,6 +54,8 @@ public sealed class SeriesStorageService : ISeriesStorageService
 
         EnsureCharactersFolder(rootPath);
         EnsureLocationsFolder(rootPath);
+        EnsureOutlinesFolder(rootPath);
+        EnsurePlotGridsFolder(rootPath);
         _logger.LogInformation("Created series '{Title}' at {RootPath}", request.Title, rootPath);
 
         return new Series
@@ -123,6 +125,8 @@ public sealed class SeriesStorageService : ISeriesStorageService
 
         EnsureCharactersFolder(rootPath);
         EnsureLocationsFolder(rootPath);
+        EnsureOutlinesFolder(rootPath);
+        EnsurePlotGridsFolder(rootPath);
         _logger.LogInformation("Opened series '{Title}' with {Count} book(s)", series.Title, series.Books.Count);
 
         return series;
@@ -198,4 +202,10 @@ public sealed class SeriesStorageService : ISeriesStorageService
 
     private static void EnsureLocationsFolder(string rootPath) =>
         Directory.CreateDirectory(Path.Combine(rootPath, "Locations"));
+
+    private static void EnsureOutlinesFolder(string rootPath) =>
+        Directory.CreateDirectory(Path.Combine(rootPath, "Outlines"));
+
+    private static void EnsurePlotGridsFolder(string rootPath) =>
+        Directory.CreateDirectory(Path.Combine(rootPath, "PlotGrids"));
 }

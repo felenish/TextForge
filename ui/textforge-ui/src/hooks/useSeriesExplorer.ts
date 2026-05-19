@@ -3,6 +3,8 @@ import type { SeriesDto } from '../api/series';
 import type { BookDto, SceneMetaDto } from '../api/books';
 import type { CharacterDto } from '../api/characters';
 import type { LocationDto } from '../api/locations';
+import type { OutlineDto } from '../api/outlines';
+import type { PlotGridDto, PlotGridMeta } from '../api/plotGrids';
 import * as booksApi from '../api/books';
 import * as seriesApi from '../api/series';
 import * as chaptersApi from '../api/chapters';
@@ -10,6 +12,8 @@ import * as scenesApi from '../api/scenes';
 import * as shellApi from '../api/shell';
 import * as charactersApi from '../api/characters';
 import * as locationsApi from '../api/locations';
+import * as outlinesApi from '../api/outlines';
+import * as plotGridsApi from '../api/plotGrids';
 import { useToast } from '../contexts/ToastContext';
 
 export interface UseSeriesExplorerResult {
@@ -43,6 +47,20 @@ export interface UseSeriesExplorerResult {
   renameLocation: (id: string, name: string) => Promise<void>;
   deleteLocation: (id: string) => Promise<void>;
   patchLocationInList: (location: LocationDto) => void;
+  outlines: OutlineDto[];
+  outlinesLoaded: boolean;
+  loadOutlines: () => Promise<void>;
+  addOutline: (name: string) => Promise<void>;
+  renameOutline: (id: string, name: string) => Promise<void>;
+  deleteOutline: (id: string) => Promise<void>;
+  patchOutlineInList: (outline: OutlineDto) => void;
+  plotGrids: PlotGridMeta[];
+  plotGridsLoaded: boolean;
+  loadPlotGrids: () => Promise<void>;
+  addPlotGrid: (name: string) => Promise<void>;
+  renamePlotGrid: (id: string, name: string) => Promise<void>;
+  deletePlotGrid: (id: string) => Promise<void>;
+  patchPlotGridInList: (dto: PlotGridDto) => void;
 }
 
 export function useSeriesExplorer(): UseSeriesExplorerResult {
@@ -53,6 +71,10 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const [charactersLoaded, setCharactersLoaded] = useState(false);
   const [locations, setLocations] = useState<LocationDto[]>([]);
   const [locationsLoaded, setLocationsLoaded] = useState(false);
+  const [outlines, setOutlines] = useState<OutlineDto[]>([]);
+  const [outlinesLoaded, setOutlinesLoaded] = useState(false);
+  const [plotGrids, setPlotGrids] = useState<PlotGridMeta[]>([]);
+  const [plotGridsLoaded, setPlotGridsLoaded] = useState(false);
   const { showToast } = useToast();
 
   async function run(fn: () => Promise<void>): Promise<void> {
@@ -78,6 +100,10 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     setCharactersLoaded(false);
     setLocations([]);
     setLocationsLoaded(false);
+    setOutlines([]);
+    setOutlinesLoaded(false);
+    setPlotGrids([]);
+    setPlotGridsLoaded(false);
   }
 
   const createSeries = () => run(async () => {
@@ -161,6 +187,67 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const patchLocationInList = (location: LocationDto) => {
     setLocations(prev =>
       prev.map(l => l.id === location.id ? location : l)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  };
+
+  const loadOutlines = () => run(async () => {
+    const list = await outlinesApi.getOutlines();
+    setOutlines(list);
+    setOutlinesLoaded(true);
+  });
+
+  const addOutline = (name: string) => run(async () => {
+    const outline = await outlinesApi.createOutline(name);
+    setOutlines(prev => [...prev, outline].sort((a, b) => a.name.localeCompare(b.name)));
+  });
+
+  const renameOutline = (id: string, name: string) => run(async () => {
+    await outlinesApi.updateOutline(id, { name });
+    setOutlines(prev =>
+      prev.map(o => o.id === id ? { ...o, name } : o)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  });
+
+  const deleteOutline = (id: string) => run(async () => {
+    await outlinesApi.deleteOutline(id);
+    setOutlines(prev => prev.filter(o => o.id !== id));
+  });
+
+  const loadPlotGrids = () => run(async () => {
+    const list = await plotGridsApi.getPlotGrids();
+    setPlotGrids(list);
+    setPlotGridsLoaded(true);
+  });
+
+  const addPlotGrid = (name: string) => run(async () => {
+    const dto = await plotGridsApi.createPlotGrid(name);
+    setPlotGrids(prev => [...prev, { id: dto.id, name: dto.name }].sort((a, b) => a.name.localeCompare(b.name)));
+  });
+
+  const renamePlotGrid = (id: string, name: string) => run(async () => {
+    await plotGridsApi.updatePlotGrid(id, { name });
+    setPlotGrids(prev =>
+      prev.map(g => g.id === id ? { ...g, name } : g).sort((a, b) => a.name.localeCompare(b.name))
+    );
+  });
+
+  const deletePlotGrid = (id: string) => run(async () => {
+    await plotGridsApi.deletePlotGrid(id);
+    setPlotGrids(prev => prev.filter(g => g.id !== id));
+  });
+
+  const patchPlotGridInList = (dto: PlotGridDto) => {
+    setPlotGrids(prev =>
+      prev.map(g => g.id === dto.id ? { ...g, name: dto.name } : g)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  };
+
+  const patchOutlineInList = (outline: OutlineDto) => {
+    setOutlines(prev =>
+      prev.map(o => o.id === outline.id ? { ...o, name: outline.name } : o)
           .sort((a, b) => a.name.localeCompare(b.name))
     );
   };
@@ -257,5 +344,9 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     loadCharacters, addCharacter, renameCharacter, deleteCharacter, patchCharacterInList,
     locations, locationsLoaded,
     loadLocations, addLocation, renameLocation, deleteLocation, patchLocationInList,
+    outlines, outlinesLoaded,
+    loadOutlines, addOutline, renameOutline, deleteOutline, patchOutlineInList,
+    plotGrids, plotGridsLoaded,
+    loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid, patchPlotGridInList,
   };
 }

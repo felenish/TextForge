@@ -88,6 +88,22 @@ export function AppLayout() {
     explorer.patchLocationInList(location);
   }, [explorer]);
 
+  const handleOutlineOpen = useCallback((outlineId: string, name: string) => {
+    editorRef.current?.openOutline(outlineId, name);
+  }, []);
+
+  const handleOutlineSaved = useCallback((outline: import('../../api/outlines').OutlineDto) => {
+    explorer.patchOutlineInList(outline);
+  }, [explorer]);
+
+  const handlePlotGridOpen = useCallback((plotGridId: string, name: string) => {
+    editorRef.current?.openPlotGrid(plotGridId, name);
+  }, []);
+
+  const handlePlotGridSaved = useCallback((dto: import('../../api/plotGrids').PlotGridDto) => {
+    explorer.patchPlotGridInList(dto);
+  }, [explorer]);
+
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
   const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
 
@@ -139,10 +155,10 @@ export function AppLayout() {
           onModeChange={setSidebarMode}
           dirtyCount={dirtySceneIds.size}
         />
-        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} onLocationOpen={handleLocationOpen} />
+        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} onLocationOpen={handleLocationOpen} onOutlineOpen={handleOutlineOpen} onPlotGridOpen={handlePlotGridOpen} />
         <div className={`center-col${bottomOpen ? '' : ' no-bottom'}`}>
           <div className="editor-col">
-            <SceneEditorArea ref={editorRef} onCharacterSaved={handleCharacterSaved} onLocationSaved={handleLocationSaved} />
+            <SceneEditorArea ref={editorRef} onCharacterSaved={handleCharacterSaved} onLocationSaved={handleLocationSaved} onOutlineSaved={handleOutlineSaved} onPlotGridSaved={handlePlotGridSaved} />
           </div>
           {bottomOpen && <BottomPanel onClose={() => setBottomOpen(false)} />}
         </div>
