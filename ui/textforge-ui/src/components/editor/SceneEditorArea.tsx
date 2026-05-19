@@ -1,12 +1,16 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { CharacterDto } from '../../api/characters';
 import type { LocationDto } from '../../api/locations';
+import type { OutlineDto } from '../../api/outlines';
+import type { PlotGridDto } from '../../api/plotGrids';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { TabBar, type Tab } from './TabBar';
 import { Breadcrumb } from './Breadcrumb';
 import { SceneEditor } from './SceneEditor';
 import { CharacterEditor } from './CharacterEditor';
 import { LocationEditor } from './LocationEditor';
+import { OutlineEditor } from './OutlineEditor';
+import { PlotGridEditor } from './PlotGridEditor';
 import { FindReplaceBar } from './FindReplaceBar';
 
 interface TabsState {
@@ -18,6 +22,8 @@ export interface SceneEditorAreaHandle {
   openScene: (sceneId: string, sceneTitle: string) => void;
   openCharacter: (characterId: string, name: string) => void;
   openLocation: (locationId: string, name: string) => void;
+  openOutline: (outlineId: string, name: string) => void;
+  openPlotGrid: (plotGridId: string, name: string) => void;
   saveAll: () => Promise<void>;
   saveActive: () => Promise<void>;
   closeAll: () => void;
@@ -27,10 +33,12 @@ export interface SceneEditorAreaHandle {
 interface SceneEditorAreaProps {
   onCharacterSaved?: (character: CharacterDto) => void;
   onLocationSaved?: (location: LocationDto) => void;
+  onOutlineSaved?: (outline: OutlineDto) => void;
+  onPlotGridSaved?: (dto: PlotGridDto) => void;
 }
 
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorAreaProps>(
-  function SceneEditorArea({ onCharacterSaved, onLocationSaved }, ref) {
+  function SceneEditorArea({ onCharacterSaved, onLocationSaved, onOutlineSaved, onPlotGridSaved }, ref) {
     const [{ tabs, activeId }, setState] = useState<TabsState>({ tabs: [], activeId: null });
     const { dirtySceneIds, markClean, clearSceneWordCount, setActiveScene } = useWorkspace();
     const saveRegistry = useRef(new Map<string, () => Promise<void>>());
@@ -56,6 +64,22 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
         if (prev.tabs.some(t => t.id === locationId))
           return { ...prev, activeId: locationId };
         return { tabs: [...prev.tabs, { id: locationId, title: name, kind: 'location' }], activeId: locationId };
+      });
+    }, []);
+
+    const openPlotGrid = useCallback((plotGridId: string, name: string) => {
+      setState(prev => {
+        if (prev.tabs.some(t => t.id === plotGridId))
+          return { ...prev, activeId: plotGridId };
+        return { tabs: [...prev.tabs, { id: plotGridId, title: name, kind: 'plotgrid' }], activeId: plotGridId };
+      });
+    }, []);
+
+    const openOutline = useCallback((outlineId: string, name: string) => {
+      setState(prev => {
+        if (prev.tabs.some(t => t.id === outlineId))
+          return { ...prev, activeId: outlineId };
+        return { tabs: [...prev.tabs, { id: outlineId, title: name, kind: 'outline' }], activeId: outlineId };
       });
     }, []);
 
@@ -103,7 +127,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       setFindOpen(true);
     }, []);
 
-    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, saveAll, saveActive, closeAll, openFind }), [openScene, openCharacter, openLocation, saveAll, saveActive, closeAll, openFind]);
+    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind }), [openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
@@ -162,6 +186,26 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       }));
       onLocationSaved?.(location);
     }, [onLocationSaved]);
+
+    const handlePlotGridSaved = useCallback((dto: PlotGridDto) => {
+      setState(prev => ({
+        ...prev,
+        tabs: prev.tabs.map(t =>
+          t.id === dto.id && t.kind === 'plotgrid' ? { ...t, title: dto.name } : t
+        ),
+      }));
+      onPlotGridSaved?.(dto);
+    }, [onPlotGridSaved]);
+
+    const handleOutlineSaved = useCallback((outline: OutlineDto) => {
+      setState(prev => ({
+        ...prev,
+        tabs: prev.tabs.map(t =>
+          t.id === outline.id && t.kind === 'outline' ? { ...t, title: outline.name } : t
+        ),
+      }));
+      onOutlineSaved?.(outline);
+    }, [onOutlineSaved]);
 
     useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -234,10 +278,20 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
                   characterId={tab.id}
                   onSaved={handleCharacterSaved}
                 />
-              ) : (
+              ) : tab.kind === 'location' ? (
                 <LocationEditor
                   locationId={tab.id}
                   onSaved={handleLocationSaved}
+                />
+              ) : tab.kind === 'outline' ? (
+                <OutlineEditor
+                  outlineId={tab.id}
+                  onSaved={handleOutlineSaved}
+                />
+              ) : (
+                <PlotGridEditor
+                  plotGridId={tab.id}
+                  onSaved={handlePlotGridSaved}
                 />
               )}
             </div>

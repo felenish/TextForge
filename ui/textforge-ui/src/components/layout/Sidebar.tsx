@@ -12,9 +12,11 @@ interface SidebarProps {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
   onCharacterOpen: (characterId: string, name: string) => void;
   onLocationOpen: (locationId: string, name: string) => void;
+  onOutlineOpen: (outlineId: string, name: string) => void;
+  onPlotGridOpen: (plotGridId: string, name: string) => void;
 }
 
-export function Sidebar({ mode, explorer, onSceneOpen, onCharacterOpen, onLocationOpen }: SidebarProps) {
+export function Sidebar({ mode, explorer, onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen }: SidebarProps) {
   const { activeSceneId } = useWorkspace();
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function Sidebar({ mode, explorer, onSceneOpen, onCharacterOpen, onLocati
   return (
     <aside className="sidebar">
       {mode === 'manuscript' && (
-        <ManuscriptSidebar {...explorer} onSceneOpen={onSceneOpen} onCharacterOpen={onCharacterOpen} onLocationOpen={onLocationOpen} />
+        <ManuscriptSidebar {...explorer} onSceneOpen={onSceneOpen} onCharacterOpen={onCharacterOpen} onLocationOpen={onLocationOpen} onOutlineOpen={onOutlineOpen} onPlotGridOpen={onPlotGridOpen} />
       )}
       {mode === 'versions' && <VersionsSidebar />}
       {mode === 'search' && (

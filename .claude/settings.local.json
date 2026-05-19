@@ -26,7 +26,8 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Projects\\\\TextForge\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(Format-Table -AutoSize)",
-      "Bash(Remove-Item \"c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui\\\\src\\\\components\\\\explorer\\\\CharactersSidebar.tsx\" -Force)"
+      "Bash(Remove-Item \"c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui\\\\src\\\\components\\\\explorer\\\\CharactersSidebar.tsx\" -Force)",
+      "Bash(npx eslint *)"
     ]
   }
 }

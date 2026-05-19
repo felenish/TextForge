@@ -4,6 +4,17 @@ namespace TextForge.Api.Dtos;
 
 internal static class DtoMapper
 {
+    public static PlotGridMetaDto ToPlotGridMeta(PlotGrid g) => new(g.Id, g.Name);
+    public static PlotGridDto ToPlotGridDto(PlotGrid g) => new(
+        g.Id,
+        g.Name,
+        g.Columns.Select(c => new PlotGridColumnDto(c.Id, c.Label)).ToArray(),
+        g.Rows.Select(r => new PlotGridRowDto(r.Id, r.Label)).ToArray(),
+        g.Cells.Select(c => new PlotGridCellDto(c.RowId, c.ColId, c.Content)).ToArray());
+
+    public static OutlineDto ToOutlineMeta(Outline o) => new(o.Id, o.Name, null);
+    public static OutlineDto ToOutlineDto(Outline o) => new(o.Id, o.Name, o.Content);
+
     public static LocationDto ToLocationDto(Location l) => new(l.Id, l.Name, l.Description, l.ImageFileName is not null);
 
     public static CharacterDto ToCharacterDto(Character c) => new(

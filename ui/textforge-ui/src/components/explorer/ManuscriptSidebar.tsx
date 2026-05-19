@@ -10,24 +10,32 @@ interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
   onCharacterOpen: (characterId: string, name: string) => void;
   onLocationOpen: (locationId: string, name: string) => void;
+  onOutlineOpen: (outlineId: string, name: string) => void;
+  onPlotGridOpen: (plotGridId: string, name: string) => void;
 }
 
 export function ManuscriptSidebar({
   series, loading, error,
   characters, charactersLoaded,
   locations, locationsLoaded,
+  outlines, outlinesLoaded,
+  plotGrids, plotGridsLoaded,
   createSeries, openSeries, addBook, renameBook, deleteBook,
   addChapter, renameChapter, deleteChapter,
   addScene, renameScene, deleteScene,
   loadCharacters, addCharacter, renameCharacter, deleteCharacter,
   loadLocations, addLocation, renameLocation, deleteLocation,
-  onSceneOpen, onCharacterOpen, onLocationOpen,
+  loadOutlines, addOutline, renameOutline, deleteOutline,
+  loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid,
+  onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId } = useWorkspace();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [charsOpen, setCharsOpen] = useState(false);
   const [locsOpen, setLocsOpen] = useState(false);
+  const [outlinesOpen, setOutlinesOpen] = useState(false);
+  const [plotGridsOpen, setPlotGridsOpen] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
 
   const isExpanded = (id: string) => expanded[id] !== false;
@@ -77,6 +85,52 @@ export function ManuscriptSidebar({
     if (!locsOpen && !locationsLoaded) loadLocations();
     setLocsOpen(v => !v);
   };
+
+  const toggleOutlines = () => {
+    if (!outlinesOpen && !outlinesLoaded) loadOutlines();
+    setOutlinesOpen(v => !v);
+  };
+
+  const togglePlotGrids = () => {
+    if (!plotGridsOpen && !plotGridsLoaded) loadPlotGrids();
+    setPlotGridsOpen(v => !v);
+  };
+
+  const plotGridMenuItems = (id: string, name: string): ContextMenuEntry[] => [
+    {
+      label: 'Rename',
+      onClick: () => {
+        const t = window.prompt('New name:', name);
+        if (t?.trim() && t !== name) renamePlotGrid(id, t.trim());
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Delete',
+      danger: true,
+      onClick: () => {
+        if (window.confirm(`Delete plot grid "${name}"?`)) deletePlotGrid(id);
+      },
+    },
+  ];
+
+  const outlineMenuItems = (id: string, name: string): ContextMenuEntry[] => [
+    {
+      label: 'Rename',
+      onClick: () => {
+        const t = window.prompt('New name:', name);
+        if (t?.trim() && t !== name) renameOutline(id, t.trim());
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Delete',
+      danger: true,
+      onClick: () => {
+        if (window.confirm(`Delete outline "${name}"?`)) deleteOutline(id);
+      },
+    },
+  ];
 
   const locationMenuItems = (id: string, name: string): ContextMenuEntry[] => [
     {
@@ -457,6 +511,126 @@ export function ManuscriptSidebar({
                 </>
               )}
             </div>
+
+            {/* Outlines */}
+            <div>
+              <div
+                className="tree-row is-book"
+                onClick={toggleOutlines}
+                onContextMenu={e => showMenu(e, [
+                  {
+                    label: 'New Outline',
+                    onClick: () => {
+                      const name = window.prompt('Outline name:');
+                      if (name?.trim()) addOutline(name.trim());
+                    },
+                  },
+                ])}
+              >
+                <span className={`chev${outlinesOpen ? ' open' : ''}`}>
+                  <Icon name="chev-right" size={11} />
+                </span>
+                <span className="icon"><Icon name="list" size={13} /></span>
+                <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>Outlines</span>
+                {outlinesLoaded && (
+                  <span className="meta-right">{outlines.length}</span>
+                )}
+              </div>
+
+              {outlinesOpen && (
+                <>
+                  <div
+                    className="tree-row"
+                    style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
+                    onClick={() => {
+                      const name = window.prompt('Outline name:');
+                      if (name?.trim()) addOutline(name.trim());
+                    }}
+                  >
+                    <span className="icon"><Icon name="plus" size={12} /></span>
+                    <span className="label" style={{ fontSize: 11 }}>New Outline…</span>
+                  </div>
+                  {outlines.map(o => (
+                    <div
+                      key={o.id}
+                      className="tree-row"
+                      style={{ paddingLeft: 20 }}
+                      onClick={() => onOutlineOpen(o.id, o.name)}
+                      onContextMenu={e => showMenu(e, outlineMenuItems(o.id, o.name))}
+                    >
+                      <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                      <span className="icon"><Icon name="list" size={13} /></span>
+                      <span className="label">{o.name}</span>
+                    </div>
+                  ))}
+                  {outlinesLoaded && outlines.length === 0 && (
+                    <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '4px 14px 4px 28px' }}>
+                      No outlines yet
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Plot Grids */}
+            <div>
+              <div
+                className="tree-row is-book"
+                onClick={togglePlotGrids}
+                onContextMenu={e => showMenu(e, [
+                  {
+                    label: 'New Plot Grid',
+                    onClick: () => {
+                      const name = window.prompt('Plot grid name:');
+                      if (name?.trim()) addPlotGrid(name.trim());
+                    },
+                  },
+                ])}
+              >
+                <span className={`chev${plotGridsOpen ? ' open' : ''}`}>
+                  <Icon name="chev-right" size={11} />
+                </span>
+                <span className="icon"><Icon name="layout-grid" size={13} /></span>
+                <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>Plot Grids</span>
+                {plotGridsLoaded && (
+                  <span className="meta-right">{plotGrids.length}</span>
+                )}
+              </div>
+
+              {plotGridsOpen && (
+                <>
+                  <div
+                    className="tree-row"
+                    style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
+                    onClick={() => {
+                      const name = window.prompt('Plot grid name:');
+                      if (name?.trim()) addPlotGrid(name.trim());
+                    }}
+                  >
+                    <span className="icon"><Icon name="plus" size={12} /></span>
+                    <span className="label" style={{ fontSize: 11 }}>New Plot Grid…</span>
+                  </div>
+                  {plotGrids.map(g => (
+                    <div
+                      key={g.id}
+                      className="tree-row"
+                      style={{ paddingLeft: 20 }}
+                      onClick={() => onPlotGridOpen(g.id, g.name)}
+                      onContextMenu={e => showMenu(e, plotGridMenuItems(g.id, g.name))}
+                    >
+                      <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                      <span className="icon"><Icon name="layout-grid" size={13} /></span>
+                      <span className="label">{g.name}</span>
+                    </div>
+                  ))}
+                  {plotGridsLoaded && plotGrids.length === 0 && (
+                    <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '4px 14px 4px 28px' }}>
+                      No plot grids yet
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -467,6 +641,8 @@ export function ManuscriptSidebar({
           <span><span className="num">{totalChapters}</span> ch</span>
           {charactersLoaded && <span><span className="num">{characters.length}</span> chars</span>}
           {locationsLoaded && <span><span className="num">{locations.length}</span> locs</span>}
+          {outlinesLoaded && <span><span className="num">{outlines.length}</span> outlines</span>}
+          {plotGridsLoaded && <span><span className="num">{plotGrids.length}</span> grids</span>}
         </div>
       )}
 
