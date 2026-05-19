@@ -52,6 +52,7 @@ public sealed class SeriesStorageService : ISeriesStorageService
         var manifestPath = Path.Combine(rootPath, ManifestFileName);
         await SafeFileWriter.WriteAsync(manifestPath, Serialize(manifest), ct);
 
+        EnsureCharactersFolder(rootPath);
         _logger.LogInformation("Created series '{Title}' at {RootPath}", request.Title, rootPath);
 
         return new Series
@@ -119,6 +120,7 @@ public sealed class SeriesStorageService : ISeriesStorageService
             series.Books.Add(book);
         }
 
+        EnsureCharactersFolder(rootPath);
         _logger.LogInformation("Opened series '{Title}' with {Count} book(s)", series.Title, series.Books.Count);
 
         return series;
@@ -188,4 +190,7 @@ public sealed class SeriesStorageService : ISeriesStorageService
 
     private static string Serialize(SeriesManifest manifest) =>
         JsonSerializer.Serialize(manifest, JsonOptions);
+
+    private static void EnsureCharactersFolder(string rootPath) =>
+        Directory.CreateDirectory(Path.Combine(rootPath, "Characters"));
 }

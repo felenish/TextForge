@@ -4,6 +4,7 @@ namespace TextForge.Api.Dtos;
 
 internal static class DtoMapper
 {
+    public static CharacterDto ToCharacterDto(Character c) => new(c.Id, c.Name, c.Role, c.Notes);
     public static SeriesDto ToSeriesDto(Series series) => new(
         series.Id,
         series.Title,

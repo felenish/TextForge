@@ -3,7 +3,6 @@ import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import type { SidebarMode } from './ActivityBar';
 import { ManuscriptSidebar } from '../explorer/ManuscriptSidebar';
-import { CharactersSidebar } from '../explorer/CharactersSidebar';
 import { VersionsSidebar } from '../explorer/VersionsSidebar';
 import { SearchSidebar } from '../explorer/SearchSidebar';
 
@@ -42,7 +41,6 @@ export function Sidebar({ mode, explorer, onSceneOpen }: SidebarProps) {
       {mode === 'manuscript' && (
         <ManuscriptSidebar {...explorer} onSceneOpen={onSceneOpen} />
       )}
-      {mode === 'characters' && <CharactersSidebar />}
       {mode === 'versions' && <VersionsSidebar />}
       {mode === 'search' && (
         <SearchSidebar series={explorer.series} onSceneOpen={onSceneOpen} />
