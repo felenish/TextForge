@@ -21,10 +21,12 @@ export function Inspector() {
   const [status, setStatus] = useState<Status>('draft');
 
   useEffect(() => {
-    if (!activeSceneId) { setStatus('draft'); return; }
+    if (!activeSceneId) return;
+    let cancelled = false;
     getScene(activeSceneId)
-      .then(s => setStatus((s.status as Status) || 'draft'))
+      .then(s => { if (!cancelled) setStatus((s.status as Status) || 'draft'); })
       .catch(() => {});
+    return () => { cancelled = true; };
   }, [activeSceneId]);
 
   async function handleStatusClick(next: Status) {

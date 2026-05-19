@@ -26,7 +26,7 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
   const editorRef = useRef<HTMLDivElement>(null);
   const initializedSceneRef = useRef<string | null>(null);
   const saveRef = useRef(save);
-  saveRef.current = save;
+  useEffect(() => { saveRef.current = save; });
 
   useEffect(() => {
     onRegisterSave(sceneId, () => saveRef.current());

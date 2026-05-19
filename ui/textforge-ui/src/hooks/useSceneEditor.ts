@@ -12,29 +12,32 @@ export interface UseSceneEditorResult {
 }
 
 export function useSceneEditor(sceneId: string): UseSceneEditorResult {
+  const [loadedSceneId, setLoadedSceneId] = useState<string | null>(null);
   const [content, setContent] = useState('');
   const [savedContent, setSavedContent] = useState('');
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Derive loading: true whenever the requested sceneId hasn't finished loading yet.
+  // This avoids synchronous setState calls inside the effect body.
+  const loading = loadedSceneId !== sceneId;
+
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setContent('');
-    setSavedContent('');
-    setError(null);
     scenesApi.getScene(sceneId)
       .then(scene => {
         if (cancelled) return;
         const c = scene.content ?? '';
         setContent(c);
         setSavedContent(c);
+        setError(null);
+        setLoadedSceneId(sceneId);
       })
       .catch((e: unknown) => {
-        if (!cancelled) setError((e as { message?: string }).message ?? 'Failed to load scene.');
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
+        if (cancelled) return;
+        setError((e as { message?: string }).message ?? 'Failed to load scene.');
+        setLoadedSceneId(sceneId);
+      });
     return () => { cancelled = true; };
   }, [sceneId]);
 
