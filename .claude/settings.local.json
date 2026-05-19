@@ -22,7 +22,10 @@
       "PowerShell(Get-ChildItem \"$env:APPDATA\\\\nvm\", \"$env:ProgramFiles\\\\nvm\", \"C:\\\\nvm\", \"C:\\\\nodejs\" -ErrorAction SilentlyContinue | Select-Object FullName)",
       "PowerShell(Get-ChildItem \"C:\\\\\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm\" } | Select-Object FullName)",
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\ScottMorgan\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm|fnm\" } | Select-Object FullName; Get-ChildItem \"$env:LOCALAPPDATA\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm|fnm\" } | Select-Object FullName)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projects\\\\TextForge\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)"
     ]
   }
 }
