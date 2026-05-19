@@ -80,6 +80,14 @@ export function AppLayout() {
     explorer.patchCharacterInList(character);
   }, [explorer]);
 
+  const handleLocationOpen = useCallback((locationId: string, name: string) => {
+    editorRef.current?.openLocation(locationId, name);
+  }, []);
+
+  const handleLocationSaved = useCallback((location: import('../../api/locations').LocationDto) => {
+    explorer.patchLocationInList(location);
+  }, [explorer]);
+
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
   const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
 
@@ -131,10 +139,10 @@ export function AppLayout() {
           onModeChange={setSidebarMode}
           dirtyCount={dirtySceneIds.size}
         />
-        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} />
+        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} onLocationOpen={handleLocationOpen} />
         <div className={`center-col${bottomOpen ? '' : ' no-bottom'}`}>
           <div className="editor-col">
-            <SceneEditorArea ref={editorRef} onCharacterSaved={handleCharacterSaved} />
+            <SceneEditorArea ref={editorRef} onCharacterSaved={handleCharacterSaved} onLocationSaved={handleLocationSaved} />
           </div>
           {bottomOpen && <BottomPanel onClose={() => setBottomOpen(false)} />}
         </div>

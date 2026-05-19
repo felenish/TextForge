@@ -4,7 +4,7 @@ import { Icon } from '../ui/Icon';
 export interface Tab {
   id: string;
   title: string;
-  kind: 'scene' | 'character';
+  kind: 'scene' | 'character' | 'location';
 }
 
 interface TabBarProps {
@@ -29,7 +29,7 @@ export function TabBar({ tabs, activeId, onSelect, onClose }: TabBarProps) {
             onClick={() => onSelect(tab.id)}
           >
             <span className="tab-icon">
-              <Icon name={tab.kind === 'character' ? 'user' : 'scene'} size={13} stroke={1.5} />
+              <Icon name={tab.kind === 'character' ? 'user' : tab.kind === 'location' ? 'map-pin' : 'scene'} size={13} stroke={1.5} />
             </span>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
               {tab.title}

@@ -11,9 +11,10 @@ interface SidebarProps {
   explorer: UseSeriesExplorerResult;
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
   onCharacterOpen: (characterId: string, name: string) => void;
+  onLocationOpen: (locationId: string, name: string) => void;
 }
 
-export function Sidebar({ mode, explorer, onSceneOpen, onCharacterOpen }: SidebarProps) {
+export function Sidebar({ mode, explorer, onSceneOpen, onCharacterOpen, onLocationOpen }: SidebarProps) {
   const { activeSceneId } = useWorkspace();
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export function Sidebar({ mode, explorer, onSceneOpen, onCharacterOpen }: Sideba
   return (
     <aside className="sidebar">
       {mode === 'manuscript' && (
-        <ManuscriptSidebar {...explorer} onSceneOpen={onSceneOpen} onCharacterOpen={onCharacterOpen} />
+        <ManuscriptSidebar {...explorer} onSceneOpen={onSceneOpen} onCharacterOpen={onCharacterOpen} onLocationOpen={onLocationOpen} />
       )}
       {mode === 'versions' && <VersionsSidebar />}
       {mode === 'search' && (
