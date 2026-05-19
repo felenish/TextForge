@@ -5,6 +5,7 @@ import { SceneEditorArea, type SceneEditorAreaHandle } from '../editor/SceneEdit
 import { Shell } from './Shell';
 import { ShellBody } from './ShellBody';
 import { TitleBar } from './TitleBar';
+import { MenuBar } from './MenuBar';
 import { StatusBar } from './StatusBar';
 import { ActivityBar, type SidebarMode } from './ActivityBar';
 import { Sidebar } from './Sidebar';
@@ -69,7 +70,8 @@ export function AppLayout() {
 
   return (
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
-      <TitleBar focusMode={focusMode} onFocusToggle={toggleFocus} />
+      <TitleBar />
+      <MenuBar focusMode={focusMode} onFocusToggle={toggleFocus} onPaletteOpen={() => setPaletteOpen(o => !o)} />
       <ShellBody noInspector={!inspectorOpen}>
         <ActivityBar
           mode={sidebarMode}

@@ -18,6 +18,7 @@
   --tab-h: 36px;
   --status-h: 24px;
   --titlebar-h: 34px;
+  --menubar-h: 30px;
 
   --radius-sm: 3px;
   --radius-md: 6px;
@@ -210,7 +211,7 @@ input, textarea {
 /* ===================== SHELL ===================== */
 .shell {
   display: grid;
-  grid-template-rows: var(--titlebar-h) 1fr var(--status-h);
+  grid-template-rows: var(--titlebar-h) var(--menubar-h) 1fr var(--status-h);
   height: 100vh;
   background: var(--bg-editor);
 }
@@ -322,6 +323,48 @@ input, textarea {
 }
 .tb-wc button:hover { background: var(--bg-hover); color: var(--text-strong); }
 .tb-wc .wc-close:hover { background: #c42b1c; color: #fff; }
+
+/* ===================== MENU BAR ===================== */
+.menubar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-titlebar);
+  border-bottom: 1px solid var(--border);
+  padding: 0 6px;
+  user-select: none;
+  font-size: var(--fs-mono-sm);
+}
+
+.mb-menu {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+.mb-menu button {
+  padding: 0 10px;
+  height: var(--menubar-h);
+  color: var(--text-muted);
+  font-size: var(--fs-mono-sm);
+}
+.mb-menu button:hover { background: var(--bg-hover); color: var(--text); }
+
+.mb-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+.mb-actions button {
+  width: 28px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+.mb-actions button:hover { background: var(--bg-hover); color: var(--text-strong); }
+.mb-actions button.active { color: var(--accent); }
 
 /* ===================== ACTIVITY BAR ===================== */
 .activity {
@@ -1349,6 +1392,7 @@ input, textarea {
 
 /* ===================== FOCUS MODE ===================== */
 .shell.focus-mode .titlebar,
+.shell.focus-mode .menubar,
 .shell.focus-mode .activity,
 .shell.focus-mode .sidebar,
 .shell.focus-mode .inspector,
