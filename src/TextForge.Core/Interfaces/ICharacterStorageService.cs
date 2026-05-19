@@ -10,4 +10,7 @@ public interface ICharacterStorageService
     Task<Character?> GetAsync(string charactersPath, Guid id, CancellationToken ct = default);
     Task SaveAsync(string charactersPath, Character character, CancellationToken ct = default);
     Task DeleteAsync(string charactersPath, Guid id, CancellationToken ct = default);
+    Task SaveImageAsync(string charactersPath, Guid id, Stream imageStream, string extension, CancellationToken ct = default);
+    Task<(Stream Stream, string ContentType)?> GetImageAsync(string charactersPath, Guid id, CancellationToken ct = default);
+    void DeleteImage(string charactersPath, Guid id);
 }

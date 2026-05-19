@@ -7,6 +7,7 @@ import * as shellApi from '../../api/shell';
 
 interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
+  onCharacterOpen: (characterId: string, name: string) => void;
 }
 
 export function ManuscriptSidebar({
@@ -16,7 +17,7 @@ export function ManuscriptSidebar({
   addChapter, renameChapter, deleteChapter,
   addScene, renameScene, deleteScene,
   loadCharacters, addCharacter, renameCharacter, deleteCharacter,
-  onSceneOpen,
+  onSceneOpen, onCharacterOpen,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId } = useWorkspace();
   const [search, setSearch] = useState('');
@@ -351,6 +352,7 @@ export function ManuscriptSidebar({
                       key={ch.id}
                       className="tree-row"
                       style={{ paddingLeft: 20 }}
+                      onClick={() => onCharacterOpen(ch.id, ch.name)}
                       onContextMenu={e => showMenu(e, characterMenuItems(ch.id, ch.name))}
                     >
                       <span className="chev leaf"><Icon name="chev-right" size={11} /></span>

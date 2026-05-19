@@ -33,6 +33,7 @@ export interface UseSeriesExplorerResult {
   addCharacter: (name: string, role: string) => Promise<void>;
   renameCharacter: (id: string, name: string) => Promise<void>;
   deleteCharacter: (id: string) => Promise<void>;
+  patchCharacterInList: (character: CharacterDto) => void;
 }
 
 export function useSeriesExplorer(): UseSeriesExplorerResult {
@@ -112,6 +113,13 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     await charactersApi.deleteCharacter(id);
     setCharacters(prev => prev.filter(c => c.id !== id));
   });
+
+  const patchCharacterInList = (character: CharacterDto) => {
+    setCharacters(prev =>
+      prev.map(c => c.id === character.id ? character : c)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  };
 
   const addBook = () => run(async () => {
     const title = window.prompt('Book title:');
@@ -202,6 +210,6 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     addBook, renameBook, deleteBook,
     addChapter, renameChapter, deleteChapter,
     addScene, renameScene, deleteScene,
-    loadCharacters, addCharacter, renameCharacter, deleteCharacter,
+    loadCharacters, addCharacter, renameCharacter, deleteCharacter, patchCharacterInList,
   };
 }
