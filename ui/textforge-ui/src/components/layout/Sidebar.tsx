@@ -14,11 +14,28 @@ interface SidebarProps {
 
 export function Sidebar({ mode, onSceneOpen }: SidebarProps) {
   const explorer = useBookExplorer();
-  const { setBook } = useWorkspace();
+  const { setBook, activeSceneId } = useWorkspace();
 
   useEffect(() => {
     setBook(explorer.book ?? null);
   }, [explorer.book, setBook]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key !== 'N') return;
+      e.preventDefault();
+      const book = explorer.book;
+      if (!book) return;
+      const chapter = activeSceneId
+        ? book.chapters.find(c => c.scenes.some(s => s.id === activeSceneId))
+        : book.chapters[0];
+      if (!chapter) return;
+      const title = window.prompt('New scene title:');
+      if (title?.trim()) explorer.addScene(chapter.id, title.trim());
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [explorer, activeSceneId]);
 
   return (
     <aside className="sidebar">

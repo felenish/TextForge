@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using Microsoft.Win32;
 using TextForge.Core.Interfaces;
@@ -26,4 +27,10 @@ public sealed class WpfShellDialogService : IShellDialogService
             var dlg = new OpenFolderDialog { Title = title };
             return dlg.ShowDialog() == true ? dlg.FolderName : null;
         }).Task;
+
+    public Task RevealPathAsync(string absolutePath)
+    {
+        Process.Start("explorer.exe", $"/select,\"{absolutePath}\"");
+        return Task.CompletedTask;
+    }
 }

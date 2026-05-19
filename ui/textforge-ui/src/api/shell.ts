@@ -13,3 +13,6 @@ export const openFileDialog = async (title: string, filter: string): Promise<str
   const result = await post<PathResponse | null>('/api/shell/open-dialog', { title, filter });
   return result?.path ?? null;
 };
+
+export const revealScene = (sceneId: string): Promise<void> =>
+  post('/api/shell/reveal', { sceneId });

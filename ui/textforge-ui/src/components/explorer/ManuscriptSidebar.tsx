@@ -3,6 +3,7 @@ import type { UseBookExplorerResult } from '../../hooks/useBookExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
+import * as shellApi from '../../api/shell';
 
 interface ManuscriptSidebarProps extends UseBookExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
@@ -76,6 +77,7 @@ export function ManuscriptSidebar({
         if (t?.trim() && t !== sceneTitle) renameScene(sceneId, t.trim());
       },
     },
+    { label: 'Reveal in Explorer', onClick: () => shellApi.revealScene(sceneId).catch(() => {}) },
     { type: 'separator' },
     {
       label: 'Delete Scene',

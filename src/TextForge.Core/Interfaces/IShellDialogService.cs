@@ -10,4 +10,7 @@ public interface IShellDialogService
 
     /// <summary>Shows the OS folder-picker dialog. Returns the selected path, or <c>null</c> if cancelled.</summary>
     Task<string?> ShowFolderDialogAsync(string title);
+
+    /// <summary>Opens File Explorer with the given path selected.</summary>
+    Task RevealPathAsync(string absolutePath);
 }
