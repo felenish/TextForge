@@ -1,9 +1,10 @@
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { Icon } from '../ui/Icon';
 
-interface Tab {
+export interface Tab {
   id: string;
   title: string;
+  kind: 'scene' | 'character';
 }
 
 interface TabBarProps {
@@ -20,7 +21,7 @@ export function TabBar({ tabs, activeId, onSelect, onClose }: TabBarProps) {
     <div className="tabs">
       {tabs.map(tab => {
         const isActive = tab.id === activeId;
-        const isDirty = dirtySceneIds.has(tab.id);
+        const isDirty = tab.kind === 'scene' && dirtySceneIds.has(tab.id);
         return (
           <div
             key={tab.id}
@@ -28,7 +29,7 @@ export function TabBar({ tabs, activeId, onSelect, onClose }: TabBarProps) {
             onClick={() => onSelect(tab.id)}
           >
             <span className="tab-icon">
-              <Icon name="scene" size={13} stroke={1.5} />
+              <Icon name={tab.kind === 'character' ? 'user' : 'scene'} size={13} stroke={1.5} />
             </span>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
               {tab.title}

@@ -1,6 +1,6 @@
 import { Icon } from '../ui/Icon';
 
-export type SidebarMode = 'manuscript' | 'characters' | 'versions' | 'search';
+export type SidebarMode = 'manuscript' | 'versions' | 'search';
 
 interface ActivityBarProps {
   mode: SidebarMode;
@@ -10,7 +10,6 @@ interface ActivityBarProps {
 
 const MODES: { id: SidebarMode; icon: string; title: string }[] = [
   { id: 'manuscript', icon: 'book', title: 'Manuscript' },
-  { id: 'characters', icon: 'users', title: 'Characters' },
   { id: 'versions', icon: 'git', title: 'Versions' },
   { id: 'search', icon: 'search', title: 'Search' },
 ];

@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import type { SeriesDto } from '../api/series';
 import type { BookDto, SceneMetaDto } from '../api/books';
+import type { CharacterDto } from '../api/characters';
 import * as booksApi from '../api/books';
 import * as seriesApi from '../api/series';
 import * as chaptersApi from '../api/chapters';
 import * as scenesApi from '../api/scenes';
 import * as shellApi from '../api/shell';
+import * as charactersApi from '../api/characters';
 import { useToast } from '../contexts/ToastContext';
 
 export interface UseSeriesExplorerResult {
   series: SeriesDto | null;
   loading: boolean;
   error: string | null;
+  characters: CharacterDto[];
+  charactersLoaded: boolean;
   createSeries: () => Promise<void>;
   openSeries: () => Promise<void>;
   openSeriesFromPath: (path: string) => Promise<void>;
@@ -25,12 +29,19 @@ export interface UseSeriesExplorerResult {
   addScene: (bookId: string, chapterId: string, title: string) => Promise<void>;
   renameScene: (bookId: string, sceneId: string, title: string) => Promise<void>;
   deleteScene: (bookId: string, sceneId: string) => Promise<void>;
+  loadCharacters: () => Promise<void>;
+  addCharacter: (name: string, role: string) => Promise<void>;
+  renameCharacter: (id: string, name: string) => Promise<void>;
+  deleteCharacter: (id: string) => Promise<void>;
+  patchCharacterInList: (character: CharacterDto) => void;
 }
 
 export function useSeriesExplorer(): UseSeriesExplorerResult {
   const [series, setSeries] = useState<SeriesDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [characters, setCharacters] = useState<CharacterDto[]>([]);
+  const [charactersLoaded, setCharactersLoaded] = useState(false);
   const { showToast } = useToast();
 
   async function run(fn: () => Promise<void>): Promise<void> {
@@ -50,28 +61,65 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const patchBook = (bookId: string, fn: (b: BookDto) => BookDto) =>
     setSeries(s => s ? { ...s, books: s.books.map(b => b.id === bookId ? fn(b) : b) } : s);
 
+  function resetSeries(s: SeriesDto | null) {
+    setSeries(s);
+    setCharacters([]);
+    setCharactersLoaded(false);
+  }
+
   const createSeries = () => run(async () => {
     const folder = await shellApi.openFolderDialog('Choose series location');
     if (!folder) return;
     const title = window.prompt('Series title:');
     if (!title?.trim()) return;
-    setSeries(await seriesApi.createSeries(title.trim(), folder));
+    resetSeries(await seriesApi.createSeries(title.trim(), folder));
   });
 
   const openSeries = () => run(async () => {
     const path = await shellApi.openFileDialog('Open Series', 'TextForge Series (*.tfseries)|*.tfseries');
     if (!path) return;
-    setSeries(await seriesApi.openSeries(path));
+    resetSeries(await seriesApi.openSeries(path));
   });
 
   const openSeriesFromPath = (path: string) => run(async () => {
-    setSeries(await seriesApi.openSeries(path));
+    resetSeries(await seriesApi.openSeries(path));
   });
 
   const closeSeries = () => run(async () => {
     await seriesApi.closeSeries();
-    setSeries(null);
+    resetSeries(null);
   });
+
+  const loadCharacters = () => run(async () => {
+    const list = await charactersApi.getCharacters();
+    setCharacters(list);
+    setCharactersLoaded(true);
+  });
+
+  const addCharacter = (name: string, role: string) => run(async () => {
+    const character = await charactersApi.createCharacter(name, role);
+    setCharacters(prev => [...prev, character].sort((a, b) => a.name.localeCompare(b.name)));
+  });
+
+  const renameCharacter = (id: string, name: string) => run(async () => {
+    await charactersApi.updateCharacter(id, { name });
+    setCharacters(prev =>
+      prev.map(c => c.id === id ? { ...c, name } : c)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  });
+
+  const deleteCharacter = (id: string) => run(async () => {
+    await charactersApi.deleteCharacter(id);
+    setCharacters(prev => prev.filter(c => c.id !== id));
+  });
+
+  const patchCharacterInList = (character: CharacterDto) => {
+    setCharacters(prev =>
+      prev.map(c => c.id === character.id ? character : c)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  };
 
   const addBook = () => run(async () => {
     const title = window.prompt('Book title:');
@@ -157,9 +205,11 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
 
   return {
     series, loading, error,
+    characters, charactersLoaded,
     createSeries, openSeries, openSeriesFromPath, closeSeries,
     addBook, renameBook, deleteBook,
     addChapter, renameChapter, deleteChapter,
     addScene, renameScene, deleteScene,
+    loadCharacters, addCharacter, renameCharacter, deleteCharacter, patchCharacterInList,
   };
 }

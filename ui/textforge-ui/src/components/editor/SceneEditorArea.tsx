@@ -1,14 +1,11 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import type { CharacterDto } from '../../api/characters';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
-import { TabBar } from './TabBar';
+import { TabBar, type Tab } from './TabBar';
 import { Breadcrumb } from './Breadcrumb';
 import { SceneEditor } from './SceneEditor';
+import { CharacterEditor } from './CharacterEditor';
 import { FindReplaceBar } from './FindReplaceBar';
-
-interface Tab {
-  id: string;
-  title: string;
-}
 
 interface TabsState {
   tabs: Tab[];
@@ -17,14 +14,19 @@ interface TabsState {
 
 export interface SceneEditorAreaHandle {
   openScene: (sceneId: string, sceneTitle: string) => void;
+  openCharacter: (characterId: string, name: string) => void;
   saveAll: () => Promise<void>;
   saveActive: () => Promise<void>;
   closeAll: () => void;
   openFind: (withReplace: boolean) => void;
 }
 
-export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
-  function SceneEditorArea(_, ref) {
+interface SceneEditorAreaProps {
+  onCharacterSaved?: (character: CharacterDto) => void;
+}
+
+export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorAreaProps>(
+  function SceneEditorArea({ onCharacterSaved }, ref) {
     const [{ tabs, activeId }, setState] = useState<TabsState>({ tabs: [], activeId: null });
     const { dirtySceneIds, markClean, clearSceneWordCount, setActiveScene } = useWorkspace();
     const saveRegistry = useRef(new Map<string, () => Promise<void>>());
@@ -33,7 +35,15 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       setState(prev => {
         if (prev.tabs.some(t => t.id === sceneId))
           return { ...prev, activeId: sceneId };
-        return { tabs: [...prev.tabs, { id: sceneId, title: sceneTitle }], activeId: sceneId };
+        return { tabs: [...prev.tabs, { id: sceneId, title: sceneTitle, kind: 'scene' }], activeId: sceneId };
+      });
+    }, []);
+
+    const openCharacter = useCallback((characterId: string, name: string) => {
+      setState(prev => {
+        if (prev.tabs.some(t => t.id === characterId))
+          return { ...prev, activeId: characterId };
+        return { tabs: [...prev.tabs, { id: characterId, title: name, kind: 'character' }], activeId: characterId };
       });
     }, []);
 
@@ -58,9 +68,11 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       const currentTabs = tabsRef.current;
       setState({ tabs: [], activeId: null });
       for (const tab of currentTabs) {
-        markClean(tab.id);
-        clearSceneWordCount(tab.id);
-        saveRegistry.current.delete(tab.id);
+        if (tab.kind === 'scene') {
+          markClean(tab.id);
+          clearSceneWordCount(tab.id);
+          saveRegistry.current.delete(tab.id);
+        }
       }
     }, [markClean, clearSceneWordCount]);
 
@@ -79,7 +91,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       setFindOpen(true);
     }, []);
 
-    useImperativeHandle(ref, () => ({ openScene, saveAll, saveActive, closeAll, openFind }), [openScene, saveAll, saveActive, closeAll, openFind]);
+    useImperativeHandle(ref, () => ({ openScene, openCharacter, saveAll, saveActive, closeAll, openFind }), [openScene, openCharacter, saveAll, saveActive, closeAll, openFind]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
@@ -103,21 +115,34 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       saveRegistry.current.delete(id);
     }, [markClean, clearSceneWordCount]);
 
-    const handleClose = useCallback(async (sceneId: string) => {
-      if (dirtySceneIds.has(sceneId)) {
-        const tab = tabs.find(t => t.id === sceneId);
+    const handleClose = useCallback(async (tabId: string) => {
+      const tab = tabs.find(t => t.id === tabId);
+      if (tab?.kind === 'scene' && dirtySceneIds.has(tabId)) {
         const shouldSave = window.confirm(
-          `"${tab?.title ?? 'Scene'}" has unsaved changes.\n\nClick OK to save, Cancel to discard.`
+          `"${tab.title}" has unsaved changes.\n\nClick OK to save, Cancel to discard.`
         );
         if (shouldSave) {
-          const save = saveRegistry.current.get(sceneId);
+          const save = saveRegistry.current.get(tabId);
           if (save) {
             try { await save(); } catch { /* error shown in editor */ }
           }
         }
       }
-      closeTab(sceneId);
+      closeTab(tabId);
     }, [dirtySceneIds, tabs, closeTab]);
+
+    // Update character tab title when character name changes
+    const handleCharacterSaved = useCallback((character: CharacterDto) => {
+      setState(prev => ({
+        ...prev,
+        tabs: prev.tabs.map(t =>
+          t.id === character.id && t.kind === 'character'
+            ? { ...t, title: character.name }
+            : t
+        ),
+      }));
+      onCharacterSaved?.(character);
+    }, [onCharacterSaved]);
 
     useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -133,8 +158,12 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
     const activeTab = tabs.find(t => t.id === activeId) ?? null;
 
     useEffect(() => {
-      setActiveScene(activeTab?.id ?? null, activeTab?.title ?? null);
-    }, [activeTab?.id, activeTab?.title, setActiveScene]);
+      if (activeTab?.kind === 'scene') {
+        setActiveScene(activeTab.id, activeTab.title);
+      } else {
+        setActiveScene(null, null);
+      }
+    }, [activeTab?.id, activeTab?.kind, activeTab?.title, setActiveScene]);
 
     if (tabs.length === 0) {
       return (
@@ -160,7 +189,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
           onSelect={id => setState(prev => ({ ...prev, activeId: id }))}
           onClose={handleClose}
         />
-        {activeTab && <Breadcrumb sceneTitle={activeTab.title} />}
+        {activeTab?.kind === 'scene' && <Breadcrumb sceneTitle={activeTab.title} />}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
           {tabs.map(tab => (
             <div
@@ -172,14 +201,21 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
                 flexDirection: 'column',
               }}
             >
-              <SceneEditor
-                sceneId={tab.id}
-                sceneTitle={tab.title}
-                isActive={tab.id === activeId}
-                onRegisterSave={handleRegisterSave}
-                onUnregisterSave={handleUnregisterSave}
-                onRegisterEditorEl={handleRegisterEditorEl}
-              />
+              {tab.kind === 'scene' ? (
+                <SceneEditor
+                  sceneId={tab.id}
+                  sceneTitle={tab.title}
+                  isActive={tab.id === activeId}
+                  onRegisterSave={handleRegisterSave}
+                  onUnregisterSave={handleUnregisterSave}
+                  onRegisterEditorEl={handleRegisterEditorEl}
+                />
+              ) : (
+                <CharacterEditor
+                  characterId={tab.id}
+                  onSaved={handleCharacterSaved}
+                />
+              )}
             </div>
           ))}
           {findOpen && (

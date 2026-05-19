@@ -54,6 +54,7 @@ public partial class App : Application
         builder.Services.AddApiServices();
         builder.Services.AddSingleton<IBookStorageService, BookStorageService>();
         builder.Services.AddSingleton<ISeriesStorageService, SeriesStorageService>();
+        builder.Services.AddSingleton<ICharacterStorageService, CharacterStorageService>();
         builder.Services.AddSingleton<IShellDialogService, WpfShellDialogService>();
         builder.Services.AddSingleton<IWindowService, WpfWindowService>();
 

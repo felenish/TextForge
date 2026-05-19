@@ -7,18 +7,22 @@ import * as shellApi from '../../api/shell';
 
 interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
+  onCharacterOpen: (characterId: string, name: string) => void;
 }
 
 export function ManuscriptSidebar({
   series, loading, error,
+  characters, charactersLoaded,
   createSeries, openSeries, addBook, renameBook, deleteBook,
   addChapter, renameChapter, deleteChapter,
   addScene, renameScene, deleteScene,
-  onSceneOpen,
+  loadCharacters, addCharacter, renameCharacter, deleteCharacter,
+  onSceneOpen, onCharacterOpen,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId } = useWorkspace();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [charsOpen, setCharsOpen] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
 
   const isExpanded = (id: string) => expanded[id] !== false;
@@ -40,6 +44,29 @@ export function ManuscriptSidebar({
     e.stopPropagation();
     setMenu({ x: e.clientX, y: e.clientY, items });
   };
+
+  const toggleChars = () => {
+    if (!charsOpen && !charactersLoaded) loadCharacters();
+    setCharsOpen(v => !v);
+  };
+
+  const characterMenuItems = (id: string, name: string): ContextMenuEntry[] => [
+    {
+      label: 'Rename',
+      onClick: () => {
+        const t = window.prompt('New name:', name);
+        if (t?.trim() && t !== name) renameCharacter(id, t.trim());
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Delete',
+      danger: true,
+      onClick: () => {
+        if (window.confirm(`Delete character "${name}"?`)) deleteCharacter(id);
+      },
+    },
+  ];
 
   const activeBook = activeBookId ? series?.books.find(b => b.id === activeBookId) ?? null : null;
 
@@ -278,6 +305,70 @@ export function ManuscriptSidebar({
                 No books in series
               </div>
             )}
+
+            <div>
+              <div
+                className="tree-row is-book"
+                onClick={toggleChars}
+                onContextMenu={e => showMenu(e, [
+                  {
+                    label: 'New Character',
+                    onClick: () => {
+                      const name = window.prompt('Character name:');
+                      if (!name?.trim()) return;
+                      const role = window.prompt('Role (e.g. Protagonist):') ?? '';
+                      addCharacter(name.trim(), role.trim());
+                    },
+                  },
+                ])}
+              >
+                <span className={`chev${charsOpen ? ' open' : ''}`}>
+                  <Icon name="chev-right" size={11} />
+                </span>
+                <span className="icon"><Icon name="users" size={13} /></span>
+                <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>Characters</span>
+                {charactersLoaded && (
+                  <span className="meta-right">{characters.length}</span>
+                )}
+              </div>
+
+              {charsOpen && (
+                <>
+                  <div
+                    className="tree-row"
+                    style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
+                    onClick={() => {
+                      const name = window.prompt('Character name:');
+                      if (!name?.trim()) return;
+                      const role = window.prompt('Role (e.g. Protagonist):') ?? '';
+                      addCharacter(name.trim(), role.trim());
+                    }}
+                  >
+                    <span className="icon"><Icon name="plus" size={12} /></span>
+                    <span className="label" style={{ fontSize: 11 }}>New Character…</span>
+                  </div>
+                  {characters.map(ch => (
+                    <div
+                      key={ch.id}
+                      className="tree-row"
+                      style={{ paddingLeft: 20 }}
+                      onClick={() => onCharacterOpen(ch.id, ch.name)}
+                      onContextMenu={e => showMenu(e, characterMenuItems(ch.id, ch.name))}
+                    >
+                      <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                      <span className="icon"><Icon name="user" size={13} /></span>
+                      <span className="label">{ch.name}</span>
+                      {ch.role && <span className="meta-right" style={{ fontSize: 10 }}>{ch.role}</span>}
+                    </div>
+                  ))}
+                  {charactersLoaded && characters.length === 0 && (
+                    <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '4px 14px 4px 28px' }}>
+                      No characters yet
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -285,7 +376,8 @@ export function ManuscriptSidebar({
       {series && (
         <div className="sb-footer">
           <span><span className="num">{totalScenes}</span> scenes</span>
-          <span><span className="num">{totalChapters}</span> chapters</span>
+          <span><span className="num">{totalChapters}</span> ch</span>
+          {charactersLoaded && <span><span className="num">{characters.length}</span> chars</span>}
         </div>
       )}
 
