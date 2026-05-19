@@ -593,6 +593,54 @@ input, textarea {
 .versions-branch-bar .br-name { flex: 1; }
 .versions-branch-bar .br-chev { color: var(--text-faint); }
 
+/* ===================== FORMAT BAR ===================== */
+.format-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  background: var(--bg-tabs);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.format-bar select {
+  background: var(--bg-editor);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-xs);
+  cursor: pointer;
+  outline: none;
+}
+.format-bar select:focus { border-color: var(--border-strong); }
+
+.format-bar-sep {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: var(--border-strong);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.format-bar button {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.format-bar button:hover { background: var(--bg-hover); border-color: var(--border); color: var(--text); }
+
 /* ===================== EDITOR ===================== */
 .editor-col {
   display: flex;
@@ -759,6 +807,8 @@ input, textarea {
 
 .prose-editable {
   outline: none;
+  min-height: 8em;
+  padding: 14px 18px;
 }
 .prose-editable p {
   margin-bottom: 1.1em;
@@ -766,6 +816,18 @@ input, textarea {
 }
 .prose-editable p:first-child::first-letter {
   font-size: 1.05em;
+}
+.prose-placeholder {
+  position: absolute;
+  inset: 0;
+  padding: 14px 18px; /* match prose-editable padding */
+  font-family: var(--editor-font-family, var(--font-serif));
+  font-size: var(--editor-fs);
+  line-height: var(--editor-lh);
+  color: var(--text-faint);
+  font-style: italic;
+  pointer-events: none;
+  user-select: none;
 }
 
 .scene-divider {

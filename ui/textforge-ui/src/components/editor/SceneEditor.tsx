@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useOutput } from '../../contexts/OutputContext';
 import * as workspaceApi from '../../api/workspace';
 import { useSceneEditor } from '../../hooks/useSceneEditor';
 import { Minimap } from './Minimap';
+import { FormatBar } from './FormatBar';
 
 interface SceneEditorProps {
   sceneId: string;
@@ -22,13 +23,31 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function contentToHtml(content: string): string {
+  const paras = content.split(/\n{2,}/).filter(p => p.trim());
+  return paras.length > 0
+    ? paras.map(p => `<p>${escapeHtml(p)}</p>`).join('')
+    : '<p></p>';
+}
+
 export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
   const { content, isDirty, loading, saving, error, onChange, save } = useSceneEditor(sceneId);
   const { markDirty, markClean, setSceneWordCount, setContentStats, typewriterMode, minimapOpen } = useWorkspace();
   const { log } = useOutput();
   const editorRef = useRef<HTMLDivElement>(null);
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
-  const initializedSceneRef = useRef<string | null>(null);
+
+  // Set innerHTML once when the scene finishes loading, before first paint.
+  // useLayoutEffect runs synchronously after React's commit so the content
+  // is in the DOM before the browser draws. The guard prevents re-applying
+  // on every re-render so user edits are never overwritten.
+  const initializedRef = useRef(false);
+  useLayoutEffect(() => {
+    if (loading || !editorRef.current || initializedRef.current) return;
+    initializedRef.current = true;
+    editorRef.current.innerHTML = contentToHtml(content);
+  }, [loading, content]);
+
   const saveRef = useRef(save);
   useEffect(() => { saveRef.current = save; });
 
@@ -63,7 +82,6 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
     setSceneWordCount(sceneId, countWords(content));
   }, [sceneId, content, setSceneWordCount]);
 
-  // Typewriter mode: mark the paragraph under the caret with .is-current
   useEffect(() => {
     if (!typewriterMode || !isActive) return;
     const editor = editorRef.current;
@@ -87,17 +105,6 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
       editor?.querySelectorAll('p.is-current').forEach(el => el.classList.remove('is-current'));
     };
   }, [typewriterMode, isActive]);
-
-  // Initialize contenteditable DOM once per scene load; gated by ref so typing doesn't reset it
-  useEffect(() => {
-    if (loading || !editorRef.current) return;
-    if (initializedSceneRef.current === sceneId) return;
-    initializedSceneRef.current = sceneId;
-    const paras = (content || '').split(/\n{2,}/).filter(p => p.trim());
-    editorRef.current.innerHTML = paras.length > 0
-      ? paras.map(p => `<p>${escapeHtml(p)}</p>`).join('')
-      : '<p></p>';
-  }, [sceneId, loading, content]);
 
   function handleInput() {
     if (!editorRef.current) return;
@@ -137,21 +144,23 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
           {error}
         </div>
       )}
+      <FormatBar editorRef={editorRef} />
       <div className={`editor-area${minimapOpen ? '' : ' no-minimap'}`}>
         <div ref={setScrollEl} className="editor-scroll">
           <div className="editor-doc">
-            <div className="scene-head">
-              <div className="eyebrow">scene</div>
-              <h1>{sceneTitle}</h1>
+            <div style={{ position: 'relative' }}>
+              {content === '' && (
+                <div className="prose-placeholder">Begin writing your scene…</div>
+              )}
+              <div
+                ref={editorRef}
+                className="prose prose-editable"
+                contentEditable
+                suppressContentEditableWarning
+                spellCheck
+                onInput={handleInput}
+              />
             </div>
-            <div
-              ref={editorRef}
-              className="prose prose-editable"
-              contentEditable
-              suppressContentEditableWarning
-              spellCheck
-              onInput={handleInput}
-            />
           </div>
         </div>
         {minimapOpen && <Minimap content={content} scrollEl={scrollEl} />}

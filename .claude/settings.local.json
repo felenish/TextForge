@@ -21,7 +21,8 @@
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); Set-Location c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui; npm run build 2>&1)",
       "PowerShell(Get-ChildItem \"$env:APPDATA\\\\nvm\", \"$env:ProgramFiles\\\\nvm\", \"C:\\\\nvm\", \"C:\\\\nodejs\" -ErrorAction SilentlyContinue | Select-Object FullName)",
       "PowerShell(Get-ChildItem \"C:\\\\\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm\" } | Select-Object FullName)",
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\ScottMorgan\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm|fnm\" } | Select-Object FullName; Get-ChildItem \"$env:LOCALAPPDATA\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm|fnm\" } | Select-Object FullName)"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\ScottMorgan\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm|fnm\" } | Select-Object FullName; Get-ChildItem \"$env:LOCALAPPDATA\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"node|nvm|fnm\" } | Select-Object FullName)",
+      "Bash(npx tsc *)"
     ]
   }
 }
