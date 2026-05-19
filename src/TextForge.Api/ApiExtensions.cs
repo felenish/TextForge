@@ -11,7 +11,7 @@ public static class ApiExtensions
     {
         services.AddControllers()
             .AddApplicationPart(typeof(ApiExtensions).Assembly);
-        services.AddSingleton<IBookWorkspaceService, BookWorkspaceService>();
+        services.AddSingleton<ISeriesWorkspaceService, SeriesWorkspaceService>();
         return services;
     }
 

@@ -4,6 +4,14 @@ namespace TextForge.Api.Dtos;
 
 internal static class DtoMapper
 {
+    public static SeriesDto ToSeriesDto(Series series) => new(
+        series.Id,
+        series.Title,
+        series.RootPath,
+        series.CreatedUtc,
+        series.ModifiedUtc,
+        series.Books.Select(ToBookDto).ToArray());
+
     public static BookDto ToBookDto(BookProject book) => new(
         book.Id,
         book.Title,

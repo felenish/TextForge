@@ -23,7 +23,7 @@ function fmtTime(d: Date) {
 
 export function BottomPanel({ onClose }: BottomPanelProps) {
   const [activeTab, setActiveTab] = useState<BottomTab>('wordcount');
-  const { book, wordCount, totalWordCount, sceneWordCounts } = useWorkspace();
+  const { series, wordCount, totalWordCount, sceneWordCounts } = useWorkspace();
   const { lines, clear } = useOutput();
 
   // ── Notes ───────────────────────────────────────────────────────────────
@@ -55,16 +55,18 @@ export function BottomPanel({ onClose }: BottomPanelProps) {
   }
 
   // ── Word Count ───────────────────────────────────────────────────────────
-  const chapterBars = useMemo(() => {
-    if (!book) return [];
-    return book.chapters.map(ch => ({
-      id: ch.id,
-      title: ch.title,
-      count: ch.scenes.reduce((s, sc) => s + (sceneWordCounts.get(sc.id) ?? 0), 0),
+  const bookGroups = useMemo(() => {
+    if (!series) return [];
+    return series.books.map(book => ({
+      id: book.id,
+      title: book.title,
+      chapters: book.chapters.map(ch => ({
+        id: ch.id,
+        title: ch.title,
+        count: ch.scenes.reduce((sum: number, sc) => sum + (sceneWordCounts.get(sc.id) ?? 0), 0),
+      })),
     }));
-  }, [book, sceneWordCounts]);
-
-  const maxCount = Math.max(...chapterBars.map(b => b.count), 1);
+  }, [series, sceneWordCounts]);
 
   // ── Output auto-scroll ───────────────────────────────────────────────────
   const outputEndRef = useRef<HTMLDivElement>(null);
@@ -133,26 +135,35 @@ export function BottomPanel({ onClose }: BottomPanelProps) {
               </div>
             </div>
 
-            {chapterBars.length > 0 ? (
+            {bookGroups.length > 0 ? (
               <div className="wc-bars">
-                <h5>By chapter</h5>
-                {chapterBars.map(bar => (
-                  <div key={bar.id} className="wc-bar">
-                    <span className="name">{bar.title}</span>
-                    <div className="bar">
-                      <i style={{ width: `${bar.count === 0 ? 0 : Math.max(2, (bar.count / maxCount) * 100)}%` }} />
+                {bookGroups.map(group => {
+                  const groupMax = Math.max(...group.chapters.map(c => c.count), 1);
+                  const groupTotal = group.chapters.reduce((n, c) => n + c.count, 0);
+                  return (
+                    <div key={group.id}>
+                      {bookGroups.length > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0 2px', fontSize: 'var(--fs-mono-sm)', color: 'var(--text-faint)', borderTop: '1px solid var(--border)', marginTop: 4 }}>
+                          <span style={{ fontWeight: 500, color: 'var(--text)' }}>{group.title}</span>
+                          <span>{groupTotal > 0 ? groupTotal.toLocaleString() : '—'}</span>
+                        </div>
+                      )}
+                      {group.chapters.map(ch => (
+                        <div key={ch.id} className="wc-bar">
+                          <span className="name">{ch.title}</span>
+                          <div className="bar">
+                            <i style={{ width: `${ch.count === 0 ? 0 : Math.max(2, (ch.count / groupMax) * 100)}%` }} />
+                          </div>
+                          <span className="count">{ch.count > 0 ? ch.count.toLocaleString() : '—'}</span>
+                        </div>
+                      ))}
                     </div>
-                    <span className="count">{bar.count > 0 ? bar.count.toLocaleString() : '—'}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <div style={{
-                padding: '12px 16px',
-                fontSize: 'var(--fs-mono-sm)',
-                color: 'var(--text-faint)',
-              }}>
-                Open a book to see chapter word counts.
+              <div style={{ padding: '12px 16px', fontSize: 'var(--fs-mono-sm)', color: 'var(--text-faint)' }}>
+                Open a series to see word counts.
               </div>
             )}
           </>

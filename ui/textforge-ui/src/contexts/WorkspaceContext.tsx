@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { BookDto } from '../api/books';
+import type { SeriesDto } from '../api/series';
 
 type Theme = 'dark' | 'light' | 'sepia';
 
@@ -10,8 +10,8 @@ export interface ContentStats {
 
 interface WorkspaceContextValue {
   dirtySceneIds: ReadonlySet<string>;
-  book: BookDto | null;
-  bookTitle: string | null;
+  series: SeriesDto | null;
+  seriesTitle: string | null;
   wordCount: number;
   totalWordCount: number;
   sceneWordCounts: ReadonlyMap<string, number>;
@@ -21,10 +21,11 @@ interface WorkspaceContextValue {
   minimapOpen: boolean;
   activeSceneId: string | null;
   activeSceneTitle: string | null;
+  activeBookId: string | null;
   contentStats: ContentStats | null;
   markDirty: (sceneId: string) => void;
   markClean: (sceneId: string) => void;
-  setBook: (book: BookDto | null) => void;
+  setSeries: (series: SeriesDto | null) => void;
   setSceneWordCount: (sceneId: string, count: number) => void;
   clearSceneWordCount: (sceneId: string) => void;
   setActiveScene: (id: string | null, title: string | null) => void;
@@ -38,8 +39,8 @@ interface WorkspaceContextValue {
 
 const WorkspaceContext = createContext<WorkspaceContextValue>({
   dirtySceneIds: new Set(),
-  book: null,
-  bookTitle: null,
+  series: null,
+  seriesTitle: null,
   wordCount: 0,
   totalWordCount: 0,
   sceneWordCounts: new Map(),
@@ -49,10 +50,11 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   minimapOpen: false,
   activeSceneId: null,
   activeSceneTitle: null,
+  activeBookId: null,
   contentStats: null,
   markDirty: () => {},
   markClean: () => {},
-  setBook: () => {},
+  setSeries: () => {},
   setSceneWordCount: () => {},
   clearSceneWordCount: () => {},
   setActiveScene: () => {},
@@ -73,7 +75,7 @@ function getInitialTheme(): Theme {
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(new Set());
-  const [book, setBookState] = useState<BookDto | null>(null);
+  const [series, setSeriesState] = useState<SeriesDto | null>(null);
   const [sceneWordCountMap, setSceneWordCountMap] = useState<Map<string, number>>(new Map());
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
   const [typewriterMode, setTypewriterModeState] = useState(
@@ -106,7 +108,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const setBook = useCallback((b: BookDto | null) => setBookState(b), []);
+  const setSeries = useCallback((s: SeriesDto | null) => setSeriesState(s), []);
 
   const setSceneWordCount = useCallback((sceneId: string, count: number) => {
     setSceneWordCountMap(prev => {
@@ -164,7 +166,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setMinimapOpenState(v);
   }, []);
 
-  const bookTitle = book?.title ?? null;
+  const seriesTitle = series?.title ?? null;
+  const activeBookId = useMemo(
+    () => activeSceneId && series
+      ? (series.books.find(b => b.chapters.some(c => c.scenes.some(s => s.id === activeSceneId)))?.id ?? null)
+      : null,
+    [series, activeSceneId],
+  );
   const wordCount = activeSceneId ? (sceneWordCountMap.get(activeSceneId) ?? 0) : 0;
   const totalWordCount = useMemo(
     () => Array.from(sceneWordCountMap.values()).reduce((a, b) => a + b, 0),
@@ -174,8 +182,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   return (
     <WorkspaceContext.Provider value={{
       dirtySceneIds: dirtyIds,
-      book,
-      bookTitle,
+      series,
+      seriesTitle,
       wordCount,
       totalWordCount,
       sceneWordCounts: sceneWordCountMap,
@@ -185,10 +193,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       minimapOpen,
       activeSceneId,
       activeSceneTitle,
+      activeBookId,
       contentStats,
       markDirty,
       markClean,
-      setBook,
+      setSeries,
       setSceneWordCount,
       clearSceneWordCount,
       setActiveScene,

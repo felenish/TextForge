@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useBookExplorer } from '../../hooks/useBookExplorer';
+import { useSeriesExplorer } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import type { SidebarMode } from './ActivityBar';
 import { ManuscriptSidebar } from '../explorer/ManuscriptSidebar';
@@ -13,25 +13,29 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mode, onSceneOpen }: SidebarProps) {
-  const explorer = useBookExplorer();
-  const { setBook, activeSceneId } = useWorkspace();
+  const explorer = useSeriesExplorer();
+  const { setSeries, activeSceneId } = useWorkspace();
 
   useEffect(() => {
-    setBook(explorer.book ?? null);
-  }, [explorer.book, setBook]);
+    setSeries(explorer.series ?? null);
+  }, [explorer.series, setSeries]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key !== 'N') return;
       e.preventDefault();
-      const book = explorer.book;
-      if (!book) return;
+      const { series } = explorer;
+      if (!series) return;
+      const activeBook = activeSceneId
+        ? series.books.find(b => b.chapters.some(c => c.scenes.some(s => s.id === activeSceneId)))
+        : series.books[0];
+      if (!activeBook) return;
       const chapter = activeSceneId
-        ? book.chapters.find(c => c.scenes.some(s => s.id === activeSceneId))
-        : book.chapters[0];
+        ? activeBook.chapters.find(c => c.scenes.some(s => s.id === activeSceneId))
+        : activeBook.chapters[0];
       if (!chapter) return;
       const title = window.prompt('New scene title:');
-      if (title?.trim()) explorer.addScene(chapter.id, title.trim());
+      if (title?.trim()) explorer.addScene(activeBook.id, chapter.id, title.trim());
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -45,7 +49,7 @@ export function Sidebar({ mode, onSceneOpen }: SidebarProps) {
       {mode === 'characters' && <CharactersSidebar />}
       {mode === 'versions' && <VersionsSidebar />}
       {mode === 'search' && (
-        <SearchSidebar book={explorer.book} onSceneOpen={onSceneOpen} />
+        <SearchSidebar series={explorer.series} onSceneOpen={onSceneOpen} />
       )}
     </aside>
   );

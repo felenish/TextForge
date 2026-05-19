@@ -16,7 +16,7 @@ import { TweaksPanel } from '../ui/TweaksPanel';
 export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
   const {
-    bookTitle, dirtySceneIds,
+    seriesTitle, dirtySceneIds,
     typewriterMode, inspectorOpen,
   } = useWorkspace();
   const editorSettings = useEditorSettings();
@@ -29,10 +29,10 @@ export function AppLayout() {
 
   useEffect(() => {
     const hasUnsaved = dirtySceneIds.size > 0;
-    document.title = bookTitle
-      ? `${hasUnsaved ? '● ' : ''}${bookTitle} — TextForge Studio`
+    document.title = seriesTitle
+      ? `${hasUnsaved ? '● ' : ''}${seriesTitle} — TextForge Studio`
       : 'TextForge Studio';
-  }, [bookTitle, dirtySceneIds]);
+  }, [seriesTitle, dirtySceneIds]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

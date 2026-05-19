@@ -11,10 +11,10 @@ namespace TextForge.Api.Controllers;
 [Route("api/books/{bookId:guid}/chapters")]
 public sealed class ChaptersController : ControllerBase
 {
-    private readonly IBookWorkspaceService _workspace;
+    private readonly ISeriesWorkspaceService _workspace;
     private readonly IBookStorageService _storage;
 
-    public ChaptersController(IBookWorkspaceService workspace, IBookStorageService storage)
+    public ChaptersController(ISeriesWorkspaceService workspace, IBookStorageService storage)
     {
         _workspace = workspace;
         _storage = storage;
@@ -23,8 +23,8 @@ public sealed class ChaptersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddChapter(Guid bookId, [FromBody] AddChapterBody request, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
-        if (book is null || book.Id != bookId)
+        var book = _workspace.GetBook(bookId);
+        if (book is null)
             return NotFound(new ErrorDto("Book not found."));
 
         var idx = book.Chapters.Count + 1;
@@ -50,8 +50,8 @@ public sealed class ChaptersController : ControllerBase
     public async Task<IActionResult> UpdateChapter(
         Guid bookId, Guid chapterId, [FromBody] UpdateChapterBody request, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
-        if (book is null || book.Id != bookId)
+        var book = _workspace.GetBook(bookId);
+        if (book is null)
             return NotFound(new ErrorDto("Book not found."));
 
         var chapter = book.Chapters.FirstOrDefault(c => c.Id == chapterId);
@@ -70,8 +70,8 @@ public sealed class ChaptersController : ControllerBase
     [HttpDelete("{chapterId:guid}")]
     public async Task<IActionResult> DeleteChapter(Guid bookId, Guid chapterId, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
-        if (book is null || book.Id != bookId)
+        var book = _workspace.GetBook(bookId);
+        if (book is null)
             return NotFound(new ErrorDto("Book not found."));
 
         var chapter = book.Chapters.FirstOrDefault(c => c.Id == chapterId);
@@ -95,8 +95,8 @@ public sealed class ChaptersController : ControllerBase
     public async Task<IActionResult> AddScene(
         Guid bookId, Guid chapterId, [FromBody] AddSceneBody request, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
-        if (book is null || book.Id != bookId)
+        var book = _workspace.GetBook(bookId);
+        if (book is null)
             return NotFound(new ErrorDto("Book not found."));
 
         var chapter = book.Chapters.FirstOrDefault(c => c.Id == chapterId);

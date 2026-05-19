@@ -1,4 +1,4 @@
-import { get, post } from './client';
+import { get, patch } from './client';
 
 export interface SceneMetaDto {
   id: string;
@@ -23,11 +23,8 @@ export interface BookDto {
   chapters: ChapterDto[];
 }
 
-export const createBook = (title: string, parentDirectory: string): Promise<BookDto> =>
-  post('/api/books', { title, parentDirectory });
-
-export const openBook = (path: string): Promise<BookDto> =>
-  post('/api/books/open', { path });
-
 export const getBook = (id: string): Promise<BookDto> =>
   get(`/api/books/${id}`);
+
+export const renameBook = (id: string, title: string): Promise<BookDto> =>
+  patch(`/api/books/${id}`, { title });

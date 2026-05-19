@@ -4,6 +4,12 @@ namespace TextForge.Storage.Utilities;
 
 public static class FolderPathBuilder
 {
+    public static string BuildSeriesFolder(string parentDirectory, string title)
+    {
+        var slug = PathSanitizer.Sanitize(title);
+        return ResolveUniqueDirectory(parentDirectory, slug);
+    }
+
     public static string BuildBookFolder(string parentDirectory, string title)
     {
         var slug = PathSanitizer.Sanitize(title);

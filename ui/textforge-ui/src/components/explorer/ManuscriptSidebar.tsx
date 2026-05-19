@@ -1,22 +1,22 @@
 import { useState } from 'react';
-import type { UseBookExplorerResult } from '../../hooks/useBookExplorer';
+import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 import * as shellApi from '../../api/shell';
 
-interface ManuscriptSidebarProps extends UseBookExplorerResult {
+interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
 }
 
 export function ManuscriptSidebar({
-  book, loading, error,
-  createBook, openBook,
+  series, loading, error,
+  createSeries, openSeries, addBook, renameBook, deleteBook,
   addChapter, renameChapter, deleteChapter,
   addScene, renameScene, deleteScene,
   onSceneOpen,
 }: ManuscriptSidebarProps) {
-  const { dirtySceneIds } = useWorkspace();
+  const { dirtySceneIds, activeSceneId, activeBookId } = useWorkspace();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
@@ -25,11 +25,14 @@ export function ManuscriptSidebar({
 
   const collapseAll = () => {
     const all: Record<string, boolean> = {};
-    book?.chapters.forEach(c => { all[c.id] = false; });
+    series?.books.forEach(b => {
+      all[b.id] = false;
+      b.chapters.forEach(c => { all[c.id] = false; });
+    });
     setExpanded(all);
   };
 
-  const toggleChapter = (id: string) =>
+  const toggle = (id: string) =>
     setExpanded(prev => ({ ...prev, [id]: !isExpanded(id) }));
 
   const showMenu = (e: React.MouseEvent, items: ContextMenuEntry[]) => {
@@ -38,24 +41,54 @@ export function ManuscriptSidebar({
     setMenu({ x: e.clientX, y: e.clientY, items });
   };
 
-  const bookMenuItems = (): ContextMenuEntry[] => [
-    { label: 'New Book', onClick: createBook },
-    { label: 'Open Book', onClick: openBook },
+  const activeBook = activeBookId ? series?.books.find(b => b.id === activeBookId) ?? null : null;
+
+  const seriesMenuItems = (): ContextMenuEntry[] => [
+    { label: 'New Series', onClick: createSeries },
+    { label: 'Open Series', onClick: openSeries },
+    { type: 'separator' },
+    { label: 'Add Book', onClick: addBook },
   ];
 
-  const chapterMenuItems = (chapterId: string, chapterTitle: string): ContextMenuEntry[] => [
+  const bookMenuItems = (bookId: string, bookTitle: string): ContextMenuEntry[] => [
+    {
+      label: 'Add Chapter',
+      onClick: () => {
+        const t = window.prompt('Chapter title:');
+        if (t?.trim()) addChapter(bookId, t.trim());
+      },
+    },
+    {
+      label: 'Rename Book',
+      onClick: () => {
+        const t = window.prompt('New book title:', bookTitle);
+        if (t?.trim() && t !== bookTitle) renameBook(bookId, t.trim());
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Delete Book',
+      danger: true,
+      onClick: () => {
+        if (window.confirm(`Delete "${bookTitle}" and all its contents? This cannot be undone.`))
+          deleteBook(bookId);
+      },
+    },
+  ];
+
+  const chapterMenuItems = (bookId: string, chapterId: string, chapterTitle: string): ContextMenuEntry[] => [
     {
       label: 'Add Scene',
       onClick: () => {
         const t = window.prompt('Scene title:');
-        if (t?.trim()) addScene(chapterId, t.trim());
+        if (t?.trim()) addScene(bookId, chapterId, t.trim());
       },
     },
     {
       label: 'Rename',
       onClick: () => {
         const t = window.prompt('New chapter title:', chapterTitle);
-        if (t?.trim() && t !== chapterTitle) renameChapter(chapterId, t.trim());
+        if (t?.trim() && t !== chapterTitle) renameChapter(bookId, chapterId, t.trim());
       },
     },
     { type: 'separator' },
@@ -63,18 +96,18 @@ export function ManuscriptSidebar({
       label: 'Delete Chapter',
       danger: true,
       onClick: () => {
-        if (window.confirm(`Delete "${chapterTitle}" and all its scenes?`)) deleteChapter(chapterId);
+        if (window.confirm(`Delete "${chapterTitle}" and all its scenes?`)) deleteChapter(bookId, chapterId);
       },
     },
   ];
 
-  const sceneMenuItems = (sceneId: string, sceneTitle: string): ContextMenuEntry[] => [
+  const sceneMenuItems = (bookId: string, sceneId: string, sceneTitle: string): ContextMenuEntry[] => [
     { label: 'Open', onClick: () => onSceneOpen(sceneId, sceneTitle) },
     {
       label: 'Rename',
       onClick: () => {
         const t = window.prompt('New scene title:', sceneTitle);
-        if (t?.trim() && t !== sceneTitle) renameScene(sceneId, t.trim());
+        if (t?.trim() && t !== sceneTitle) renameScene(bookId, sceneId, t.trim());
       },
     },
     { label: 'Reveal in Explorer', onClick: () => shellApi.revealScene(sceneId).catch(() => {}) },
@@ -83,41 +116,36 @@ export function ManuscriptSidebar({
       label: 'Delete Scene',
       danger: true,
       onClick: () => {
-        if (window.confirm(`Delete "${sceneTitle}"?`)) deleteScene(sceneId);
+        if (window.confirm(`Delete "${sceneTitle}"?`)) deleteScene(bookId, sceneId);
       },
     },
   ];
 
-  const totalScenes = book?.chapters.reduce((n, c) => n + c.scenes.length, 0) ?? 0;
+  const totalScenes = series?.books.reduce((n, b) => n + b.chapters.reduce((m, c) => m + c.scenes.length, 0), 0) ?? 0;
+  const totalChapters = series?.books.reduce((n, b) => n + b.chapters.length, 0) ?? 0;
 
   const ql = search.toLowerCase().trim();
-  const filteredChapters = !book ? [] : book.chapters
-    .map(ch => ({
-      ...ch,
-      scenes: ql ? ch.scenes.filter(s => s.title.toLowerCase().includes(ql)) : ch.scenes,
-    }))
-    .filter(ch => !ql || ch.scenes.length > 0 || ch.title.toLowerCase().includes(ql));
 
-  if (!book && !loading) {
+  if (!series && !loading) {
     return (
       <>
         <div className="sb-header"><span>Manuscript</span></div>
         <div className="sb-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '24px 16px' }}>
           <Icon name="book" size={28} stroke={1} style={{ color: 'var(--text-faint)', opacity: 0.5 }} />
           <span style={{ color: 'var(--text-faint)', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
-            No book open
+            No series open
           </span>
           <button
-            onClick={createBook}
+            onClick={createSeries}
             style={{ width: '100%', padding: '5px 10px', background: 'var(--accent)', color: '#16140f', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-mono)' }}
           >
-            New Book
+            New Series
           </button>
           <button
-            onClick={openBook}
+            onClick={openSeries}
             style={{ width: '100%', padding: '5px 10px', background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-mono)' }}
           >
-            Open Book
+            Open Series
           </button>
         </div>
       </>
@@ -131,14 +159,19 @@ export function ManuscriptSidebar({
         <div className="actions">
           <button
             title="New Chapter"
-            onClick={() => { const t = window.prompt('Chapter title:'); if (t?.trim()) addChapter(t.trim()); }}
+            onClick={() => {
+              const target = activeBook ?? series?.books[0];
+              if (!target) return;
+              const t = window.prompt('Chapter title:');
+              if (t?.trim()) addChapter(target.id, t.trim());
+            }}
           >
             <Icon name="plus" size={14} />
           </button>
           <button title="Collapse All" onClick={collapseAll}>
             <Icon name="minus" size={14} />
           </button>
-          <button title="More" onClick={e => showMenu(e, bookMenuItems())}>
+          <button title="More" onClick={e => showMenu(e, seriesMenuItems())}>
             <Icon name="more" size={14} />
           </button>
         </div>
@@ -163,72 +196,96 @@ export function ManuscriptSidebar({
         {loading && (
           <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '10px 14px' }}>Loading…</div>
         )}
-        {book && (
+        {series && (
           <div className="tree">
-            <div
-              className="tree-row is-book"
-              onContextMenu={e => showMenu(e, bookMenuItems())}
-            >
-              <span className="chev open"><Icon name="chev-right" size={11} /></span>
-              <span className="icon"><Icon name="book" size={13} /></span>
-              <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>{book.title}</span>
-              <span className="meta-right">{totalScenes} sc</span>
-            </div>
+            {series.books.map(book => {
+              const bookOpen = isExpanded(book.id);
+              const bookSceneCount = book.chapters.reduce((n, c) => n + c.scenes.length, 0);
+              const filteredChapters = book.chapters
+                .map(ch => ({
+                  ...ch,
+                  scenes: ql ? ch.scenes.filter(s => s.title.toLowerCase().includes(ql)) : ch.scenes,
+                }))
+                .filter(ch => !ql || ch.scenes.length > 0 || ch.title.toLowerCase().includes(ql));
 
-            {filteredChapters.map(ch => {
-              const open = isExpanded(ch.id);
               return (
-                <div key={ch.id}>
+                <div key={book.id}>
                   <div
-                    className="tree-row is-chapter"
-                    style={{ paddingLeft: 20 }}
-                    onClick={() => toggleChapter(ch.id)}
-                    onContextMenu={e => showMenu(e, chapterMenuItems(ch.id, ch.title))}
+                    className="tree-row is-book"
+                    onClick={() => toggle(book.id)}
+                    onContextMenu={e => showMenu(e, bookMenuItems(book.id, book.title))}
                   >
-                    <span className={`chev${open ? ' open' : ''}`}>
+                    <span className={`chev${bookOpen ? ' open' : ''}`}>
                       <Icon name="chev-right" size={11} />
                     </span>
-                    <span className="icon"><Icon name="folder" size={13} /></span>
-                    <span className="label">{ch.title}</span>
-                    <span className="meta-right">{ch.scenes.length}</span>
+                    <span className="icon"><Icon name="book" size={13} /></span>
+                    <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>{book.title}</span>
+                    <span className="meta-right">{bookSceneCount} sc</span>
                   </div>
 
-                  {open && ch.scenes.map(sc => (
-                    <div
-                      key={sc.id}
-                      className="tree-row is-scene"
-                      style={{ paddingLeft: 36 }}
-                      onClick={() => onSceneOpen(sc.id, sc.title)}
-                      onContextMenu={e => showMenu(e, sceneMenuItems(sc.id, sc.title))}
-                    >
-                      <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
-                      <span className="icon"><Icon name="scene" size={12} /></span>
-                      <span className="label">{sc.title}</span>
-                      {sc.status && sc.status !== 'draft' && (
-                        <span className={`dot ${sc.status}`} title={sc.status} />
-                      )}
-                      {dirtySceneIds.has(sc.id) && (
-                        <span className="unsaved" title="Unsaved" />
-                      )}
+                  {bookOpen && filteredChapters.map(ch => {
+                    const chOpen = isExpanded(ch.id);
+                    return (
+                      <div key={ch.id}>
+                        <div
+                          className="tree-row is-chapter"
+                          style={{ paddingLeft: 20 }}
+                          onClick={() => toggle(ch.id)}
+                          onContextMenu={e => showMenu(e, chapterMenuItems(book.id, ch.id, ch.title))}
+                        >
+                          <span className={`chev${chOpen ? ' open' : ''}`}>
+                            <Icon name="chev-right" size={11} />
+                          </span>
+                          <span className="icon"><Icon name="folder" size={13} /></span>
+                          <span className="label">{ch.title}</span>
+                          <span className="meta-right">{ch.scenes.length}</span>
+                        </div>
+
+                        {chOpen && ch.scenes.map(sc => (
+                          <div
+                            key={sc.id}
+                            className={`tree-row is-scene${sc.id === activeSceneId ? ' active' : ''}`}
+                            style={{ paddingLeft: 36 }}
+                            onClick={() => onSceneOpen(sc.id, sc.title)}
+                            onContextMenu={e => showMenu(e, sceneMenuItems(book.id, sc.id, sc.title))}
+                          >
+                            <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                            <span className="icon"><Icon name="scene" size={12} /></span>
+                            <span className="label">{sc.title}</span>
+                            {sc.status && sc.status !== 'draft' && (
+                              <span className={`dot ${sc.status}`} title={sc.status} />
+                            )}
+                            {dirtySceneIds.has(sc.id) && (
+                              <span className="unsaved" title="Unsaved" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+
+                  {bookOpen && book.chapters.length === 0 && (
+                    <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '8px 14px 8px 28px' }}>
+                      No chapters yet
                     </div>
-                  ))}
+                  )}
                 </div>
               );
             })}
 
-            {book.chapters.length === 0 && (
-              <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '8px 14px 8px 28px' }}>
-                No chapters yet
+            {series.books.length === 0 && (
+              <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '10px 14px' }}>
+                No books in series
               </div>
             )}
           </div>
         )}
       </div>
 
-      {book && (
+      {series && (
         <div className="sb-footer">
           <span><span className="num">{totalScenes}</span> scenes</span>
-          <span><span className="num">{book.chapters.length}</span> chapters</span>
+          <span><span className="num">{totalChapters}</span> chapters</span>
         </div>
       )}
 

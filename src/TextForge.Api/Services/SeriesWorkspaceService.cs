@@ -1,0 +1,57 @@
+using TextForge.Api.Interfaces;
+using TextForge.Core.Interfaces;
+using TextForge.Core.Models;
+using TextForge.Core.Requests;
+
+namespace TextForge.Api.Services;
+
+public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
+{
+    private readonly ISeriesStorageService _storage;
+    private Series? _currentSeries;
+    private readonly HashSet<Guid> _dirtyScenes = [];
+
+    public SeriesWorkspaceService(ISeriesStorageService storage) => _storage = storage;
+
+    public async Task<Series> CreateSeriesAsync(string title, string parentDirectory, CancellationToken ct = default)
+    {
+        _currentSeries = await _storage.CreateSeriesAsync(
+            new CreateSeriesRequest { Title = title, ParentDirectory = parentDirectory }, ct);
+        _dirtyScenes.Clear();
+        return _currentSeries;
+    }
+
+    public async Task<Series> OpenSeriesAsync(string seriesFilePath, CancellationToken ct = default)
+    {
+        _currentSeries = await _storage.OpenSeriesAsync(seriesFilePath, ct);
+        _dirtyScenes.Clear();
+        return _currentSeries;
+    }
+
+    public async Task<BookProject> AddBookAsync(string title, CancellationToken ct = default)
+    {
+        if (_currentSeries is null)
+            throw new InvalidOperationException("No series is open.");
+        return await _storage.AddBookAsync(_currentSeries, title, ct);
+    }
+
+    public async Task RemoveBookAsync(Guid bookId, CancellationToken ct = default)
+    {
+        if (_currentSeries is null)
+            throw new InvalidOperationException("No series is open.");
+        await _storage.RemoveBookAsync(_currentSeries, bookId, ct);
+    }
+
+    public Series? GetCurrentSeries() => _currentSeries;
+
+    public BookProject? GetBook(Guid bookId)
+        => _currentSeries?.Books.FirstOrDefault(b => b.Id == bookId);
+
+    public BookProject? FindBookByScene(Guid sceneId)
+        => _currentSeries?.Books.FirstOrDefault(b =>
+            b.Chapters.Any(c => c.Scenes.Any(s => s.Id == sceneId)));
+
+    public void TrackDirtyScene(Guid sceneId) => _dirtyScenes.Add(sceneId);
+    public void ClearDirtyScene(Guid sceneId) => _dirtyScenes.Remove(sceneId);
+    public IReadOnlyCollection<Guid> GetDirtySceneIds() => _dirtyScenes;
+}

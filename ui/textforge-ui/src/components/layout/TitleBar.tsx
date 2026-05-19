@@ -11,7 +11,7 @@ interface TitleBarProps {
 const MENU_ITEMS = ['File', 'Edit', 'Manuscript', 'Version', 'View', 'Help'];
 
 export function TitleBar({ focusMode, onFocusToggle }: TitleBarProps) {
-  const { bookTitle, dirtySceneIds, theme, cycleTheme } = useWorkspace();
+  const { seriesTitle, dirtySceneIds, theme, cycleTheme } = useWorkspace();
   const hasUnsaved = dirtySceneIds.size > 0;
   const themeIcon = theme === 'dark' ? 'moon' : theme === 'light' ? 'sun' : 'feather';
 
@@ -40,10 +40,10 @@ export function TitleBar({ focusMode, onFocusToggle }: TitleBarProps) {
         {MENU_ITEMS.map(m => <button key={m}>{m}</button>)}
       </nav>
       <div className="tb-title">
-        {bookTitle ? (
+        {seriesTitle ? (
           <>
             {hasUnsaved && <span className="dirty">● </span>}
-            <span className="accent">{bookTitle}</span>
+            <span className="accent">{seriesTitle}</span>
           </>
         ) : null}
       </div>

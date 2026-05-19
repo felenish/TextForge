@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TextForge.Api.Dtos;
 using TextForge.Api.Interfaces;
+using TextForge.Core.Interfaces;
 
 namespace TextForge.Api.Controllers;
 
@@ -8,33 +9,37 @@ namespace TextForge.Api.Controllers;
 [Route("api/books")]
 public sealed class BooksController : ControllerBase
 {
-    private readonly IBookWorkspaceService _workspace;
+    private readonly ISeriesWorkspaceService _workspace;
+    private readonly IBookStorageService _storage;
 
-    public BooksController(IBookWorkspaceService workspace) => _workspace = workspace;
-
-    [HttpPost]
-    public async Task<IActionResult> CreateBook([FromBody] CreateBookBody request, CancellationToken ct)
+    public BooksController(ISeriesWorkspaceService workspace, IBookStorageService storage)
     {
-        var book = await _workspace.CreateBookAsync(request.Title, request.ParentDirectory, ct);
-        return Ok(DtoMapper.ToBookDto(book));
+        _workspace = workspace;
+        _storage = storage;
     }
 
     [HttpGet("{id:guid}")]
     public IActionResult GetBook(Guid id)
     {
-        var book = _workspace.GetCurrentBook();
-        if (book is null || book.Id != id)
+        var book = _workspace.GetBook(id);
+        if (book is null)
             return NotFound(new ErrorDto("Book not found."));
         return Ok(DtoMapper.ToBookDto(book));
     }
 
-    [HttpPost("open")]
-    public async Task<IActionResult> OpenBook([FromBody] OpenBookBody request, CancellationToken ct)
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> PatchBook(Guid id, [FromBody] PatchBookBody request, CancellationToken ct)
     {
-        var book = await _workspace.OpenBookAsync(request.Path, ct);
+        var book = _workspace.GetBook(id);
+        if (book is null)
+            return NotFound(new ErrorDto("Book not found."));
+
+        if (request.Title is not null)
+            book.Title = request.Title;
+
+        await _storage.SaveBookAsync(book, ct);
         return Ok(DtoMapper.ToBookDto(book));
     }
 }
 
-public sealed record CreateBookBody(string Title, string ParentDirectory);
-public sealed record OpenBookBody(string Path);
+public sealed record PatchBookBody(string? Title);

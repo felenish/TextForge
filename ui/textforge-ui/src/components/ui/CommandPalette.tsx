@@ -27,7 +27,7 @@ export function CommandPalette({
   onClose, onOpenScene, onToggleFocus, onToggleBottom, onOpenTweaks,
 }: CommandPaletteProps) {
   const {
-    book, applyTheme,
+    series, applyTheme,
     typewriterMode, setTypewriterMode,
     inspectorOpen, setInspectorOpen,
     minimapOpen, setMinimapOpen,
@@ -42,16 +42,18 @@ export function CommandPalette({
   const allItems = useMemo((): PaletteItem[] => {
     const items: PaletteItem[] = [];
 
-    if (book) {
-      for (const chapter of book.chapters) {
-        for (const scene of chapter.scenes) {
-          items.push({
-            id: `scene-${scene.id}`,
-            label: scene.title,
-            meta: chapter.title,
-            group: 'scene',
-            action: () => { onOpenScene(scene.id, scene.title); onClose(); },
-          });
+    if (series) {
+      for (const book of series.books) {
+        for (const chapter of book.chapters) {
+          for (const scene of chapter.scenes) {
+            items.push({
+              id: `scene-${scene.id}`,
+              label: scene.title,
+              meta: series.books.length > 1 ? `${book.title} · ${chapter.title}` : chapter.title,
+              group: 'scene',
+              action: () => { onOpenScene(scene.id, scene.title); onClose(); },
+            });
+          }
         }
       }
     }
@@ -90,7 +92,7 @@ export function CommandPalette({
     );
 
     return items;
-  }, [book, typewriterMode, inspectorOpen, minimapOpen,
+  }, [series, typewriterMode, inspectorOpen, minimapOpen,
     applyTheme, setTypewriterMode, setInspectorOpen, setMinimapOpen,
     onOpenScene, onClose, onToggleFocus, onToggleBottom, onOpenTweaks]);
 

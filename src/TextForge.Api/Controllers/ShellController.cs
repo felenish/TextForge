@@ -10,9 +10,9 @@ namespace TextForge.Api.Controllers;
 public sealed class ShellController : ControllerBase
 {
     private readonly IShellDialogService _dialogs;
-    private readonly IBookWorkspaceService _workspace;
+    private readonly ISeriesWorkspaceService _workspace;
 
-    public ShellController(IShellDialogService dialogs, IBookWorkspaceService workspace)
+    public ShellController(IShellDialogService dialogs, ISeriesWorkspaceService workspace)
     {
         _dialogs = dialogs;
         _workspace = workspace;
@@ -42,12 +42,12 @@ public sealed class ShellController : ControllerBase
     [HttpPost("reveal")]
     public async Task<IActionResult> Reveal([FromBody] RevealBody request)
     {
-        var book = _workspace.GetCurrentBook();
-        if (book is null) return BadRequest("No book is open.");
+        var book = _workspace.FindBookByScene(request.SceneId);
+        if (book is null) return NotFound(new ErrorDto("Scene not found."));
 
         var scene = book.Chapters.SelectMany(c => c.Scenes)
             .FirstOrDefault(s => s.Id == request.SceneId);
-        if (scene is null) return NotFound();
+        if (scene is null) return NotFound(new ErrorDto("Scene not found."));
 
         var absolutePath = Path.Combine(book.RootPath,
             scene.FilePath.Replace('/', Path.DirectorySeparatorChar));

@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import type { BookDto } from '../../api/books';
+import type { SeriesDto } from '../../api/series';
 import { Icon } from '../ui/Icon';
 
 interface SearchSidebarProps {
-  book: BookDto | null;
+  series: SeriesDto | null;
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
 }
 
@@ -11,24 +11,31 @@ interface SearchResult {
   sceneId: string;
   sceneTitle: string;
   chapterTitle: string;
+  bookTitle: string;
 }
 
-export function SearchSidebar({ book, onSceneOpen }: SearchSidebarProps) {
+export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
   const [query, setQuery] = useState('');
 
   const results = useMemo<SearchResult[]>(() => {
-    if (!book || !query.trim()) return [];
+    if (!series || !query.trim()) return [];
     const ql = query.toLowerCase();
     const out: SearchResult[] = [];
-    for (const ch of book.chapters) {
-      for (const sc of ch.scenes) {
-        if (sc.title.toLowerCase().includes(ql) || ch.title.toLowerCase().includes(ql)) {
-          out.push({ sceneId: sc.id, sceneTitle: sc.title, chapterTitle: ch.title });
+    for (const book of series.books) {
+      for (const ch of book.chapters) {
+        for (const sc of ch.scenes) {
+          if (
+            sc.title.toLowerCase().includes(ql) ||
+            ch.title.toLowerCase().includes(ql) ||
+            book.title.toLowerCase().includes(ql)
+          ) {
+            out.push({ sceneId: sc.id, sceneTitle: sc.title, chapterTitle: ch.title, bookTitle: book.title });
+          }
         }
       }
     }
     return out.slice(0, 50);
-  }, [book, query]);
+  }, [series, query]);
 
   return (
     <>
@@ -43,12 +50,12 @@ export function SearchSidebar({ book, onSceneOpen }: SearchSidebarProps) {
         />
       </div>
       <div className="sb-body">
-        {!book && (
+        {!series && (
           <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '10px 14px' }}>
-            Open a book to search.
+            Open a series to search.
           </div>
         )}
-        {book && query.trim() && results.length === 0 && (
+        {series && query.trim() && results.length === 0 && (
           <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '10px 14px' }}>
             No matches.
           </div>
@@ -64,7 +71,7 @@ export function SearchSidebar({ book, onSceneOpen }: SearchSidebarProps) {
               <span className="icon"><Icon name="scene" size={12} /></span>
               <div className="label" style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <span>{r.sceneTitle}</span>
-                <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>{r.chapterTitle}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>{r.bookTitle} · {r.chapterTitle}</span>
               </div>
             </div>
           ))}

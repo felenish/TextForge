@@ -9,10 +9,10 @@ namespace TextForge.Api.Controllers;
 [Route("api/scenes")]
 public sealed class ScenesController : ControllerBase
 {
-    private readonly IBookWorkspaceService _workspace;
+    private readonly ISeriesWorkspaceService _workspace;
     private readonly IBookStorageService _storage;
 
-    public ScenesController(IBookWorkspaceService workspace, IBookStorageService storage)
+    public ScenesController(ISeriesWorkspaceService workspace, IBookStorageService storage)
     {
         _workspace = workspace;
         _storage = storage;
@@ -21,9 +21,9 @@ public sealed class ScenesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetScene(Guid id, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
+        var book = _workspace.FindBookByScene(id);
         if (book is null)
-            return NotFound(new ErrorDto("No book is open."));
+            return NotFound(new ErrorDto("Scene not found."));
 
         var scene = await _storage.GetSceneAsync(book, id, ct);
         if (scene is null)
@@ -35,9 +35,9 @@ public sealed class ScenesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> SaveScene(Guid id, [FromBody] SaveSceneBody request, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
+        var book = _workspace.FindBookByScene(id);
         if (book is null)
-            return NotFound(new ErrorDto("No book is open."));
+            return NotFound(new ErrorDto("Scene not found."));
 
         await _storage.SaveSceneContentAsync(book, id, request.Content, ct);
         _workspace.ClearDirtyScene(id);
@@ -47,9 +47,9 @@ public sealed class ScenesController : ControllerBase
     [HttpPatch("{id:guid}")]
     public async Task<IActionResult> PatchScene(Guid id, [FromBody] PatchSceneBody request, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
+        var book = _workspace.FindBookByScene(id);
         if (book is null)
-            return NotFound(new ErrorDto("No book is open."));
+            return NotFound(new ErrorDto("Scene not found."));
 
         var found = FindSceneWithChapter(book, id);
         if (found is null)
@@ -66,9 +66,9 @@ public sealed class ScenesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteScene(Guid id, CancellationToken ct)
     {
-        var book = _workspace.GetCurrentBook();
+        var book = _workspace.FindBookByScene(id);
         if (book is null)
-            return NotFound(new ErrorDto("No book is open."));
+            return NotFound(new ErrorDto("Scene not found."));
 
         var found = FindSceneWithChapter(book, id);
         if (found is null)

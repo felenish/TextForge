@@ -12,11 +12,16 @@ function readingMinutes(words: number): number {
 
 export function Inspector() {
   const {
+    series,
     activeSceneId,
     activeSceneTitle,
+    activeBookId,
     wordCount,
     contentStats,
   } = useWorkspace();
+
+  const activeBook = activeBookId ? series?.books.find(b => b.id === activeBookId) ?? null : null;
+  const activeChapter = activeBook?.chapters.find(c => c.scenes.some(s => s.id === activeSceneId)) ?? null;
 
   const [status, setStatus] = useState<Status>('draft');
 
@@ -56,6 +61,23 @@ export function Inspector() {
         <span>Inspector</span>
       </div>
       <div className="insp-body">
+
+        {/* Book / Chapter context */}
+        <div className="insp-section">
+          <h4>Book</h4>
+          <div className="insp-row">
+            <span className="k">Title</span>
+            <span className="v" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {activeBook?.title ?? '—'}
+            </span>
+          </div>
+          <div className="insp-row">
+            <span className="k">Chapter</span>
+            <span className="v" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {activeChapter?.title ?? '—'}
+            </span>
+          </div>
+        </div>
 
         {/* D.2 Scene */}
         <div className="insp-section">

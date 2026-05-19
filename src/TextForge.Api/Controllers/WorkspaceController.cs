@@ -7,9 +7,9 @@ namespace TextForge.Api.Controllers;
 [Route("api/workspace")]
 public sealed class WorkspaceController : ControllerBase
 {
-    private readonly IBookWorkspaceService _workspace;
+    private readonly ISeriesWorkspaceService _workspace;
 
-    public WorkspaceController(IBookWorkspaceService workspace) => _workspace = workspace;
+    public WorkspaceController(ISeriesWorkspaceService workspace) => _workspace = workspace;
 
     [HttpGet("dirty")]
     public IActionResult GetDirtyScenes()

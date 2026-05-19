@@ -10,13 +10,13 @@ function readingMinutes(words: number): number {
 }
 
 export function Breadcrumb({ sceneTitle }: BreadcrumbProps) {
-  const { bookTitle, wordCount } = useWorkspace();
+  const { seriesTitle, wordCount } = useWorkspace();
 
   return (
     <div className="breadcrumb">
       <span className="crumb"><Icon name="book" size={11} /></span>
-      {bookTitle && <span className="crumb">{bookTitle}</span>}
-      {bookTitle && <span className="sep"><Icon name="chev-right" size={10} /></span>}
+      {seriesTitle && <span className="crumb">{seriesTitle}</span>}
+      {seriesTitle && <span className="sep"><Icon name="chev-right" size={10} /></span>}
       <span className="crumb current">{sceneTitle}</span>
       <span style={{ flex: 1 }} />
       <span style={{ color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums' }}>
