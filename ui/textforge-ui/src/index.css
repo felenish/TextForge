@@ -342,13 +342,101 @@ input, textarea {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
-.mb-menu button {
+.mb-menu-btn {
   padding: 0 10px;
   height: var(--menubar-h);
   color: var(--text-muted);
   font-size: var(--fs-mono-sm);
 }
-.mb-menu button:hover { background: var(--bg-hover); color: var(--text); }
+.mb-menu-btn:hover,
+.mb-menu-btn.open { background: var(--bg-hover); color: var(--text); }
+
+/* ---- File menu dropdown ---- */
+.filemenu { position: relative; }
+
+.filemenu-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: var(--bg-panel, var(--bg-sidebar));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  z-index: 9000;
+  padding: 3px 0;
+}
+
+.filemenu-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  width: 100%;
+  padding: 5px 14px;
+  font-size: var(--fs-mono-sm);
+  color: var(--text);
+  text-align: left;
+  cursor: default;
+  white-space: nowrap;
+  position: relative;
+}
+.filemenu-item:hover:not(.disabled) { background: var(--accent); color: var(--text-on-accent, #fff); }
+.filemenu-item.disabled { color: var(--text-faint); cursor: default; pointer-events: none; }
+.filemenu-item.danger:not(.disabled) { color: var(--signal-error, #e06c75); }
+.filemenu-item.danger:hover:not(.disabled) { background: var(--signal-error, #e06c75); color: #fff; }
+
+.filemenu-item > span:first-child { flex: 1; }
+
+.filemenu-kbd {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-left: auto;
+  padding-left: 24px;
+}
+.filemenu-item:hover:not(.disabled) .filemenu-kbd { color: rgba(255,255,255,.7); }
+
+.filemenu-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 3px 0;
+}
+
+.filemenu-arrow {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+.filemenu-item.has-sub { cursor: default; }
+.filemenu-item.has-sub:hover { background: var(--accent); color: var(--text-on-accent, #fff); }
+.filemenu-item.has-sub:hover .filemenu-arrow { color: rgba(255,255,255,.7); }
+
+.filemenu-sub {
+  position: absolute;
+  top: -3px;
+  left: 100%;
+  min-width: 280px;
+  background: var(--bg-panel, var(--bg-sidebar));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  z-index: 9001;
+  padding: 3px 0;
+}
+
+.filemenu-recent-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.filemenu-recent-path {
+  font-size: 10px;
+  color: var(--text-faint);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+}
+.filemenu-item:hover:not(.disabled) .filemenu-recent-path { color: rgba(255,255,255,.6); }
 
 .mb-actions {
   display: flex;

@@ -17,6 +17,8 @@ interface TabsState {
 export interface SceneEditorAreaHandle {
   openScene: (sceneId: string, sceneTitle: string) => void;
   saveAll: () => Promise<void>;
+  saveActive: () => Promise<void>;
+  closeAll: () => void;
 }
 
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
@@ -39,7 +41,28 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       );
     }, []);
 
-    useImperativeHandle(ref, () => ({ openScene, saveAll }), [openScene, saveAll]);
+    const activeIdRef = useRef(activeId);
+    useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
+
+    const saveActive = useCallback(async () => {
+      const save = activeIdRef.current ? saveRegistry.current.get(activeIdRef.current) : undefined;
+      if (save) await save().catch(() => {});
+    }, []);
+
+    const tabsRef = useRef(tabs);
+    useEffect(() => { tabsRef.current = tabs; }, [tabs]);
+
+    const closeAll = useCallback(() => {
+      const currentTabs = tabsRef.current;
+      setState({ tabs: [], activeId: null });
+      for (const tab of currentTabs) {
+        markClean(tab.id);
+        clearSceneWordCount(tab.id);
+        saveRegistry.current.delete(tab.id);
+      }
+    }, [markClean, clearSceneWordCount]);
+
+    useImperativeHandle(ref, () => ({ openScene, saveAll, saveActive, closeAll }), [openScene, saveAll, saveActive, closeAll]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);

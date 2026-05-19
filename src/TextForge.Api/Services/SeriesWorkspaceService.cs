@@ -8,16 +8,25 @@ namespace TextForge.Api.Services;
 public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
 {
     private readonly ISeriesStorageService _storage;
+    private readonly IAppSettingsService _appSettings;
     private Series? _currentSeries;
     private readonly HashSet<Guid> _dirtyScenes = [];
 
-    public SeriesWorkspaceService(ISeriesStorageService storage) => _storage = storage;
+    public SeriesWorkspaceService(ISeriesStorageService storage, IAppSettingsService appSettings)
+    {
+        _storage = storage;
+        _appSettings = appSettings;
+    }
+
+    private const string ManifestFileName = "series.tfseries";
 
     public async Task<Series> CreateSeriesAsync(string title, string parentDirectory, CancellationToken ct = default)
     {
         _currentSeries = await _storage.CreateSeriesAsync(
             new CreateSeriesRequest { Title = title, ParentDirectory = parentDirectory }, ct);
         _dirtyScenes.Clear();
+        var manifestPath = Path.Combine(_currentSeries.RootPath, ManifestFileName);
+        await _appSettings.AddRecentSeriesAsync(_currentSeries.Title, manifestPath, ct);
         return _currentSeries;
     }
 
@@ -25,6 +34,7 @@ public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
     {
         _currentSeries = await _storage.OpenSeriesAsync(seriesFilePath, ct);
         _dirtyScenes.Clear();
+        await _appSettings.AddRecentSeriesAsync(_currentSeries.Title, seriesFilePath, ct);
         return _currentSeries;
     }
 
@@ -43,6 +53,12 @@ public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
     }
 
     public Series? GetCurrentSeries() => _currentSeries;
+
+    public void CloseSeries()
+    {
+        _currentSeries = null;
+        _dirtyScenes.Clear();
+    }
 
     public BookProject? GetBook(Guid bookId)
         => _currentSeries?.Books.FirstOrDefault(b => b.Id == bookId);

@@ -46,6 +46,13 @@ public sealed class SeriesController : ControllerBase
         return Ok(DtoMapper.ToBookDto(book));
     }
 
+    [HttpDelete("current")]
+    public IActionResult CloseSeries()
+    {
+        _workspace.CloseSeries();
+        return NoContent();
+    }
+
     [HttpDelete("current/books/{bookId:guid}")]
     public async Task<IActionResult> RemoveBook(Guid bookId, CancellationToken ct)
     {

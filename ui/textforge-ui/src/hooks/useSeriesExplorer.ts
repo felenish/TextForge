@@ -14,6 +14,8 @@ export interface UseSeriesExplorerResult {
   error: string | null;
   createSeries: () => Promise<void>;
   openSeries: () => Promise<void>;
+  openSeriesFromPath: (path: string) => Promise<void>;
+  closeSeries: () => Promise<void>;
   addBook: () => Promise<void>;
   renameBook: (bookId: string, title: string) => Promise<void>;
   deleteBook: (bookId: string) => Promise<void>;
@@ -60,6 +62,15 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     const path = await shellApi.openFileDialog('Open Series', 'TextForge Series (*.tfseries)|*.tfseries');
     if (!path) return;
     setSeries(await seriesApi.openSeries(path));
+  });
+
+  const openSeriesFromPath = (path: string) => run(async () => {
+    setSeries(await seriesApi.openSeries(path));
+  });
+
+  const closeSeries = () => run(async () => {
+    await seriesApi.closeSeries();
+    setSeries(null);
   });
 
   const addBook = () => run(async () => {
@@ -146,7 +157,8 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
 
   return {
     series, loading, error,
-    createSeries, openSeries, addBook, renameBook, deleteBook,
+    createSeries, openSeries, openSeriesFromPath, closeSeries,
+    addBook, renameBook, deleteBook,
     addChapter, renameChapter, deleteChapter,
     addScene, renameScene, deleteScene,
   };

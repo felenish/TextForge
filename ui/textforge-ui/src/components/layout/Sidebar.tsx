@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useSeriesExplorer } from '../../hooks/useSeriesExplorer';
+import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import type { SidebarMode } from './ActivityBar';
 import { ManuscriptSidebar } from '../explorer/ManuscriptSidebar';
@@ -9,16 +9,12 @@ import { SearchSidebar } from '../explorer/SearchSidebar';
 
 interface SidebarProps {
   mode: SidebarMode;
+  explorer: UseSeriesExplorerResult;
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
 }
 
-export function Sidebar({ mode, onSceneOpen }: SidebarProps) {
-  const explorer = useSeriesExplorer();
-  const { setSeries, activeSceneId } = useWorkspace();
-
-  useEffect(() => {
-    setSeries(explorer.series ?? null);
-  }, [explorer.series, setSeries]);
+export function Sidebar({ mode, explorer, onSceneOpen }: SidebarProps) {
+  const { activeSceneId } = useWorkspace();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

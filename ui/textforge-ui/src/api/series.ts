@@ -24,3 +24,6 @@ export const addBookToSeries = (title: string): Promise<BookDto> =>
 
 export const removeBook = (bookId: string): Promise<void> =>
   del(`/api/series/current/books/${bookId}`);
+
+export const closeSeries = (): Promise<void> =>
+  del('/api/series/current');

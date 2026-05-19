@@ -1,22 +1,41 @@
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { Icon } from '../ui/Icon';
-
-const MENU_ITEMS = ['File', 'Edit', 'Manuscript', 'Version', 'View', 'Help'];
+import { FileMenu } from '../ui/FileMenu';
 
 interface MenuBarProps {
   focusMode: boolean;
   onFocusToggle: () => void;
   onPaletteOpen: () => void;
+  onOpenSeries: () => void;
+  onCreateSeries: () => void;
+  onSave: () => void;
+  onSaveAll: () => void;
+  onOpenRecentSeries: (path: string) => void;
+  onCloseSeries: () => void;
 }
 
-export function MenuBar({ focusMode, onFocusToggle, onPaletteOpen }: MenuBarProps) {
-  const { theme, cycleTheme } = useWorkspace();
+export function MenuBar({
+  focusMode, onFocusToggle, onPaletteOpen,
+  onOpenSeries, onCreateSeries, onSave, onSaveAll, onOpenRecentSeries, onCloseSeries,
+}: MenuBarProps) {
+  const { theme, cycleTheme, seriesTitle } = useWorkspace();
   const themeIcon = theme === 'dark' ? 'moon' : theme === 'light' ? 'sun' : 'feather';
 
   return (
     <div className="menubar">
       <nav className="mb-menu">
-        {MENU_ITEMS.map(m => <button key={m}>{m}</button>)}
+        <FileMenu
+          hasSeries={!!seriesTitle}
+          onOpenSeries={onOpenSeries}
+          onCreateSeries={onCreateSeries}
+          onSave={onSave}
+          onSaveAll={onSaveAll}
+          onOpenRecentSeries={onOpenRecentSeries}
+          onCloseSeries={onCloseSeries}
+        />
+        {['Edit', 'Manuscript', 'Version', 'View', 'Help'].map(m => (
+          <button key={m} className="mb-menu-btn">{m}</button>
+        ))}
       </nav>
       <div className="mb-actions">
         <button onClick={onPaletteOpen} title="Command Palette (Ctrl+P)">

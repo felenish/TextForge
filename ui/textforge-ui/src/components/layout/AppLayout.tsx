@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
+import { useSeriesExplorer } from '../../hooks/useSeriesExplorer';
 import { SceneEditorArea, type SceneEditorAreaHandle } from '../editor/SceneEditorArea';
 import { Shell } from './Shell';
 import { ShellBody } from './ShellBody';
@@ -18,15 +19,20 @@ export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
   const {
     seriesTitle, dirtySceneIds,
-    typewriterMode, inspectorOpen,
+    typewriterMode, inspectorOpen, setSeries,
   } = useWorkspace();
   const editorSettings = useEditorSettings();
+  const explorer = useSeriesExplorer();
 
   const [focusMode, setFocusMode] = useState(false);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>('manuscript');
   const [bottomOpen, setBottomOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false);
+
+  useEffect(() => {
+    setSeries(explorer.series ?? null);
+  }, [explorer.series, setSeries]);
 
   useEffect(() => {
     const hasUnsaved = dirtySceneIds.size > 0;
@@ -43,9 +49,15 @@ export function AppLayout() {
         e.preventDefault();
         setPaletteOpen(o => !o);
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault();
+        explorer.openSeries();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
+  // explorer.openSeries intentionally excluded — stable across renders
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSceneOpen = useCallback((sceneId: string, sceneTitle: string) => {
@@ -54,6 +66,19 @@ export function AppLayout() {
 
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
   const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
+
+  const handleSave = useCallback(() => editorRef.current?.saveActive(), []);
+  const handleSaveAll = useCallback(() => editorRef.current?.saveAll(), []);
+
+  const handleCloseSeries = useCallback(async () => {
+    await editorRef.current?.saveAll();
+    editorRef.current?.closeAll();
+    await explorer.closeSeries();
+  }, [explorer]);
+
+  const handleOpenRecentSeries = useCallback((path: string) => {
+    explorer.openSeriesFromPath(path);
+  }, [explorer]);
 
   // WebView2 message bridge — C# posts "save-all" before exit; we save and reply "save-complete"
   useEffect(() => {
@@ -71,14 +96,24 @@ export function AppLayout() {
   return (
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
       <TitleBar />
-      <MenuBar focusMode={focusMode} onFocusToggle={toggleFocus} onPaletteOpen={() => setPaletteOpen(o => !o)} />
+      <MenuBar
+        focusMode={focusMode}
+        onFocusToggle={toggleFocus}
+        onPaletteOpen={() => setPaletteOpen(o => !o)}
+        onOpenSeries={explorer.openSeries}
+        onCreateSeries={explorer.createSeries}
+        onSave={handleSave}
+        onSaveAll={handleSaveAll}
+        onOpenRecentSeries={handleOpenRecentSeries}
+        onCloseSeries={handleCloseSeries}
+      />
       <ShellBody noInspector={!inspectorOpen}>
         <ActivityBar
           mode={sidebarMode}
           onModeChange={setSidebarMode}
           dirtyCount={dirtySceneIds.size}
         />
-        <Sidebar mode={sidebarMode} onSceneOpen={handleSceneOpen} />
+        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} />
         <div className={`center-col${bottomOpen ? '' : ' no-bottom'}`}>
           <div className="editor-col">
             <SceneEditorArea ref={editorRef} />

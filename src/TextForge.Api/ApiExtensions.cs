@@ -11,6 +11,7 @@ public static class ApiExtensions
     {
         services.AddControllers()
             .AddApplicationPart(typeof(ApiExtensions).Assembly);
+        services.AddSingleton<IAppSettingsService, AppSettingsService>();
         services.AddSingleton<ISeriesWorkspaceService, SeriesWorkspaceService>();
         return services;
     }
