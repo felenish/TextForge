@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { SeriesDto } from '../api/series';
 import type { BookDto, SceneMetaDto } from '../api/books';
 import type { CharacterDto } from '../api/characters';
+import type { LocationDto } from '../api/locations';
 import * as booksApi from '../api/books';
 import * as seriesApi from '../api/series';
 import * as chaptersApi from '../api/chapters';
 import * as scenesApi from '../api/scenes';
 import * as shellApi from '../api/shell';
 import * as charactersApi from '../api/characters';
+import * as locationsApi from '../api/locations';
 import { useToast } from '../contexts/ToastContext';
 
 export interface UseSeriesExplorerResult {
@@ -34,6 +36,13 @@ export interface UseSeriesExplorerResult {
   renameCharacter: (id: string, name: string) => Promise<void>;
   deleteCharacter: (id: string) => Promise<void>;
   patchCharacterInList: (character: CharacterDto) => void;
+  locations: LocationDto[];
+  locationsLoaded: boolean;
+  loadLocations: () => Promise<void>;
+  addLocation: (name: string) => Promise<void>;
+  renameLocation: (id: string, name: string) => Promise<void>;
+  deleteLocation: (id: string) => Promise<void>;
+  patchLocationInList: (location: LocationDto) => void;
 }
 
 export function useSeriesExplorer(): UseSeriesExplorerResult {
@@ -42,6 +51,8 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const [error, setError] = useState<string | null>(null);
   const [characters, setCharacters] = useState<CharacterDto[]>([]);
   const [charactersLoaded, setCharactersLoaded] = useState(false);
+  const [locations, setLocations] = useState<LocationDto[]>([]);
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
   const { showToast } = useToast();
 
   async function run(fn: () => Promise<void>): Promise<void> {
@@ -65,6 +76,8 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     setSeries(s);
     setCharacters([]);
     setCharactersLoaded(false);
+    setLocations([]);
+    setLocationsLoaded(false);
   }
 
   const createSeries = () => run(async () => {
@@ -117,6 +130,37 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const patchCharacterInList = (character: CharacterDto) => {
     setCharacters(prev =>
       prev.map(c => c.id === character.id ? character : c)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  };
+
+  const loadLocations = () => run(async () => {
+    const list = await locationsApi.getLocations();
+    setLocations(list);
+    setLocationsLoaded(true);
+  });
+
+  const addLocation = (name: string) => run(async () => {
+    const location = await locationsApi.createLocation(name);
+    setLocations(prev => [...prev, location].sort((a, b) => a.name.localeCompare(b.name)));
+  });
+
+  const renameLocation = (id: string, name: string) => run(async () => {
+    await locationsApi.updateLocation(id, { name });
+    setLocations(prev =>
+      prev.map(l => l.id === id ? { ...l, name } : l)
+          .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  });
+
+  const deleteLocation = (id: string) => run(async () => {
+    await locationsApi.deleteLocation(id);
+    setLocations(prev => prev.filter(l => l.id !== id));
+  });
+
+  const patchLocationInList = (location: LocationDto) => {
+    setLocations(prev =>
+      prev.map(l => l.id === location.id ? location : l)
           .sort((a, b) => a.name.localeCompare(b.name))
     );
   };
@@ -211,5 +255,7 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     addChapter, renameChapter, deleteChapter,
     addScene, renameScene, deleteScene,
     loadCharacters, addCharacter, renameCharacter, deleteCharacter, patchCharacterInList,
+    locations, locationsLoaded,
+    loadLocations, addLocation, renameLocation, deleteLocation, patchLocationInList,
   };
 }

@@ -27,6 +27,12 @@ export function Icon({ name, size = 16, stroke = 1.5, className, style }: IconPr
         <path d="M9 7h6M9 11h6" />
       </svg>
     );
+    case 'map-pin': return (
+      <svg {...base}>
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+    );
     case 'user': return (
       <svg {...base}>
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />

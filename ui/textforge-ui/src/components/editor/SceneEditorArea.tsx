@@ -1,10 +1,12 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { CharacterDto } from '../../api/characters';
+import type { LocationDto } from '../../api/locations';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { TabBar, type Tab } from './TabBar';
 import { Breadcrumb } from './Breadcrumb';
 import { SceneEditor } from './SceneEditor';
 import { CharacterEditor } from './CharacterEditor';
+import { LocationEditor } from './LocationEditor';
 import { FindReplaceBar } from './FindReplaceBar';
 
 interface TabsState {
@@ -15,6 +17,7 @@ interface TabsState {
 export interface SceneEditorAreaHandle {
   openScene: (sceneId: string, sceneTitle: string) => void;
   openCharacter: (characterId: string, name: string) => void;
+  openLocation: (locationId: string, name: string) => void;
   saveAll: () => Promise<void>;
   saveActive: () => Promise<void>;
   closeAll: () => void;
@@ -23,10 +26,11 @@ export interface SceneEditorAreaHandle {
 
 interface SceneEditorAreaProps {
   onCharacterSaved?: (character: CharacterDto) => void;
+  onLocationSaved?: (location: LocationDto) => void;
 }
 
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorAreaProps>(
-  function SceneEditorArea({ onCharacterSaved }, ref) {
+  function SceneEditorArea({ onCharacterSaved, onLocationSaved }, ref) {
     const [{ tabs, activeId }, setState] = useState<TabsState>({ tabs: [], activeId: null });
     const { dirtySceneIds, markClean, clearSceneWordCount, setActiveScene } = useWorkspace();
     const saveRegistry = useRef(new Map<string, () => Promise<void>>());
@@ -44,6 +48,14 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
         if (prev.tabs.some(t => t.id === characterId))
           return { ...prev, activeId: characterId };
         return { tabs: [...prev.tabs, { id: characterId, title: name, kind: 'character' }], activeId: characterId };
+      });
+    }, []);
+
+    const openLocation = useCallback((locationId: string, name: string) => {
+      setState(prev => {
+        if (prev.tabs.some(t => t.id === locationId))
+          return { ...prev, activeId: locationId };
+        return { tabs: [...prev.tabs, { id: locationId, title: name, kind: 'location' }], activeId: locationId };
       });
     }, []);
 
@@ -91,7 +103,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       setFindOpen(true);
     }, []);
 
-    useImperativeHandle(ref, () => ({ openScene, openCharacter, saveAll, saveActive, closeAll, openFind }), [openScene, openCharacter, saveAll, saveActive, closeAll, openFind]);
+    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, saveAll, saveActive, closeAll, openFind }), [openScene, openCharacter, openLocation, saveAll, saveActive, closeAll, openFind]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
@@ -131,18 +143,25 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       closeTab(tabId);
     }, [dirtySceneIds, tabs, closeTab]);
 
-    // Update character tab title when character name changes
     const handleCharacterSaved = useCallback((character: CharacterDto) => {
       setState(prev => ({
         ...prev,
         tabs: prev.tabs.map(t =>
-          t.id === character.id && t.kind === 'character'
-            ? { ...t, title: character.name }
-            : t
+          t.id === character.id && t.kind === 'character' ? { ...t, title: character.name } : t
         ),
       }));
       onCharacterSaved?.(character);
     }, [onCharacterSaved]);
+
+    const handleLocationSaved = useCallback((location: LocationDto) => {
+      setState(prev => ({
+        ...prev,
+        tabs: prev.tabs.map(t =>
+          t.id === location.id && t.kind === 'location' ? { ...t, title: location.name } : t
+        ),
+      }));
+      onLocationSaved?.(location);
+    }, [onLocationSaved]);
 
     useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -210,10 +229,15 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
                   onUnregisterSave={handleUnregisterSave}
                   onRegisterEditorEl={handleRegisterEditorEl}
                 />
-              ) : (
+              ) : tab.kind === 'character' ? (
                 <CharacterEditor
                   characterId={tab.id}
                   onSaved={handleCharacterSaved}
+                />
+              ) : (
+                <LocationEditor
+                  locationId={tab.id}
+                  onSaved={handleLocationSaved}
                 />
               )}
             </div>

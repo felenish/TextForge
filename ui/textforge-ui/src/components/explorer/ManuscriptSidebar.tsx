@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
+import type { LocationDto } from '../../api/locations';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 import * as shellApi from '../../api/shell';
@@ -8,21 +9,25 @@ import * as shellApi from '../../api/shell';
 interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
   onCharacterOpen: (characterId: string, name: string) => void;
+  onLocationOpen: (locationId: string, name: string) => void;
 }
 
 export function ManuscriptSidebar({
   series, loading, error,
   characters, charactersLoaded,
+  locations, locationsLoaded,
   createSeries, openSeries, addBook, renameBook, deleteBook,
   addChapter, renameChapter, deleteChapter,
   addScene, renameScene, deleteScene,
   loadCharacters, addCharacter, renameCharacter, deleteCharacter,
-  onSceneOpen, onCharacterOpen,
+  loadLocations, addLocation, renameLocation, deleteLocation,
+  onSceneOpen, onCharacterOpen, onLocationOpen,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId } = useWorkspace();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [charsOpen, setCharsOpen] = useState(false);
+  const [locsOpen, setLocsOpen] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
 
   const isExpanded = (id: string) => expanded[id] !== false;
@@ -64,6 +69,29 @@ export function ManuscriptSidebar({
       danger: true,
       onClick: () => {
         if (window.confirm(`Delete character "${name}"?`)) deleteCharacter(id);
+      },
+    },
+  ];
+
+  const toggleLocs = () => {
+    if (!locsOpen && !locationsLoaded) loadLocations();
+    setLocsOpen(v => !v);
+  };
+
+  const locationMenuItems = (id: string, name: string): ContextMenuEntry[] => [
+    {
+      label: 'Rename',
+      onClick: () => {
+        const t = window.prompt('New name:', name);
+        if (t?.trim() && t !== name) renameLocation(id, t.trim());
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Delete',
+      danger: true,
+      onClick: () => {
+        if (window.confirm(`Delete location "${name}"?`)) deleteLocation(id);
       },
     },
   ];
@@ -369,6 +397,66 @@ export function ManuscriptSidebar({
                 </>
               )}
             </div>
+
+            {/* Locations */}
+            <div>
+              <div
+                className="tree-row is-book"
+                onClick={toggleLocs}
+                onContextMenu={e => showMenu(e, [
+                  {
+                    label: 'New Location',
+                    onClick: () => {
+                      const name = window.prompt('Location name:');
+                      if (name?.trim()) addLocation(name.trim());
+                    },
+                  },
+                ])}
+              >
+                <span className={`chev${locsOpen ? ' open' : ''}`}>
+                  <Icon name="chev-right" size={11} />
+                </span>
+                <span className="icon"><Icon name="map-pin" size={13} /></span>
+                <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>Locations</span>
+                {locationsLoaded && (
+                  <span className="meta-right">{locations.length}</span>
+                )}
+              </div>
+
+              {locsOpen && (
+                <>
+                  <div
+                    className="tree-row"
+                    style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
+                    onClick={() => {
+                      const name = window.prompt('Location name:');
+                      if (name?.trim()) addLocation(name.trim());
+                    }}
+                  >
+                    <span className="icon"><Icon name="plus" size={12} /></span>
+                    <span className="label" style={{ fontSize: 11 }}>New Location…</span>
+                  </div>
+                  {(locations as LocationDto[]).map(loc => (
+                    <div
+                      key={loc.id}
+                      className="tree-row"
+                      style={{ paddingLeft: 20 }}
+                      onClick={() => onLocationOpen(loc.id, loc.name)}
+                      onContextMenu={e => showMenu(e, locationMenuItems(loc.id, loc.name))}
+                    >
+                      <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                      <span className="icon"><Icon name="map-pin" size={13} /></span>
+                      <span className="label">{loc.name}</span>
+                    </div>
+                  ))}
+                  {locationsLoaded && locations.length === 0 && (
+                    <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '4px 14px 4px 28px' }}>
+                      No locations yet
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -378,6 +466,7 @@ export function ManuscriptSidebar({
           <span><span className="num">{totalScenes}</span> scenes</span>
           <span><span className="num">{totalChapters}</span> ch</span>
           {charactersLoaded && <span><span className="num">{characters.length}</span> chars</span>}
+          {locationsLoaded && <span><span className="num">{locations.length}</span> locs</span>}
         </div>
       )}
 

@@ -4,6 +4,8 @@ namespace TextForge.Api.Dtos;
 
 internal static class DtoMapper
 {
+    public static LocationDto ToLocationDto(Location l) => new(l.Id, l.Name, l.Description, l.ImageFileName is not null);
+
     public static CharacterDto ToCharacterDto(Character c) => new(
         c.Id, c.Name, c.Role, c.Age, c.Gender, c.Personality, c.Biography,
         c.ImageFileName is not null);

@@ -53,6 +53,7 @@ public sealed class SeriesStorageService : ISeriesStorageService
         await SafeFileWriter.WriteAsync(manifestPath, Serialize(manifest), ct);
 
         EnsureCharactersFolder(rootPath);
+        EnsureLocationsFolder(rootPath);
         _logger.LogInformation("Created series '{Title}' at {RootPath}", request.Title, rootPath);
 
         return new Series
@@ -121,6 +122,7 @@ public sealed class SeriesStorageService : ISeriesStorageService
         }
 
         EnsureCharactersFolder(rootPath);
+        EnsureLocationsFolder(rootPath);
         _logger.LogInformation("Opened series '{Title}' with {Count} book(s)", series.Title, series.Books.Count);
 
         return series;
@@ -193,4 +195,7 @@ public sealed class SeriesStorageService : ISeriesStorageService
 
     private static void EnsureCharactersFolder(string rootPath) =>
         Directory.CreateDirectory(Path.Combine(rootPath, "Characters"));
+
+    private static void EnsureLocationsFolder(string rootPath) =>
+        Directory.CreateDirectory(Path.Combine(rootPath, "Locations"));
 }
