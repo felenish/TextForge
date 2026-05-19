@@ -12,6 +12,7 @@ interface SceneEditorProps {
   isActive: boolean;
   onRegisterSave: (sceneId: string, save: () => Promise<void>) => void;
   onUnregisterSave: (sceneId: string) => void;
+  onRegisterEditorEl: (sceneId: string, el: HTMLDivElement | null) => void;
 }
 
 function countWords(text: string): number {
@@ -30,7 +31,7 @@ function contentToHtml(content: string): string {
     : '<p></p>';
 }
 
-export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
+export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave, onRegisterEditorEl }: SceneEditorProps) {
   const { content, isDirty, loading, saving, error, onChange, save } = useSceneEditor(sceneId);
   const { markDirty, markClean, setSceneWordCount, setContentStats, typewriterMode, minimapOpen } = useWorkspace();
   const { log } = useOutput();
@@ -47,6 +48,13 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
     initializedRef.current = true;
     editorRef.current.innerHTML = contentToHtml(content);
   }, [loading, content]);
+
+  useLayoutEffect(() => {
+    if (loading || !editorRef.current) return;
+    const el = editorRef.current;
+    onRegisterEditorEl(sceneId, el);
+    return () => onRegisterEditorEl(sceneId, null);
+  }, [loading, sceneId, onRegisterEditorEl]);
 
   const saveRef = useRef(save);
   useEffect(() => { saveRef.current = save; });

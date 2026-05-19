@@ -1,6 +1,7 @@
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { Icon } from '../ui/Icon';
 import { FileMenu } from '../ui/FileMenu';
+import { EditMenu } from '../ui/EditMenu';
 
 interface MenuBarProps {
   focusMode: boolean;
@@ -12,11 +13,14 @@ interface MenuBarProps {
   onSaveAll: () => void;
   onOpenRecentSeries: (path: string) => void;
   onCloseSeries: () => void;
+  onFind: () => void;
+  onFindReplace: () => void;
 }
 
 export function MenuBar({
   focusMode, onFocusToggle, onPaletteOpen,
   onOpenSeries, onCreateSeries, onSave, onSaveAll, onOpenRecentSeries, onCloseSeries,
+  onFind, onFindReplace,
 }: MenuBarProps) {
   const { theme, cycleTheme, seriesTitle } = useWorkspace();
   const themeIcon = theme === 'dark' ? 'moon' : theme === 'light' ? 'sun' : 'feather';
@@ -33,7 +37,8 @@ export function MenuBar({
           onOpenRecentSeries={onOpenRecentSeries}
           onCloseSeries={onCloseSeries}
         />
-        {['Edit', 'Manuscript', 'Version', 'View', 'Help'].map(m => (
+        <EditMenu onFind={onFind} onFindReplace={onFindReplace} />
+        {['Manuscript', 'Version', 'View', 'Help'].map(m => (
           <button key={m} className="mb-menu-btn">{m}</button>
         ))}
       </nav>

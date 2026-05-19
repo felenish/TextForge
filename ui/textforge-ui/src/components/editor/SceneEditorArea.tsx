@@ -3,6 +3,7 @@ import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { TabBar } from './TabBar';
 import { Breadcrumb } from './Breadcrumb';
 import { SceneEditor } from './SceneEditor';
+import { FindReplaceBar } from './FindReplaceBar';
 
 interface Tab {
   id: string;
@@ -19,6 +20,7 @@ export interface SceneEditorAreaHandle {
   saveAll: () => Promise<void>;
   saveActive: () => Promise<void>;
   closeAll: () => void;
+  openFind: (withReplace: boolean) => void;
 }
 
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
@@ -62,7 +64,22 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
       }
     }, [markClean, clearSceneWordCount]);
 
-    useImperativeHandle(ref, () => ({ openScene, saveAll, saveActive, closeAll }), [openScene, saveAll, saveActive, closeAll]);
+    // Editor element registry — each SceneEditor registers its contentEditable div
+    const editorElRegistry = useRef(new Map<string, HTMLDivElement>());
+    const handleRegisterEditorEl = useCallback((sceneId: string, el: HTMLDivElement | null) => {
+      if (el) editorElRegistry.current.set(sceneId, el);
+      else editorElRegistry.current.delete(sceneId);
+    }, []);
+
+    // Find / Replace bar state
+    const [findOpen, setFindOpen] = useState(false);
+    const [findWithReplace, setFindWithReplace] = useState(false);
+    const openFind = useCallback((withReplace: boolean) => {
+      setFindWithReplace(withReplace);
+      setFindOpen(true);
+    }, []);
+
+    useImperativeHandle(ref, () => ({ openScene, saveAll, saveActive, closeAll, openFind }), [openScene, saveAll, saveActive, closeAll, openFind]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
@@ -161,9 +178,17 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
                 isActive={tab.id === activeId}
                 onRegisterSave={handleRegisterSave}
                 onUnregisterSave={handleUnregisterSave}
+                onRegisterEditorEl={handleRegisterEditorEl}
               />
             </div>
           ))}
+          {findOpen && (
+            <FindReplaceBar
+              editorEl={activeId ? (editorElRegistry.current.get(activeId) ?? null) : null}
+              initialShowReplace={findWithReplace}
+              onClose={() => setFindOpen(false)}
+            />
+          )}
         </div>
       </div>
     );

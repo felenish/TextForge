@@ -53,6 +53,14 @@ export function AppLayout() {
         e.preventDefault();
         explorer.openSeries();
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        editorRef.current?.openFind(false);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        e.preventDefault();
+        editorRef.current?.openFind(true);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -106,6 +114,8 @@ export function AppLayout() {
         onSaveAll={handleSaveAll}
         onOpenRecentSeries={handleOpenRecentSeries}
         onCloseSeries={handleCloseSeries}
+        onFind={() => editorRef.current?.openFind(false)}
+        onFindReplace={() => editorRef.current?.openFind(true)}
       />
       <ShellBody noInspector={!inspectorOpen}>
         <ActivityBar
