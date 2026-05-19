@@ -16,6 +16,9 @@ interface WorkspaceContextValue {
   totalWordCount: number;
   sceneWordCounts: ReadonlyMap<string, number>;
   theme: Theme;
+  typewriterMode: boolean;
+  inspectorOpen: boolean;
+  minimapOpen: boolean;
   activeSceneId: string | null;
   activeSceneTitle: string | null;
   contentStats: ContentStats | null;
@@ -26,7 +29,11 @@ interface WorkspaceContextValue {
   clearSceneWordCount: (sceneId: string) => void;
   setActiveScene: (id: string | null, title: string | null) => void;
   setContentStats: (stats: ContentStats | null) => void;
+  applyTheme: (t: Theme) => void;
   cycleTheme: () => void;
+  setTypewriterMode: (v: boolean) => void;
+  setInspectorOpen: (v: boolean) => void;
+  setMinimapOpen: (v: boolean) => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue>({
@@ -37,6 +44,9 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   totalWordCount: 0,
   sceneWordCounts: new Map(),
   theme: 'dark',
+  typewriterMode: false,
+  inspectorOpen: true,
+  minimapOpen: false,
   activeSceneId: null,
   activeSceneTitle: null,
   contentStats: null,
@@ -47,7 +57,11 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   clearSceneWordCount: () => {},
   setActiveScene: () => {},
   setContentStats: () => {},
+  applyTheme: () => {},
   cycleTheme: () => {},
+  setTypewriterMode: () => {},
+  setInspectorOpen: () => {},
+  setMinimapOpen: () => {},
 });
 
 function getInitialTheme(): Theme {
@@ -61,7 +75,16 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(new Set());
   const [book, setBookState] = useState<BookDto | null>(null);
   const [sceneWordCountMap, setSceneWordCountMap] = useState<Map<string, number>>(new Map());
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [typewriterMode, setTypewriterModeState] = useState(
+    () => localStorage.getItem('tf-tw') === 'true',
+  );
+  const [inspectorOpen, setInspectorOpenState] = useState(
+    () => localStorage.getItem('tf-inspector') !== 'false',
+  );
+  const [minimapOpen, setMinimapOpenState] = useState(
+    () => localStorage.getItem('tf-minimap') === 'true',
+  );
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [activeSceneTitle, setActiveSceneTitle] = useState<string | null>(null);
   const [contentStats, setContentStatsState] = useState<ContentStats | null>(null);
@@ -113,12 +136,32 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setContentStatsState(stats);
   }, []);
 
+  const applyTheme = useCallback((t: Theme) => {
+    localStorage.setItem('tf-theme', t);
+    setThemeState(t);
+  }, []);
+
   const cycleTheme = useCallback(() => {
-    setTheme(t => {
+    setThemeState(t => {
       const next: Theme = t === 'dark' ? 'light' : t === 'light' ? 'sepia' : 'dark';
       localStorage.setItem('tf-theme', next);
       return next;
     });
+  }, []);
+
+  const setTypewriterMode = useCallback((v: boolean) => {
+    localStorage.setItem('tf-tw', String(v));
+    setTypewriterModeState(v);
+  }, []);
+
+  const setInspectorOpen = useCallback((v: boolean) => {
+    localStorage.setItem('tf-inspector', String(v));
+    setInspectorOpenState(v);
+  }, []);
+
+  const setMinimapOpen = useCallback((v: boolean) => {
+    localStorage.setItem('tf-minimap', String(v));
+    setMinimapOpenState(v);
   }, []);
 
   const bookTitle = book?.title ?? null;
@@ -137,6 +180,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       totalWordCount,
       sceneWordCounts: sceneWordCountMap,
       theme,
+      typewriterMode,
+      inspectorOpen,
+      minimapOpen,
       activeSceneId,
       activeSceneTitle,
       contentStats,
@@ -147,7 +193,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       clearSceneWordCount,
       setActiveScene,
       setContentStats,
+      applyTheme,
       cycleTheme,
+      setTypewriterMode,
+      setInspectorOpen,
+      setMinimapOpen,
     }}>
       {children}
     </WorkspaceContext.Provider>

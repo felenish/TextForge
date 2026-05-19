@@ -4,18 +4,17 @@ import { Icon } from '../ui/Icon';
 interface StatusBarProps {
   focusMode: boolean;
   onFocusToggle: () => void;
-  typewriterMode: boolean;
-  onTypewriterToggle: () => void;
   panelOpen: boolean;
   onPanelToggle: () => void;
+  onTweaksToggle: () => void;
 }
 
 export function StatusBar({
   focusMode, onFocusToggle,
-  typewriterMode, onTypewriterToggle,
   panelOpen, onPanelToggle,
+  onTweaksToggle,
 }: StatusBarProps) {
-  const { dirtySceneIds, wordCount, theme } = useWorkspace();
+  const { dirtySceneIds, wordCount, theme, typewriterMode, setTypewriterMode } = useWorkspace();
   const hasDirty = dirtySceneIds.size > 0;
   const readingTime = wordCount > 0 ? Math.max(1, Math.ceil(wordCount / 200)) : 0;
 
@@ -63,18 +62,30 @@ export function StatusBar({
       </div>
       <div
         className="sb-item"
-        onClick={onTypewriterToggle}
+        onClick={() => setTypewriterMode(!typewriterMode)}
         style={{ color: typewriterMode ? 'var(--accent)' : undefined }}
         title="Typewriter Mode"
       >
         <Icon name="type" size={12} />
         <span>TW</span>
       </div>
-      <div className="sb-item" title="Command Palette">
+      <div
+        className="sb-item"
+        title="Command Palette (Ctrl+K)"
+        onClick={() => {
+          const ev = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
+          window.dispatchEvent(ev);
+        }}
+      >
         <Icon name="command" size={12} />
         <span>⌘K</span>
       </div>
-      <div className="sb-item accent">
+      <div
+        className="sb-item accent"
+        onClick={onTweaksToggle}
+        title="Tweaks"
+        style={{ cursor: 'pointer' }}
+      >
         <span>{theme.charAt(0).toUpperCase() + theme.slice(1)}</span>
       </div>
     </div>

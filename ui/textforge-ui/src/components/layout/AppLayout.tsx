@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { SceneEditorArea, type SceneEditorAreaHandle } from '../editor/SceneEditorArea';
 import { Shell } from './Shell';
 import { ShellBody } from './ShellBody';
@@ -9,14 +10,22 @@ import { ActivityBar, type SidebarMode } from './ActivityBar';
 import { Sidebar } from './Sidebar';
 import { Inspector } from '../inspector/Inspector';
 import { BottomPanel } from '../panels/BottomPanel';
+import { CommandPalette } from '../ui/CommandPalette';
+import { TweaksPanel } from '../ui/TweaksPanel';
 
 export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
-  const { bookTitle, dirtySceneIds } = useWorkspace();
+  const {
+    bookTitle, dirtySceneIds,
+    typewriterMode, inspectorOpen,
+  } = useWorkspace();
+  const editorSettings = useEditorSettings();
+
   const [focusMode, setFocusMode] = useState(false);
-  const [typewriterMode, setTypewriterMode] = useState(false);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>('manuscript');
   const [bottomOpen, setBottomOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [tweaksOpen, setTweaksOpen] = useState(false);
 
   useEffect(() => {
     const hasUnsaved = dirtySceneIds.size > 0;
@@ -28,7 +37,11 @@ export function AppLayout() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'F11') { e.preventDefault(); setFocusMode(f => !f); }
-      if (e.key === 'Escape') setFocusMode(false);
+      if (e.key === 'Escape') { setFocusMode(false); setPaletteOpen(false); }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'p')) {
+        e.preventDefault();
+        setPaletteOpen(o => !o);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -39,13 +52,12 @@ export function AppLayout() {
   }, []);
 
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
-  const toggleTypewriter = useCallback(() => setTypewriterMode(t => !t), []);
   const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
 
   return (
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
       <TitleBar focusMode={focusMode} onFocusToggle={toggleFocus} />
-      <ShellBody>
+      <ShellBody noInspector={!inspectorOpen}>
         <ActivityBar
           mode={sidebarMode}
           onModeChange={setSidebarMode}
@@ -58,19 +70,33 @@ export function AppLayout() {
           </div>
           {bottomOpen && <BottomPanel onClose={() => setBottomOpen(false)} />}
         </div>
-        <Inspector />
+        {inspectorOpen && <Inspector />}
       </ShellBody>
       <StatusBar
         focusMode={focusMode}
         onFocusToggle={toggleFocus}
-        typewriterMode={typewriterMode}
-        onTypewriterToggle={toggleTypewriter}
         panelOpen={bottomOpen}
         onPanelToggle={toggleBottom}
+        onTweaksToggle={() => setTweaksOpen(o => !o)}
       />
       <button className="exit-focus" onClick={toggleFocus}>
         Exit focus · esc
       </button>
+      {paletteOpen && (
+        <CommandPalette
+          onClose={() => setPaletteOpen(false)}
+          onOpenScene={handleSceneOpen}
+          onToggleFocus={toggleFocus}
+          onToggleBottom={toggleBottom}
+          onOpenTweaks={() => { setTweaksOpen(o => !o); }}
+        />
+      )}
+      {tweaksOpen && (
+        <TweaksPanel
+          editorSettings={editorSettings}
+          onClose={() => setTweaksOpen(false)}
+        />
+      )}
     </Shell>
   );
 }

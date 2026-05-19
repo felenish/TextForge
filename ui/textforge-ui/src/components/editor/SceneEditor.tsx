@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useOutput } from '../../contexts/OutputContext';
 import * as workspaceApi from '../../api/workspace';
 import { useSceneEditor } from '../../hooks/useSceneEditor';
+import { Minimap } from './Minimap';
 
 interface SceneEditorProps {
   sceneId: string;
@@ -23,9 +24,10 @@ function escapeHtml(s: string): string {
 
 export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
   const { content, isDirty, loading, saving, error, onChange, save } = useSceneEditor(sceneId);
-  const { markDirty, markClean, setSceneWordCount, setContentStats } = useWorkspace();
+  const { markDirty, markClean, setSceneWordCount, setContentStats, typewriterMode, minimapOpen } = useWorkspace();
   const { log } = useOutput();
   const editorRef = useRef<HTMLDivElement>(null);
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
   const initializedSceneRef = useRef<string | null>(null);
   const saveRef = useRef(save);
   useEffect(() => { saveRef.current = save; });
@@ -60,6 +62,31 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
   useEffect(() => {
     setSceneWordCount(sceneId, countWords(content));
   }, [sceneId, content, setSceneWordCount]);
+
+  // Typewriter mode: mark the paragraph under the caret with .is-current
+  useEffect(() => {
+    if (!typewriterMode || !isActive) return;
+    const editor = editorRef.current;
+    const handler = () => {
+      if (!editor) return;
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+      let node: Node | null = sel.getRangeAt(0).startContainer;
+      while (node && node !== editor) {
+        if ((node as Element).tagName === 'P') break;
+        node = node.parentNode;
+      }
+      editor.querySelectorAll('p.is-current').forEach(el => el.classList.remove('is-current'));
+      if (node && (node as Element).tagName === 'P' && editor.contains(node)) {
+        (node as Element).classList.add('is-current');
+      }
+    };
+    document.addEventListener('selectionchange', handler);
+    return () => {
+      document.removeEventListener('selectionchange', handler);
+      editor?.querySelectorAll('p.is-current').forEach(el => el.classList.remove('is-current'));
+    };
+  }, [typewriterMode, isActive]);
 
   // Initialize contenteditable DOM once per scene load; gated by ref so typing doesn't reset it
   useEffect(() => {
@@ -110,8 +137,8 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
           {error}
         </div>
       )}
-      <div className="editor-area no-minimap">
-        <div className="editor-scroll">
+      <div className={`editor-area${minimapOpen ? '' : ' no-minimap'}`}>
+        <div ref={setScrollEl} className="editor-scroll">
           <div className="editor-doc">
             <div className="scene-head">
               <div className="eyebrow">scene</div>
@@ -127,6 +154,7 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
             />
           </div>
         </div>
+        {minimapOpen && <Minimap content={content} scrollEl={scrollEl} />}
       </div>
       <div style={{
         padding: '4px 16px', borderTop: '1px solid var(--border-subtle)',
