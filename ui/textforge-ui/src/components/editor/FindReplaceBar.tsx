@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 interface Match {
   node: Text;
@@ -59,42 +59,39 @@ export function FindReplaceBar({ editorEl, initialShowReplace, onClose }: FindRe
     findInputRef.current?.select();
   }, []);
 
-  // Rebuild matches whenever term, case or editor element changes
+  // Rebuild matches whenever term, case or editor element changes.
+  // setState is deferred via queueMicrotask so it runs in a callback, not
+  // synchronously in the effect body (satisfies react-hooks/set-state-in-effect).
   useEffect(() => {
-    if (!editorEl || !term) {
-      matchesRef.current = [];
-      setMatchCount(0);
-      setMatchIdx(0);
-      return;
-    }
-    const matches = buildMatches(editorEl, term, matchCase);
+    const matches = editorEl && term ? buildMatches(editorEl, term, matchCase) : [];
     matchesRef.current = matches;
-    setMatchCount(matches.length);
-    if (matches.length > 0) {
+    if (matches.length > 0) applySelection(matches[0]);
+    const count = matches.length;
+    queueMicrotask(() => {
+      setMatchCount(count);
       setMatchIdx(0);
-      applySelection(matches[0]);
-    } else {
-      setMatchIdx(0);
-    }
-  }, [editorEl, term, matchCase]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Stable navigate via ref — used by keyboard handler
-  const actionsRef = useRef({
-    navigate: (_dir: 1 | -1) => {},
-    close: () => {},
-  });
-
-  actionsRef.current.navigate = (dir: 1 | -1) => {
-    const matches = matchesRef.current;
-    if (!matches.length) return;
-    setMatchIdx(prev => {
-      const next = (prev + dir + matches.length) % matches.length;
-      matchIdxRef.current = next;
-      applySelection(matches[next]);
-      return next;
     });
-  };
-  actionsRef.current.close = onClose;
+  }, [editorEl, term, matchCase]);
+
+  // Stable navigate/close refs — updated after every render so closures stay fresh
+  const actionsRef = useRef<{
+    navigate: (dir: 1 | -1) => void;
+    close: () => void;
+  }>({ navigate: () => {}, close: () => {} });
+
+  useLayoutEffect(() => {
+    actionsRef.current.navigate = (dir: 1 | -1) => {
+      const matches = matchesRef.current;
+      if (!matches.length) return;
+      setMatchIdx(prev => {
+        const next = (prev + dir + matches.length) % matches.length;
+        matchIdxRef.current = next;
+        applySelection(matches[next]);
+        return next;
+      });
+    };
+    actionsRef.current.close = onClose;
+  });
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

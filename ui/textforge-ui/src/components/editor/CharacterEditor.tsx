@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CharacterDto } from '../../api/characters';
 import * as charactersApi from '../../api/characters';
 import { Icon } from '../ui/Icon';
@@ -14,24 +14,30 @@ const GENDER_OPTIONS = ['', 'Male', 'Female', 'Non-binary', 'Other'];
 
 export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) {
   const [character, setCharacter] = useState<CharacterDto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const loading = loadedId !== characterId;
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestRef = useRef<CharacterDto | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [imageKey, setImageKey] = useState(0);
 
+  useLayoutEffect(() => {
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, []);
+
   useEffect(() => {
-    setLoading(true);
-    setCharacter(null);
+    let cancelled = false;
     latestRef.current = null;
     charactersApi.getCharacter(characterId)
-      .then(c => { setCharacter(c); latestRef.current = c; })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
+      .then(c => {
+        if (cancelled) return;
+        setCharacter(c);
+        setLoadedId(characterId);
+        latestRef.current = c;
+      })
+      .catch(() => { if (!cancelled) setLoadedId(characterId); });
+    return () => { cancelled = true; };
   }, [characterId]);
 
   const flushSave = useCallback(async (c: CharacterDto) => {
