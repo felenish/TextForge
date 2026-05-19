@@ -8,6 +8,7 @@ import { StatusBar } from './StatusBar';
 import { ActivityBar, type SidebarMode } from './ActivityBar';
 import { Sidebar } from './Sidebar';
 import { Inspector } from '../inspector/Inspector';
+import { BottomPanel } from '../panels/BottomPanel';
 
 export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
@@ -15,6 +16,7 @@ export function AppLayout() {
   const [focusMode, setFocusMode] = useState(false);
   const [typewriterMode, setTypewriterMode] = useState(false);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>('manuscript');
+  const [bottomOpen, setBottomOpen] = useState(false);
 
   useEffect(() => {
     const hasUnsaved = dirtySceneIds.size > 0;
@@ -38,6 +40,7 @@ export function AppLayout() {
 
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
   const toggleTypewriter = useCallback(() => setTypewriterMode(t => !t), []);
+  const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
 
   return (
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
@@ -49,8 +52,11 @@ export function AppLayout() {
           dirtyCount={dirtySceneIds.size}
         />
         <Sidebar mode={sidebarMode} onSceneOpen={handleSceneOpen} />
-        <div className="editor-col">
-          <SceneEditorArea ref={editorRef} />
+        <div className={`center-col${bottomOpen ? '' : ' no-bottom'}`}>
+          <div className="editor-col">
+            <SceneEditorArea ref={editorRef} />
+          </div>
+          {bottomOpen && <BottomPanel onClose={() => setBottomOpen(false)} />}
         </div>
         <Inspector />
       </ShellBody>
@@ -59,6 +65,8 @@ export function AppLayout() {
         onFocusToggle={toggleFocus}
         typewriterMode={typewriterMode}
         onTypewriterToggle={toggleTypewriter}
+        panelOpen={bottomOpen}
+        onPanelToggle={toggleBottom}
       />
       <button className="exit-focus" onClick={toggleFocus}>
         Exit focus · esc

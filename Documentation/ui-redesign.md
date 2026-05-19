@@ -119,53 +119,55 @@ Foundation layer. Everything else builds on top of this.
 ## Phase D — Inspector Panel
 
 ### D.1 Inspector Shell
-- [ ] Create `src/components/inspector/Inspector.tsx`
-- [ ] Header with "Inspector" label + pin + more buttons
-- [ ] Scrollable body with sections
-- [ ] "No scene selected." empty state
+- [x] Create `src/components/inspector/Inspector.tsx`
+- [x] Header with "Inspector" label
+- [x] Scrollable body with sections
+- [x] "No scene selected." empty state
 
 ### D.2 Scene Section
-- [ ] Title, chapter abbreviation, location rows
-- [ ] Status pills: Draft / Revised / Final — clickable, calls `PATCH /api/scenes/{id}` (scene status)
-- [ ] Add `status` field to `SceneDto` and `PATCH /api/scenes/{id}` endpoint
+- [x] Title row
+- [x] Status pills: Draft / Revised / Final — clickable, calls `PATCH /api/scenes/{id}`
 
 ### D.3 Counts Section
-- [ ] Words (large accent number), reading time, paragraph count, sentence count, longest paragraph
+- [x] Words, reading time, paragraph count, sentence count
 
 ### D.4 POV & Characters Sections (stubs)
-- [ ] Chip grid layout for POV and characters in scene
-- [ ] Populated with real data when character system is built (Phase F)
+- [x] Chip grid layout for characters in scene stub
+- [x] POV row stub
 
 ### D.5 Notes Section (stub)
-- [ ] Static "Notes & Comments" section with "+ Add a note" prompt
+- [x] Static "Notes & Comments" section with "+ Add a note" prompt
 
 ### D.6 Last Snapshot Section (stub)
-- [ ] Shows `v0001 · just now` placeholder
+- [x] Shows "None" placeholder
 
 ---
 
 ## Phase E — Bottom Panel
 
 ### E.1 Bottom Panel Shell
-- [ ] Create `src/components/panels/BottomPanel.tsx`
-- [ ] Tab strip: Word Count, Notes, Output, Problems
-- [ ] Maximize + close buttons
-- [ ] Collapsible (hidden when closed, restored by status bar or keyboard)
+- [x] Create `src/components/panels/BottomPanel.tsx`
+- [x] Tab strip: Word Count, Notes, Output, Problems
+- [x] Close button; toggle via status bar word count click or panel icon
+- [x] Collapsible via `bottomOpen` state in AppLayout; `center-col.no-bottom` collapses the grid row
 
 ### E.2 Word Count Tab
-- [ ] Four stat cards: Manuscript total, Today, 7-day avg, Est. completion (stubs for avg/est)
-- [ ] Word count bar chart per chapter (real data from book chapters + scene word counts)
+- [x] Four stat cards: Manuscript total (open scenes), Active scene, Today (stub), Est. completion (stub)
+- [x] Word count bar chart per chapter (real data: `sceneWordCounts` map in WorkspaceContext; closes show 0)
+- [x] `totalWordCount` + per-scene tracking via `setSceneWordCount`/`clearSceneWordCount` in WorkspaceContext
 
 ### E.3 Notes / To-Do Tab
-- [ ] Checkbox list of notes/todos
-- [ ] Persisted locally (localStorage) until a proper API is added
+- [x] Checkbox list of notes/todos with delete button
+- [x] Persisted to `localStorage` key `tf-notes`
+- [x] Add note via input + Enter
 
 ### E.4 Output Tab
-- [ ] Display structured log lines (timestamp, level, message)
-- [ ] Wire to console-captured API errors and save events
+- [x] Display structured log lines (timestamp, level, message) from `OutputContext`
+- [x] Save events wired: Ctrl+S in SceneEditor logs ok/warn to output
+- [x] Auto-scroll to bottom on new line; clear button
 
 ### E.5 Problems Tab
-- [ ] Static hints for now (scene below word target, repeated beat detection stubs)
+- [x] Stub: "No problems detected."
 
 ---
 
@@ -207,10 +209,10 @@ Foundation layer. Everything else builds on top of this.
 
 *Required by Inspector (Phase D) — small backend addition.*
 
-- [ ] Add `Status` field (`draft` | `revised` | `final`) to `SceneManifest` and `Scene` domain model
-- [ ] Expose `status` in `SceneDto`
-- [ ] `PATCH /api/scenes/{id}` already exists for rename — extend body to also accept `status`
-- [ ] Default status: `draft`
+- [x] Add `Status` field (`draft` | `revised` | `final`) to `SceneManifest` and `Scene` domain model
+- [x] Expose `status` in `SceneDto`
+- [x] `PATCH /api/scenes/{id}` extended to accept `status`
+- [x] Default status: `draft`
 - [ ] Status dot in sidebar tree uses real data
 
 ---

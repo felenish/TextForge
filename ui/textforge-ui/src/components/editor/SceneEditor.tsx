@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { useOutput } from '../../contexts/OutputContext';
 import * as workspaceApi from '../../api/workspace';
 import { useSceneEditor } from '../../hooks/useSceneEditor';
 
@@ -22,7 +23,8 @@ function escapeHtml(s: string): string {
 
 export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave }: SceneEditorProps) {
   const { content, isDirty, loading, saving, error, onChange, save } = useSceneEditor(sceneId);
-  const { markDirty, markClean, setWordCount, setContentStats } = useWorkspace();
+  const { markDirty, markClean, setSceneWordCount, setContentStats } = useWorkspace();
+  const { log } = useOutput();
   const editorRef = useRef<HTMLDivElement>(null);
   const initializedSceneRef = useRef<string | null>(null);
   const saveRef = useRef(save);
@@ -44,18 +46,20 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        save();
-      }
+      if (!(e.ctrlKey || e.metaKey) || e.key !== 's') return;
+      if (!isActive) return;
+      e.preventDefault();
+      save()
+        .then(() => log('ok', `Saved "${sceneTitle}"`))
+        .catch(() => log('warn', `Failed to save "${sceneTitle}"`));
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [save]);
+  }, [save, isActive, sceneTitle, log]);
 
   useEffect(() => {
-    if (isActive) setWordCount(countWords(content));
-  }, [isActive, content, setWordCount]);
+    setSceneWordCount(sceneId, countWords(content));
+  }, [sceneId, content, setSceneWordCount]);
 
   // Initialize contenteditable DOM once per scene load; gated by ref so typing doesn't reset it
   useEffect(() => {

@@ -6,9 +6,15 @@ interface StatusBarProps {
   onFocusToggle: () => void;
   typewriterMode: boolean;
   onTypewriterToggle: () => void;
+  panelOpen: boolean;
+  onPanelToggle: () => void;
 }
 
-export function StatusBar({ focusMode, onFocusToggle, typewriterMode, onTypewriterToggle }: StatusBarProps) {
+export function StatusBar({
+  focusMode, onFocusToggle,
+  typewriterMode, onTypewriterToggle,
+  panelOpen, onPanelToggle,
+}: StatusBarProps) {
   const { dirtySceneIds, wordCount, theme } = useWorkspace();
   const hasDirty = dirtySceneIds.size > 0;
   const readingTime = wordCount > 0 ? Math.max(1, Math.ceil(wordCount / 200)) : 0;
@@ -28,15 +34,24 @@ export function StatusBar({ focusMode, onFocusToggle, typewriterMode, onTypewrit
       </div>
       <div className="spacer" />
       {wordCount > 0 && (
-        <>
-          <div className="sb-item">
-            <span>{wordCount.toLocaleString()} words</span>
-          </div>
-          <div className="sb-item">
-            <span>{readingTime} min read</span>
-          </div>
-        </>
+        <div
+          className="sb-item"
+          onClick={onPanelToggle}
+          title="Word Count panel"
+          style={{ color: panelOpen ? 'var(--accent)' : undefined }}
+        >
+          <span>{wordCount.toLocaleString()} words</span>
+          {readingTime > 0 && <span style={{ color: 'var(--text-faint)' }}>· {readingTime} min</span>}
+        </div>
       )}
+      <div
+        className="sb-item"
+        onClick={onPanelToggle}
+        title="Toggle bottom panel"
+        style={{ color: panelOpen ? 'var(--accent)' : undefined }}
+      >
+        <Icon name="panel-right" size={12} />
+      </div>
       <div
         className="sb-item"
         onClick={onFocusToggle}

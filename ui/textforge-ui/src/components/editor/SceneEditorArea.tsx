@@ -21,7 +21,7 @@ export interface SceneEditorAreaHandle {
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
   function SceneEditorArea(_, ref) {
     const [{ tabs, activeId }, setState] = useState<TabsState>({ tabs: [], activeId: null });
-    const { dirtySceneIds, markClean, setWordCount, setActiveScene } = useWorkspace();
+    const { dirtySceneIds, markClean, clearSceneWordCount, setActiveScene } = useWorkspace();
     const saveRegistry = useRef(new Map<string, () => Promise<void>>());
 
     const openScene = useCallback((sceneId: string, sceneTitle: string) => {
@@ -49,12 +49,12 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle>(
         let activeId = prev.activeId;
         if (activeId === id)
           activeId = tabs.length > 0 ? tabs[Math.min(idx, tabs.length - 1)].id : null;
-        if (tabs.length === 0) setWordCount(0);
         return { tabs, activeId };
       });
       markClean(id);
+      clearSceneWordCount(id);
       saveRegistry.current.delete(id);
-    }, [markClean, setWordCount]);
+    }, [markClean, clearSceneWordCount]);
 
     const handleClose = useCallback(async (sceneId: string) => {
       if (dirtySceneIds.has(sceneId)) {

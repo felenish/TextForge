@@ -14,11 +14,11 @@ interface SidebarProps {
 
 export function Sidebar({ mode, onSceneOpen }: SidebarProps) {
   const explorer = useBookExplorer();
-  const { setBookTitle } = useWorkspace();
+  const { setBook } = useWorkspace();
 
   useEffect(() => {
-    setBookTitle(explorer.book?.title ?? null);
-  }, [explorer.book?.title, setBookTitle]);
+    setBook(explorer.book ?? null);
+  }, [explorer.book, setBook]);
 
   return (
     <aside className="sidebar">

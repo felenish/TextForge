@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { BookDto } from '../api/books';
 
 type Theme = 'dark' | 'light' | 'sepia';
 
@@ -9,16 +10,20 @@ export interface ContentStats {
 
 interface WorkspaceContextValue {
   dirtySceneIds: ReadonlySet<string>;
+  book: BookDto | null;
   bookTitle: string | null;
   wordCount: number;
+  totalWordCount: number;
+  sceneWordCounts: ReadonlyMap<string, number>;
   theme: Theme;
   activeSceneId: string | null;
   activeSceneTitle: string | null;
   contentStats: ContentStats | null;
   markDirty: (sceneId: string) => void;
   markClean: (sceneId: string) => void;
-  setBookTitle: (title: string | null) => void;
-  setWordCount: (n: number) => void;
+  setBook: (book: BookDto | null) => void;
+  setSceneWordCount: (sceneId: string, count: number) => void;
+  clearSceneWordCount: (sceneId: string) => void;
   setActiveScene: (id: string | null, title: string | null) => void;
   setContentStats: (stats: ContentStats | null) => void;
   cycleTheme: () => void;
@@ -26,16 +31,20 @@ interface WorkspaceContextValue {
 
 const WorkspaceContext = createContext<WorkspaceContextValue>({
   dirtySceneIds: new Set(),
+  book: null,
   bookTitle: null,
   wordCount: 0,
+  totalWordCount: 0,
+  sceneWordCounts: new Map(),
   theme: 'dark',
   activeSceneId: null,
   activeSceneTitle: null,
   contentStats: null,
   markDirty: () => {},
   markClean: () => {},
-  setBookTitle: () => {},
-  setWordCount: () => {},
+  setBook: () => {},
+  setSceneWordCount: () => {},
+  clearSceneWordCount: () => {},
   setActiveScene: () => {},
   setContentStats: () => {},
   cycleTheme: () => {},
@@ -50,8 +59,8 @@ function getInitialTheme(): Theme {
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(new Set());
-  const [bookTitle, setBookTitleState] = useState<string | null>(null);
-  const [wordCount, setWordCount] = useState(0);
+  const [book, setBookState] = useState<BookDto | null>(null);
+  const [sceneWordCountMap, setSceneWordCountMap] = useState<Map<string, number>>(new Map());
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [activeSceneTitle, setActiveSceneTitle] = useState<string | null>(null);
@@ -74,8 +83,24 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const setBookTitle = useCallback((title: string | null) => {
-    setBookTitleState(title);
+  const setBook = useCallback((b: BookDto | null) => setBookState(b), []);
+
+  const setSceneWordCount = useCallback((sceneId: string, count: number) => {
+    setSceneWordCountMap(prev => {
+      if (prev.get(sceneId) === count) return prev;
+      const next = new Map(prev);
+      next.set(sceneId, count);
+      return next;
+    });
+  }, []);
+
+  const clearSceneWordCount = useCallback((sceneId: string) => {
+    setSceneWordCountMap(prev => {
+      if (!prev.has(sceneId)) return prev;
+      const next = new Map(prev);
+      next.delete(sceneId);
+      return next;
+    });
   }, []);
 
   const setActiveScene = useCallback((id: string | null, title: string | null) => {
@@ -96,19 +121,30 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const bookTitle = book?.title ?? null;
+  const wordCount = activeSceneId ? (sceneWordCountMap.get(activeSceneId) ?? 0) : 0;
+  const totalWordCount = useMemo(
+    () => Array.from(sceneWordCountMap.values()).reduce((a, b) => a + b, 0),
+    [sceneWordCountMap],
+  );
+
   return (
     <WorkspaceContext.Provider value={{
       dirtySceneIds: dirtyIds,
+      book,
       bookTitle,
       wordCount,
+      totalWordCount,
+      sceneWordCounts: sceneWordCountMap,
       theme,
       activeSceneId,
       activeSceneTitle,
       contentStats,
       markDirty,
       markClean,
-      setBookTitle,
-      setWordCount,
+      setBook,
+      setSceneWordCount,
+      clearSceneWordCount,
       setActiveScene,
       setContentStats,
       cycleTheme,
