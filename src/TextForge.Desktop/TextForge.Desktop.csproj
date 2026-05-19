@@ -25,7 +25,7 @@
     <NodeJsDir Condition="'$(NodeJsDir)' == '' AND Exists('$(ProgramFiles)\nodejs')">$(ProgramFiles)\nodejs</NodeJsDir>
   </PropertyGroup>
 
-  <Target Name="BuildReactApp" BeforeTargets="Build">
+  <Target Name="BuildReactApp" BeforeTargets="Build" Condition="'$(CI)' != 'true'">
     <Message Text="Building React app (Node: $(NodeJsDir))..." Importance="high" />
     <Exec Command="$(SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$env:PATH = '$(NodeJsDir)' + ';' + $env:PATH; &amp; '$(NodeJsDir)\npm.cmd' run build&quot;"
           WorkingDirectory="$(MSBuildThisFileDirectory)..\..\ui\textforge-ui" />
