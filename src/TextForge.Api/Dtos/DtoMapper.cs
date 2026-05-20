@@ -48,7 +48,10 @@ internal static class DtoMapper
         scene.FilePath,
         scene.SortOrder,
         string.IsNullOrEmpty(scene.Content) ? null : scene.Content,
-        scene.Status);
+        scene.Status,
+        scene.Pov,
+        scene.CharacterIds.Select(id => id.ToString()).ToArray(),
+        scene.Notes);
 
     public static SceneDto ToSceneMeta(Scene scene) => new(
         scene.Id,
@@ -56,5 +59,8 @@ internal static class DtoMapper
         scene.FilePath,
         scene.SortOrder,
         null,
-        scene.Status);
+        scene.Status,
+        null,
+        [],
+        null);
 }

@@ -7,6 +7,17 @@ export interface SceneDto {
   sortOrder: number;
   content: string | null;
   status: string;
+  pov: string | null;
+  characterIds: string[];
+  notes: string | null;
+}
+
+export interface PatchSceneBody {
+  title?: string;
+  status?: string;
+  pov?: string;
+  characterIds?: string[];
+  notes?: string;
 }
 
 export const getScene = (sceneId: string): Promise<SceneDto> =>
@@ -23,6 +34,9 @@ export const renameScene = (sceneId: string, title: string): Promise<void> =>
 
 export const setSceneStatus = (sceneId: string, status: string): Promise<void> =>
   patch(`/api/scenes/${sceneId}`, { status });
+
+export const patchScene = (sceneId: string, body: PatchSceneBody): Promise<void> =>
+  patch(`/api/scenes/${sceneId}`, body);
 
 export const deleteScene = (sceneId: string): Promise<void> =>
   del(`/api/scenes/${sceneId}`);

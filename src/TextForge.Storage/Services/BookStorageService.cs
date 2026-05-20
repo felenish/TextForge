@@ -210,6 +210,9 @@ public sealed class BookStorageService : IBookStorageService
                     FilePath = sm.File,
                     SortOrder = sm.SortOrder,
                     Status = sm.Status,
+                    Pov = sm.Pov,
+                    CharacterIds = [..sm.CharacterIds],
+                    Notes = sm.Notes,
                 });
             }
 
@@ -244,6 +247,9 @@ public sealed class BookStorageService : IBookStorageService
                             File = s.FilePath,
                             SortOrder = s.SortOrder,
                             Status = s.Status,
+                            Pov = s.Pov,
+                            CharacterIds = [..s.CharacterIds],
+                            Notes = s.Notes,
                         })
                         .ToList(),
                 })

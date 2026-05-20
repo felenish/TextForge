@@ -1684,6 +1684,66 @@ input, textarea {
   cursor: pointer;
 }
 .chip-add:hover { color: var(--text); border-color: var(--accent); }
+.chip-remove {
+  background: none;
+  border: none;
+  padding: 0 0 0 2px;
+  margin: 0;
+  cursor: pointer;
+  color: var(--text-faint);
+  font-size: 13px;
+  line-height: 1;
+}
+.chip-remove:hover { color: var(--text); }
+
+.insp-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-editor);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-mono-xs);
+  padding: 5px 8px;
+  outline: none;
+  margin-top: 4px;
+}
+.insp-input:focus { border-color: var(--accent); }
+.insp-input::placeholder { color: var(--text-faint); }
+
+.insp-select {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-editor);
+  border: 1px dashed var(--border-strong);
+  border-radius: 4px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-xs);
+  padding: 4px 8px;
+  cursor: pointer;
+  outline: none;
+}
+.insp-select:focus, .insp-select:hover { border-color: var(--accent); color: var(--text); }
+
+.insp-notes {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-editor);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-mono-xs);
+  line-height: 1.5;
+  padding: 6px 8px;
+  resize: vertical;
+  outline: none;
+  margin-top: 4px;
+}
+.insp-notes:focus { border-color: var(--accent); }
+.insp-notes::placeholder { color: var(--text-faint); }
 
 .notes-list { display: flex; flex-direction: column; gap: 10px; }
 .note-item {

@@ -6,4 +6,7 @@ public sealed record SceneDto(
     string FilePath,
     int SortOrder,
     string? Content,
-    string Status);
+    string Status,
+    string? Pov,
+    IReadOnlyList<string> CharacterIds,
+    string? Notes);

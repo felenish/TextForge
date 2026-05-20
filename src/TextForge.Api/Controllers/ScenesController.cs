@@ -58,6 +58,10 @@ public sealed class ScenesController : ControllerBase
         var scene = found.Value.scene;
         if (request.Title is not null) scene.Title = request.Title;
         if (request.Status is not null) scene.Status = request.Status;
+        if (request.Pov is not null) scene.Pov = request.Pov.Length == 0 ? null : request.Pov;
+        if (request.CharacterIds is not null)
+            scene.CharacterIds = request.CharacterIds.Select(Guid.Parse).ToList();
+        if (request.Notes is not null) scene.Notes = request.Notes.Length == 0 ? null : request.Notes;
 
         await _storage.SaveBookAsync(book, ct);
         return NoContent();
@@ -100,4 +104,9 @@ public sealed class ScenesController : ControllerBase
 }
 
 public sealed record SaveSceneBody(string Content);
-public sealed record PatchSceneBody(string? Title, string? Status);
+public sealed record PatchSceneBody(
+    string? Title,
+    string? Status,
+    string? Pov,
+    IReadOnlyList<string>? CharacterIds,
+    string? Notes);
