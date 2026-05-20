@@ -15,6 +15,7 @@ import * as locationsApi from '../api/locations';
 import * as outlinesApi from '../api/outlines';
 import * as plotGridsApi from '../api/plotGrids';
 import { useToast } from '../contexts/ToastContext';
+import { useDialog } from '../contexts/DialogContext';
 
 export interface UseSeriesExplorerResult {
   series: SeriesDto | null;
@@ -79,6 +80,7 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const [plotGrids, setPlotGrids] = useState<PlotGridMeta[]>([]);
   const [plotGridsLoaded, setPlotGridsLoaded] = useState(false);
   const { showToast } = useToast();
+  const { prompt } = useDialog();
 
   async function run(fn: () => Promise<void>): Promise<void> {
     setLoading(true);
@@ -112,9 +114,9 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const createSeries = () => run(async () => {
     const folder = await shellApi.openFolderDialog('Choose series location');
     if (!folder) return;
-    const title = window.prompt('Series title:');
-    if (!title?.trim()) return;
-    resetSeries(await seriesApi.createSeries(title.trim(), folder));
+    const title = await prompt({ title: 'New Series', placeholder: 'Series title', confirmLabel: 'Create' });
+    if (!title) return;
+    resetSeries(await seriesApi.createSeries(title, folder));
   });
 
   const openSeries = () => run(async () => {
@@ -256,9 +258,9 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   };
 
   const addBook = () => run(async () => {
-    const title = window.prompt('Book title:');
-    if (!title?.trim()) return;
-    const book = await seriesApi.addBookToSeries(title.trim());
+    const title = await prompt({ title: 'Add Book', placeholder: 'Book title', confirmLabel: 'Add' });
+    if (!title) return;
+    const book = await seriesApi.addBookToSeries(title);
     setSeries(s => s ? { ...s, books: [...s.books, book] } : s);
   });
 

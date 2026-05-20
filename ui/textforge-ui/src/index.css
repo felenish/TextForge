@@ -2633,6 +2633,34 @@ button.versions-branch-bar:hover { border-color: var(--border-strong); }
   padding: 24px;
 }
 [data-theme="light"] .vs-modal-overlay { background: rgba(40, 30, 20, 0.3); }
+/* Compact dialog box (prompt / confirm) */
+.dlg-box {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  width: 380px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.dlg-title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.dlg-message {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.dlg-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 .vs-modal {
   background: var(--bg-sidebar);
   border: 1px solid var(--border-strong);

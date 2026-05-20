@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { useDialog } from '../../contexts/DialogContext';
 import type { LocationDto } from '../../api/locations';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
@@ -56,6 +57,7 @@ export function ManuscriptSidebar({
   onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId } = useWorkspace();
+  const { prompt, confirm } = useDialog();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [charsOpen, setCharsOpen] = useState(false);
@@ -142,17 +144,18 @@ export function ManuscriptSidebar({
   const characterMenuItems = (id: string, name: string): ContextMenuEntry[] => [
     {
       label: 'Rename',
-      onClick: () => {
-        const t = window.prompt('New name:', name);
-        if (t?.trim() && t !== name) renameCharacter(id, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Rename Character', defaultValue: name, placeholder: 'Character name' });
+        if (t && t !== name) renameCharacter(id, t);
       },
     },
     { type: 'separator' },
     {
       label: 'Delete',
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete character "${name}"?`)) deleteCharacter(id);
+      onClick: async () => {
+        const ok = await confirm({ title: 'Delete Character', message: `Delete "${name}"? This cannot be undone.`, confirmLabel: 'Delete', dangerous: true });
+        if (ok) deleteCharacter(id);
       },
     },
   ];
@@ -175,17 +178,18 @@ export function ManuscriptSidebar({
   const plotGridMenuItems = (id: string, name: string): ContextMenuEntry[] => [
     {
       label: 'Rename',
-      onClick: () => {
-        const t = window.prompt('New name:', name);
-        if (t?.trim() && t !== name) renamePlotGrid(id, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Rename Plot Grid', defaultValue: name, placeholder: 'Plot grid name' });
+        if (t && t !== name) renamePlotGrid(id, t);
       },
     },
     { type: 'separator' },
     {
       label: 'Delete',
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete plot grid "${name}"?`)) deletePlotGrid(id);
+      onClick: async () => {
+        const ok = await confirm({ title: 'Delete Plot Grid', message: `Delete "${name}"? This cannot be undone.`, confirmLabel: 'Delete', dangerous: true });
+        if (ok) deletePlotGrid(id);
       },
     },
   ];
@@ -193,17 +197,18 @@ export function ManuscriptSidebar({
   const outlineMenuItems = (id: string, name: string): ContextMenuEntry[] => [
     {
       label: 'Rename',
-      onClick: () => {
-        const t = window.prompt('New name:', name);
-        if (t?.trim() && t !== name) renameOutline(id, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Rename Outline', defaultValue: name, placeholder: 'Outline name' });
+        if (t && t !== name) renameOutline(id, t);
       },
     },
     { type: 'separator' },
     {
       label: 'Delete',
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete outline "${name}"?`)) deleteOutline(id);
+      onClick: async () => {
+        const ok = await confirm({ title: 'Delete Outline', message: `Delete "${name}"? This cannot be undone.`, confirmLabel: 'Delete', dangerous: true });
+        if (ok) deleteOutline(id);
       },
     },
   ];
@@ -211,17 +216,18 @@ export function ManuscriptSidebar({
   const locationMenuItems = (id: string, name: string): ContextMenuEntry[] => [
     {
       label: 'Rename',
-      onClick: () => {
-        const t = window.prompt('New name:', name);
-        if (t?.trim() && t !== name) renameLocation(id, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Rename Location', defaultValue: name, placeholder: 'Location name' });
+        if (t && t !== name) renameLocation(id, t);
       },
     },
     { type: 'separator' },
     {
       label: 'Delete',
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete location "${name}"?`)) deleteLocation(id);
+      onClick: async () => {
+        const ok = await confirm({ title: 'Delete Location', message: `Delete "${name}"? This cannot be undone.`, confirmLabel: 'Delete', dangerous: true });
+        if (ok) deleteLocation(id);
       },
     },
   ];
@@ -238,25 +244,25 @@ export function ManuscriptSidebar({
   const bookMenuItems = (bookId: string, bookTitle: string): ContextMenuEntry[] => [
     {
       label: 'Add Chapter',
-      onClick: () => {
-        const t = window.prompt('Chapter title:');
-        if (t?.trim()) addChapter(bookId, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Add Chapter', placeholder: 'Chapter title', confirmLabel: 'Add' });
+        if (t) addChapter(bookId, t);
       },
     },
     {
       label: 'Rename Book',
-      onClick: () => {
-        const t = window.prompt('New book title:', bookTitle);
-        if (t?.trim() && t !== bookTitle) renameBook(bookId, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Rename Book', defaultValue: bookTitle, placeholder: 'Book title' });
+        if (t && t !== bookTitle) renameBook(bookId, t);
       },
     },
     { type: 'separator' },
     {
       label: 'Delete Book',
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete "${bookTitle}" and all its contents? This cannot be undone.`))
-          deleteBook(bookId);
+      onClick: async () => {
+        const ok = await confirm({ title: 'Delete Book', message: `Delete "${bookTitle}" and all its contents? This cannot be undone.`, confirmLabel: 'Delete', dangerous: true });
+        if (ok) deleteBook(bookId);
       },
     },
   ];
@@ -264,24 +270,25 @@ export function ManuscriptSidebar({
   const chapterMenuItems = (bookId: string, chapterId: string, chapterTitle: string): ContextMenuEntry[] => [
     {
       label: 'Add Scene',
-      onClick: () => {
-        const t = window.prompt('Scene title:');
-        if (t?.trim()) addScene(bookId, chapterId, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Add Scene', placeholder: 'Scene title', confirmLabel: 'Add' });
+        if (t) addScene(bookId, chapterId, t);
       },
     },
     {
       label: 'Rename',
-      onClick: () => {
-        const t = window.prompt('New chapter title:', chapterTitle);
-        if (t?.trim() && t !== chapterTitle) renameChapter(bookId, chapterId, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Rename Chapter', defaultValue: chapterTitle, placeholder: 'Chapter title' });
+        if (t && t !== chapterTitle) renameChapter(bookId, chapterId, t);
       },
     },
     { type: 'separator' },
     {
       label: 'Delete Chapter',
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete "${chapterTitle}" and all its scenes?`)) deleteChapter(bookId, chapterId);
+      onClick: async () => {
+        const ok = await confirm({ title: 'Delete Chapter', message: `Delete "${chapterTitle}" and all its scenes? This cannot be undone.`, confirmLabel: 'Delete', dangerous: true });
+        if (ok) deleteChapter(bookId, chapterId);
       },
     },
   ];
@@ -290,9 +297,9 @@ export function ManuscriptSidebar({
     { label: 'Open', onClick: () => onSceneOpen(sceneId, sceneTitle) },
     {
       label: 'Rename',
-      onClick: () => {
-        const t = window.prompt('New scene title:', sceneTitle);
-        if (t?.trim() && t !== sceneTitle) renameScene(bookId, sceneId, t.trim());
+      onClick: async () => {
+        const t = await prompt({ title: 'Rename Scene', defaultValue: sceneTitle, placeholder: 'Scene title' });
+        if (t && t !== sceneTitle) renameScene(bookId, sceneId, t);
       },
     },
     { label: 'Reveal in Explorer', onClick: () => shellApi.revealScene(sceneId).catch(() => {}) },
@@ -300,8 +307,9 @@ export function ManuscriptSidebar({
     {
       label: 'Delete Scene',
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete "${sceneTitle}"?`)) deleteScene(bookId, sceneId);
+      onClick: async () => {
+        const ok = await confirm({ title: 'Delete Scene', message: `Delete "${sceneTitle}"? This cannot be undone.`, confirmLabel: 'Delete', dangerous: true });
+        if (ok) deleteScene(bookId, sceneId);
       },
     },
   ];
@@ -344,12 +352,12 @@ export function ManuscriptSidebar({
         <div className="actions">
           <button
             title={series?.books.length === 0 ? 'Add Book' : 'New Chapter'}
-            onClick={() => {
+            onClick={async () => {
               if (series?.books.length === 0) { addBook(); return; }
               const target = activeBook ?? series?.books[0];
               if (!target) return;
-              const t = window.prompt('Chapter title:');
-              if (t?.trim()) addChapter(target.id, t.trim());
+              const t = await prompt({ title: 'Add Chapter', placeholder: 'Chapter title', confirmLabel: 'Add' });
+              if (t) addChapter(target.id, t);
             }}
           >
             <Icon name="plus" size={14} />
@@ -496,11 +504,11 @@ export function ManuscriptSidebar({
                 onContextMenu={e => showMenu(e, [
                   {
                     label: 'New Character',
-                    onClick: () => {
-                      const name = window.prompt('Character name:');
-                      if (!name?.trim()) return;
-                      const role = window.prompt('Role (e.g. Protagonist):') ?? '';
-                      addCharacter(name.trim(), role.trim());
+                    onClick: async () => {
+                      const name = await prompt({ title: 'New Character', placeholder: 'Character name', confirmLabel: 'Next' });
+                      if (!name) return;
+                      const role = await prompt({ title: 'New Character', placeholder: 'Role (e.g. Protagonist)', confirmLabel: 'Add' });
+                      addCharacter(name, role ?? '');
                     },
                   },
                 ])}
@@ -520,11 +528,11 @@ export function ManuscriptSidebar({
                   <div
                     className="tree-row"
                     style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
-                    onClick={() => {
-                      const name = window.prompt('Character name:');
-                      if (!name?.trim()) return;
-                      const role = window.prompt('Role (e.g. Protagonist):') ?? '';
-                      addCharacter(name.trim(), role.trim());
+                    onClick={async () => {
+                      const name = await prompt({ title: 'New Character', placeholder: 'Character name', confirmLabel: 'Next' });
+                      if (!name) return;
+                      const role = await prompt({ title: 'New Character', placeholder: 'Role (e.g. Protagonist)', confirmLabel: 'Add' });
+                      addCharacter(name, role ?? '');
                     }}
                   >
                     <span className="icon"><Icon name="plus" size={12} /></span>
@@ -561,9 +569,9 @@ export function ManuscriptSidebar({
                 onContextMenu={e => showMenu(e, [
                   {
                     label: 'New Location',
-                    onClick: () => {
-                      const name = window.prompt('Location name:');
-                      if (name?.trim()) addLocation(name.trim());
+                    onClick: async () => {
+                      const name = await prompt({ title: 'New Location', placeholder: 'Location name', confirmLabel: 'Add' });
+                      if (name) addLocation(name);
                     },
                   },
                 ])}
@@ -583,9 +591,9 @@ export function ManuscriptSidebar({
                   <div
                     className="tree-row"
                     style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
-                    onClick={() => {
-                      const name = window.prompt('Location name:');
-                      if (name?.trim()) addLocation(name.trim());
+                    onClick={async () => {
+                      const name = await prompt({ title: 'New Location', placeholder: 'Location name', confirmLabel: 'Add' });
+                      if (name) addLocation(name);
                     }}
                   >
                     <span className="icon"><Icon name="plus" size={12} /></span>
@@ -621,9 +629,9 @@ export function ManuscriptSidebar({
                 onContextMenu={e => showMenu(e, [
                   {
                     label: 'New Outline',
-                    onClick: () => {
-                      const name = window.prompt('Outline name:');
-                      if (name?.trim()) addOutline(name.trim());
+                    onClick: async () => {
+                      const name = await prompt({ title: 'New Outline', placeholder: 'Outline name', confirmLabel: 'Add' });
+                      if (name) addOutline(name);
                     },
                   },
                 ])}
@@ -643,9 +651,9 @@ export function ManuscriptSidebar({
                   <div
                     className="tree-row"
                     style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
-                    onClick={() => {
-                      const name = window.prompt('Outline name:');
-                      if (name?.trim()) addOutline(name.trim());
+                    onClick={async () => {
+                      const name = await prompt({ title: 'New Outline', placeholder: 'Outline name', confirmLabel: 'Add' });
+                      if (name) addOutline(name);
                     }}
                   >
                     <span className="icon"><Icon name="plus" size={12} /></span>
@@ -681,9 +689,9 @@ export function ManuscriptSidebar({
                 onContextMenu={e => showMenu(e, [
                   {
                     label: 'New Plot Grid',
-                    onClick: () => {
-                      const name = window.prompt('Plot grid name:');
-                      if (name?.trim()) addPlotGrid(name.trim());
+                    onClick: async () => {
+                      const name = await prompt({ title: 'New Plot Grid', placeholder: 'Plot grid name', confirmLabel: 'Add' });
+                      if (name) addPlotGrid(name);
                     },
                   },
                 ])}
@@ -703,9 +711,9 @@ export function ManuscriptSidebar({
                   <div
                     className="tree-row"
                     style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
-                    onClick={() => {
-                      const name = window.prompt('Plot grid name:');
-                      if (name?.trim()) addPlotGrid(name.trim());
+                    onClick={async () => {
+                      const name = await prompt({ title: 'New Plot Grid', placeholder: 'Plot grid name', confirmLabel: 'Add' });
+                      if (name) addPlotGrid(name);
                     }}
                   >
                     <span className="icon"><Icon name="plus" size={12} /></span>
