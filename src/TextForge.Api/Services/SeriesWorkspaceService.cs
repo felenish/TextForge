@@ -42,6 +42,7 @@ public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
         _currentSeries = await _storage.OpenSeriesAsync(seriesFilePath, ct);
         _dirtyScenes.Clear();
         await _versioning.EnsureInitialisedAsync(_currentSeries.RootPath, ct);
+        // TODO(post-MVP): Consider auto-snapshotting on series open to preserve state before edits.
         await _appSettings.AddRecentSeriesAsync(_currentSeries.Title, seriesFilePath, ct);
         return _currentSeries;
     }

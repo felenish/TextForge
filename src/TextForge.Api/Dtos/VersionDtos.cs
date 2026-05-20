@@ -38,3 +38,5 @@ public sealed record SceneAtSnapshotDto(
     Guid SceneId,
     Guid SnapshotId,
     string? Content);
+
+public sealed record RestoreResultDto(int Restored, IReadOnlyList<string> Skipped);

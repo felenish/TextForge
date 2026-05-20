@@ -183,7 +183,7 @@ public sealed class VersioningService : IVersioningService
         _logger.LogInformation("Restored scene {SceneId} from snapshot {SnapshotId}", sceneId, snapshotId);
     }
 
-    public async Task RestoreSnapshotAsync(
+    public async Task<RestoreResult> RestoreSnapshotAsync(
         string seriesRootPath, Guid snapshotId,
         IReadOnlyDictionary<Guid, string> sceneFilePaths,
         CancellationToken ct = default)
@@ -191,11 +191,15 @@ public sealed class VersioningService : IVersioningService
         var snapshot = await _snapshots.ReadSnapshotAsync(seriesRootPath, snapshotId, ct)
             ?? throw new SnapshotNotFoundException($"Snapshot {snapshotId} not found.");
 
+        var restored = 0;
+        var skipped = new List<string>();
+
         foreach (var (sceneId, filePath) in sceneFilePaths)
         {
             if (!snapshot.Scenes.TryGetValue(sceneId, out var hash))
             {
                 _logger.LogWarning("Scene {SceneId} not in snapshot {SnapshotId}; skipping restore", sceneId, snapshotId);
+                skipped.Add($"Scene {sceneId} was not recorded in this snapshot.");
                 continue;
             }
 
@@ -203,6 +207,7 @@ public sealed class VersioningService : IVersioningService
             if (content is null)
             {
                 _logger.LogWarning("Blob {Hash} missing for scene {SceneId}; skipping restore", hash, sceneId);
+                skipped.Add($"Content blob missing for scene {sceneId}.");
                 continue;
             }
 
@@ -212,10 +217,13 @@ public sealed class VersioningService : IVersioningService
 
             await SafeFileWriter.WriteAsync(filePath, content, ct);
             _logger.LogDebug("Restored scene {SceneId} to {FilePath}", sceneId, filePath);
+            restored++;
         }
 
-        _logger.LogInformation("Restored {Count} scenes from snapshot {SnapshotId}",
-            sceneFilePaths.Count, snapshotId);
+        _logger.LogInformation("Restored {Restored} scenes from snapshot {SnapshotId}; skipped {Skipped}",
+            restored, snapshotId, skipped.Count);
+
+        return new RestoreResult(restored, skipped);
     }
 
     public async Task<IReadOnlyList<Branch>> GetBranchesAsync(

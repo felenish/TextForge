@@ -10,7 +10,7 @@ import {
   takeSnapshot, switchBranch, createBranch,
   getSnapshot, restoreSnapshot,
 } from '../../api/versions';
-import type { SnapshotSummaryDto, SnapshotDetailDto, BranchDto, SceneChangeDto } from '../../api/versions';
+import type { SnapshotSummaryDto, SnapshotDetailDto, BranchDto, SceneChangeDto, RestoreResultDto } from '../../api/versions';
 
 type View = 'list' | 'form' | 'detail';
 
@@ -110,13 +110,17 @@ export function VersionsSidebar() {
   async function handleRestore(id: string) {
     setRestoring(true);
     try {
-      await restoreSnapshot(id);
+      const result: RestoreResultDto = await restoreSnapshot(id);
       window.dispatchEvent(new CustomEvent('tf:snapshot-restored'));
       setConfirmRestore(null);
       setView('list');
       setDetail(null);
       await load();
-      showToast('Snapshot restored.');
+      if (result.skipped.length > 0) {
+        showToast(`Snapshot restored. ${result.skipped.length} scene(s) skipped — not recorded at this snapshot.`);
+      } else {
+        showToast(`Snapshot restored (${result.restored} scene${result.restored !== 1 ? 's' : ''}).`);
+      }
     } catch (err: unknown) {
       showToast((err as { message?: string })?.message ?? 'Restore failed.');
     } finally {

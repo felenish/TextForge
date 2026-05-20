@@ -262,11 +262,32 @@ public sealed class VersioningServiceTests : IAsyncLifetime
         await File.WriteAllTextAsync(file1, "modified 1");
         await File.WriteAllTextAsync(file2, "modified 2");
 
-        await _svc.RestoreSnapshotAsync(_root, snap.Id,
+        var result = await _svc.RestoreSnapshotAsync(_root, snap.Id,
             new Dictionary<Guid, string> { [id1] = file1, [id2] = file2 });
 
         (await File.ReadAllTextAsync(file1)).Should().Be("scene 1 original");
         (await File.ReadAllTextAsync(file2)).Should().Be("scene 2 original");
+        result.Restored.Should().Be(2);
+        result.Skipped.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RestoreSnapshotAsync_ReportsSkipped_WhenSceneNotInSnapshot()
+    {
+        var id1 = Guid.NewGuid();
+        var unknownId = Guid.NewGuid();
+        var snap = await _svc.TakeSnapshotAsync(_root, "v1", Scenes((id1, "original")));
+
+        var file1 = Path.Combine(_root, "s1.txt");
+        var fileUnknown = Path.Combine(_root, "unknown.txt");
+        await File.WriteAllTextAsync(file1, "modified");
+
+        var result = await _svc.RestoreSnapshotAsync(_root, snap.Id,
+            new Dictionary<Guid, string> { [id1] = file1, [unknownId] = fileUnknown });
+
+        result.Restored.Should().Be(1);
+        result.Skipped.Should().HaveCount(1);
+        (await File.ReadAllTextAsync(file1)).Should().Be("original");
     }
 
     // ── Branches ──────────────────────────────────────────────────────────

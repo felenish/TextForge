@@ -32,7 +32,7 @@ public interface IVersioningService
         string seriesRootPath, Guid sceneId, Guid snapshotId,
         string absoluteSceneFilePath, CancellationToken ct = default);
 
-    Task RestoreSnapshotAsync(
+    Task<RestoreResult> RestoreSnapshotAsync(
         string seriesRootPath, Guid snapshotId,
         IReadOnlyDictionary<Guid, string> sceneFilePaths,
         CancellationToken ct = default);

@@ -46,6 +46,11 @@ export interface SceneAtSnapshotDto {
   content: string | null;
 }
 
+export interface RestoreResultDto {
+  restored: number;
+  skipped: string[];
+}
+
 export const getVersionStatus = (): Promise<VersionStatusDto> =>
   get('/api/versions/status');
 
@@ -79,5 +84,5 @@ export const getSceneAtSnapshot = (sceneId: string, snapshotId: string): Promise
 export const restoreScene = (sceneId: string, snapshotId: string): Promise<void> =>
   post(`/api/versions/scenes/${sceneId}/restore/${snapshotId}`, {});
 
-export const restoreSnapshot = (snapshotId: string): Promise<void> =>
+export const restoreSnapshot = (snapshotId: string): Promise<RestoreResultDto> =>
   post(`/api/versions/restore/${snapshotId}`, {});

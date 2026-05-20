@@ -266,8 +266,8 @@ public sealed class VersionsController : ControllerBase
             return NotFound(new ErrorDto($"Snapshot {snapshotId} not found."));
 
         var filePaths = BuildSceneFilePathMap(series);
-        await _versioning.RestoreSnapshotAsync(series.RootPath, snapshotId, filePaths, ct);
-        return NoContent();
+        var result = await _versioning.RestoreSnapshotAsync(series.RootPath, snapshotId, filePaths, ct);
+        return Ok(new RestoreResultDto(result.Restored, result.Skipped));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────
