@@ -5,6 +5,7 @@ import type { LocationDto } from '../../api/locations';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 import * as shellApi from '../../api/shell';
+import { ExportModal } from '../export/ExportModal';
 
 interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
@@ -37,6 +38,7 @@ export function ManuscriptSidebar({
   const [outlinesOpen, setOutlinesOpen] = useState(false);
   const [plotGridsOpen, setPlotGridsOpen] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const isExpanded = (id: string) => expanded[id] !== false;
 
@@ -279,6 +281,9 @@ export function ManuscriptSidebar({
           </button>
           <button title="Collapse All" onClick={collapseAll}>
             <Icon name="minus" size={14} />
+          </button>
+          <button title="Export…" onClick={() => setExportOpen(true)}>
+            <Icon name="download" size={14} />
           </button>
           <button title="More" onClick={e => showMenu(e, seriesMenuItems())}>
             <Icon name="more" size={14} />
@@ -648,6 +653,13 @@ export function ManuscriptSidebar({
 
       {menu && (
         <ContextMenu items={menu.items} position={menu} onClose={() => setMenu(null)} />
+      )}
+
+      {exportOpen && (
+        <ExportModal
+          seriesTitle={series?.title ?? ''}
+          onClose={() => setExportOpen(false)}
+        />
       )}
     </>
   );

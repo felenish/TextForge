@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TextForge.Core\TextForge.Core.csproj" />
+    <ProjectReference Include="..\TextForge.Export\TextForge.Export.csproj" />
     <ProjectReference Include="..\TextForge.Storage\TextForge.Storage.csproj" />
     <ProjectReference Include="..\TextForge.Versioning\TextForge.Versioning.csproj" />
   </ItemGroup>

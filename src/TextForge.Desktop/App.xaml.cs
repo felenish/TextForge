@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using TextForge.Api;
 using TextForge.Core.Interfaces;
 using TextForge.Desktop.Services;
+using TextForge.Export.Interfaces;
+using TextForge.Export.Services;
 using TextForge.Storage.Services;
 using TextForge.Versioning.Interfaces;
 using TextForge.Versioning.Services;
@@ -61,6 +63,7 @@ public partial class App : Application
         builder.Services.AddSingleton<IOutlineStorageService, OutlineStorageService>();
         builder.Services.AddSingleton<IPlotGridStorageService, PlotGridStorageService>();
         builder.Services.AddSingleton<IVersioningService, VersioningService>();
+        builder.Services.AddSingleton<IExportService, ExportService>();
         builder.Services.AddSingleton<IShellDialogService, WpfShellDialogService>();
         builder.Services.AddSingleton<IWindowService, WpfWindowService>();
 

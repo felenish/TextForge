@@ -2655,3 +2655,35 @@ button.versions-branch-bar:hover { border-color: var(--border-strong); }
   font-size: var(--fs-mono-xs);
   color: var(--text-muted);
 }
+
+/* ── Export modal ─────────────────────────────────────────── */
+.vs-form-label {
+  display: block;
+  font-size: var(--fs-mono-xs);
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+.vs-form-label:first-child { margin-top: 0; }
+.export-format-row {
+  display: flex;
+  gap: 6px;
+}
+.export-fmt-btn {
+  flex: 1;
+  padding: 5px 0;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  transition: border-color 0.1s, color 0.1s;
+}
+.export-fmt-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.export-fmt-btn:not(.active):hover { border-color: var(--border-hover); }

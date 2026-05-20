@@ -303,6 +303,13 @@ export function Icon({ name, size = 16, stroke = 1.5, className, style }: IconPr
         <path d="M3 9h18M3 15h18M9 3v18" />
       </svg>
     );
+    case 'download': return (
+      <svg {...base}>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    );
     default: return <svg {...base}><circle cx="12" cy="12" r="6" /></svg>;
   }
 }
