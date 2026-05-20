@@ -39,6 +39,26 @@ public sealed class AppSettingsService : IAppSettingsService
         }
     }
 
+    public async Task<AiConfig?> GetAiConfigAsync(CancellationToken ct = default)
+    {
+        var settings = await ReadAsync(ct);
+        return settings.AiConfig;
+    }
+
+    public async Task SetAiConfigAsync(AiConfig config, CancellationToken ct = default)
+    {
+        await _lock.WaitAsync(ct);
+        try
+        {
+            var settings = await ReadAsync(ct);
+            await WriteAsync(settings with { AiConfig = config }, ct);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     private static async Task<AppSettings> ReadAsync(CancellationToken ct)
     {
         if (!File.Exists(SettingsPath))
@@ -64,5 +84,6 @@ public sealed class AppSettingsService : IAppSettingsService
     private sealed record AppSettings
     {
         public List<RecentSeriesEntry> RecentSeries { get; init; } = [];
+        public AiConfig? AiConfig { get; init; }
     }
 }

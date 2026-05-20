@@ -162,25 +162,18 @@ export function Inspector({ onViewHistory }: InspectorProps) {
 
   if (!activeSceneId) {
     return (
-      <aside className="inspector">
-        <div className="insp-header"><span>Inspector</span></div>
-        <div style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--text-faint)', fontSize: 'var(--fs-mono-sm)', textAlign: 'center',
-          padding: 24,
-        }}>
-          No scene selected.
-        </div>
-      </aside>
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'var(--text-faint)', fontSize: 'var(--fs-mono-sm)', textAlign: 'center',
+        padding: 24,
+      }}>
+        No scene selected.
+      </div>
     );
   }
 
   return (
-    <aside className="inspector">
-      <div className="insp-header">
-        <span>Inspector</span>
-      </div>
-      <div className="insp-body">
+    <div className="insp-body">
 
         <div className="insp-section">
           <h4>Book</h4>
@@ -363,7 +356,6 @@ export function Inspector({ onViewHistory }: InspectorProps) {
           )}
         </div>
 
-      </div>
-    </aside>
+    </div>
   );
 }

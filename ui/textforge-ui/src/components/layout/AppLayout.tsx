@@ -10,7 +10,7 @@ import { MenuBar } from './MenuBar';
 import { StatusBar } from './StatusBar';
 import { ActivityBar, type SidebarMode } from './ActivityBar';
 import { Sidebar } from './Sidebar';
-import { Inspector } from '../inspector/Inspector';
+import { RightPanel } from '../panels/RightPanel';
 import { BottomPanel } from '../panels/BottomPanel';
 import { CommandPalette } from '../ui/CommandPalette';
 import { TweaksPanel } from '../ui/TweaksPanel';
@@ -162,7 +162,7 @@ export function AppLayout() {
           </div>
           {bottomOpen && <BottomPanel onClose={() => setBottomOpen(false)} />}
         </div>
-        {inspectorOpen && <Inspector onViewHistory={() => setSidebarMode('versions')} />}
+        {inspectorOpen && <RightPanel onViewHistory={() => setSidebarMode('versions')} />}
       </ShellBody>
       <StatusBar
         focusMode={focusMode}

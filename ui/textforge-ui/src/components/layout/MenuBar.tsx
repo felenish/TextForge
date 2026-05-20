@@ -2,6 +2,7 @@ import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { Icon } from '../ui/Icon';
 import { FileMenu } from '../ui/FileMenu';
 import { EditMenu } from '../ui/EditMenu';
+import { ManuscriptMenu } from '../ui/ManuscriptMenu';
 
 interface MenuBarProps {
   focusMode: boolean;
@@ -38,7 +39,8 @@ export function MenuBar({
           onCloseSeries={onCloseSeries}
         />
         <EditMenu onFind={onFind} onFindReplace={onFindReplace} />
-        {['Manuscript', 'Version', 'View', 'Help'].map(m => (
+        <ManuscriptMenu hasSeries={!!seriesTitle} />
+        {['Version', 'View', 'Help'].map(m => (
           <button key={m} className="mb-menu-btn">{m}</button>
         ))}
       </nav>

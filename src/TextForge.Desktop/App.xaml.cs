@@ -70,7 +70,18 @@ public partial class App : Application
         var app = builder.Build();
         app.UseApiExceptionHandler();
         app.UseDefaultFiles();
+#if DEBUG
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers["Cache-Control"] = "no-store";
+                ctx.Context.Response.Headers["Pragma"] = "no-cache";
+            },
+        });
+#else
         app.UseStaticFiles();
+#endif
         app.MapControllers();
         app.MapFallbackToFile("index.html");
         return app;

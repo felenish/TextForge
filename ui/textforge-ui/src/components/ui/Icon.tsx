@@ -310,6 +310,25 @@ export function Icon({ name, size = 16, stroke = 1.5, className, style }: IconPr
         <line x1="12" y1="15" x2="12" y2="3" />
       </svg>
     );
+    case 'sparkles': return (
+      <svg {...base}>
+        <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z" />
+        <path d="M19 14l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9L19 14z" />
+        <path d="M5 18l.6 1.8 1.8.6-1.8.6L5 22l-.6-1.8-1.8-.6 1.8-.6L5 18z" />
+      </svg>
+    );
+    case 'stop': return (
+      <svg {...base}>
+        <rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor" stroke="none" />
+      </svg>
+    );
+    case 'copy-check': return (
+      <svg {...base}>
+        <path d="M9 11l3 3 5-5" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        <rect x="9" y="9" width="13" height="13" rx="2" />
+      </svg>
+    );
     default: return <svg {...base}><circle cx="12" cy="12" r="6" /></svg>;
   }
 }

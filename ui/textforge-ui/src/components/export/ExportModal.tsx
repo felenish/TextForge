@@ -5,12 +5,13 @@ import { useToast } from '../../contexts/ToastContext';
 
 interface Props {
   seriesTitle: string;
+  initialFormat?: 'pdf' | 'epub';
   onClose: () => void;
 }
 
-export function ExportModal({ seriesTitle, onClose }: Props) {
+export function ExportModal({ seriesTitle, initialFormat = 'pdf', onClose }: Props) {
   const { showToast } = useToast();
-  const [format, setFormat] = useState<'pdf' | 'epub'>('pdf');
+  const [format, setFormat] = useState<'pdf' | 'epub'>(initialFormat);
   const [title, setTitle] = useState(seriesTitle);
   const [author, setAuthor] = useState('');
   const [exporting, setExporting] = useState(false);
