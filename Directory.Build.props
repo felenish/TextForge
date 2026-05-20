@@ -8,7 +8,8 @@
 
   <!-- Strict warnings-as-errors for the domain and storage layers -->
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'TextForge.Core' or
-                             '$(MSBuildProjectName)' == 'TextForge.Storage'">
+                             '$(MSBuildProjectName)' == 'TextForge.Storage' or
+                             '$(MSBuildProjectName)' == 'TextForge.Versioning'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
