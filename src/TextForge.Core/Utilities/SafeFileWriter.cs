@@ -1,13 +1,9 @@
 using System.Text;
 
-namespace TextForge.Storage.Utilities;
+namespace TextForge.Core.Utilities;
 
 public static class SafeFileWriter
 {
-    /// <summary>
-    /// Writes <paramref name="content"/> to <paramref name="destinationPath"/> atomically.
-    /// Uses a temp file so a crash mid-write never corrupts the original.
-    /// </summary>
     public static async Task WriteAsync(string destinationPath, string content, CancellationToken ct = default)
     {
         var tempPath = destinationPath + ".tmp";
@@ -17,16 +13,13 @@ public static class SafeFileWriter
 
         if (File.Exists(destinationPath))
         {
-            // Atomically swap: temp → destination, old destination → backup
             File.Replace(tempPath, destinationPath, backupPath);
 
-            // Backup is only needed during the Replace call; clean it up immediately
             if (File.Exists(backupPath))
                 File.Delete(backupPath);
         }
         else
         {
-            // No existing file — move temp into place directly
             File.Move(tempPath, destinationPath);
         }
     }
