@@ -3,6 +3,9 @@ import { Icon } from '../ui/Icon';
 import { FileMenu } from '../ui/FileMenu';
 import { EditMenu } from '../ui/EditMenu';
 import { ManuscriptMenu } from '../ui/ManuscriptMenu';
+import { HelpMenu } from '../ui/HelpMenu';
+import { ViewMenu } from '../ui/ViewMenu';
+import { VersionMenu } from '../ui/VersionMenu';
 
 interface MenuBarProps {
   focusMode: boolean;
@@ -16,12 +19,17 @@ interface MenuBarProps {
   onCloseSeries: () => void;
   onFind: () => void;
   onFindReplace: () => void;
+  onOpenSettings: () => void;
+  bottomOpen: boolean;
+  onBottomToggle: () => void;
+  onViewHistory: () => void;
 }
 
 export function MenuBar({
   focusMode, onFocusToggle, onPaletteOpen,
   onOpenSeries, onCreateSeries, onSave, onSaveAll, onOpenRecentSeries, onCloseSeries,
-  onFind, onFindReplace,
+  onFind, onFindReplace, onOpenSettings,
+  bottomOpen, onBottomToggle, onViewHistory,
 }: MenuBarProps) {
   const { theme, cycleTheme, seriesTitle } = useWorkspace();
   const themeIcon = theme === 'dark' ? 'moon' : theme === 'light' ? 'sun' : 'feather';
@@ -40,9 +48,15 @@ export function MenuBar({
         />
         <EditMenu onFind={onFind} onFindReplace={onFindReplace} />
         <ManuscriptMenu hasSeries={!!seriesTitle} />
-        {['Version', 'View', 'Help'].map(m => (
-          <button key={m} className="mb-menu-btn">{m}</button>
-        ))}
+        <VersionMenu hasSeries={!!seriesTitle} onViewHistory={onViewHistory} />
+        <ViewMenu
+          focusMode={focusMode}
+          onFocusToggle={onFocusToggle}
+          bottomOpen={bottomOpen}
+          onBottomToggle={onBottomToggle}
+          onPaletteOpen={onPaletteOpen}
+        />
+        <HelpMenu onOpenSettings={onOpenSettings} />
       </nav>
       <div className="mb-actions">
         <button onClick={onPaletteOpen} title="Command Palette (Ctrl+P)">

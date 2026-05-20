@@ -9,14 +9,19 @@ interface StatusBarProps {
   panelOpen: boolean;
   onPanelToggle: () => void;
   onTweaksToggle: () => void;
+  dailyGoal: number;
+  dailyWritten: number;
+  projectGoal: number;
+  onGoalsClick: () => void;
 }
 
 export function StatusBar({
   focusMode, onFocusToggle,
   panelOpen, onPanelToggle,
   onTweaksToggle,
+  dailyGoal, dailyWritten, projectGoal, onGoalsClick,
 }: StatusBarProps) {
-  const { dirtySceneIds, wordCount, theme, typewriterMode, setTypewriterMode } = useWorkspace();
+  const { dirtySceneIds, wordCount, totalWordCount, theme, typewriterMode, setTypewriterMode } = useWorkspace();
   const hasDirty = dirtySceneIds.size > 0;
   const readingTime = wordCount > 0 ? Math.max(1, Math.ceil(wordCount / 200)) : 0;
 
@@ -60,6 +65,16 @@ export function StatusBar({
         </div>
       )}
       <div className="spacer" />
+      {(dailyGoal > 0 || projectGoal > 0) && (
+        <div className="sb-item sb-goal" onClick={onGoalsClick} title="Writing goals (click to configure)">
+          {dailyGoal > 0 && (
+            <GoalChip label="today" written={dailyWritten} goal={dailyGoal} />
+          )}
+          {projectGoal > 0 && (
+            <GoalChip label="project" written={totalWordCount} goal={projectGoal} />
+          )}
+        </div>
+      )}
       {wordCount > 0 && (
         <div
           className="sb-item"
@@ -116,6 +131,25 @@ export function StatusBar({
       >
         <span>{theme.charAt(0).toUpperCase() + theme.slice(1)}</span>
       </div>
+    </div>
+  );
+}
+
+function GoalChip({ label, written, goal }: { label: string; written: number; goal: number }) {
+  const pct = Math.min(1, written / goal);
+  const done = written >= goal;
+  return (
+    <div className="sb-goal-chip">
+      <div className="sb-goal-bar">
+        <div
+          className="sb-goal-fill"
+          style={{ width: `${pct * 100}%`, background: done ? 'var(--status-final)' : 'var(--accent)' }}
+        />
+      </div>
+      <span style={{ color: done ? 'var(--status-final)' : undefined }}>
+        {written.toLocaleString()}<span style={{ color: 'var(--text-faint)' }}>/{goal.toLocaleString()}</span>
+        {' '}{label}
+      </span>
     </div>
   );
 }

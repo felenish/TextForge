@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { useSeriesExplorer } from '../../hooks/useSeriesExplorer';
+import { useWordCountGoal } from '../../hooks/useWordCountGoal';
 import { SceneEditorArea, type SceneEditorAreaHandle } from '../editor/SceneEditorArea';
 import { Shell } from './Shell';
 import { ShellBody } from './ShellBody';
@@ -14,14 +15,18 @@ import { RightPanel } from '../panels/RightPanel';
 import { BottomPanel } from '../panels/BottomPanel';
 import { CommandPalette } from '../ui/CommandPalette';
 import { TweaksPanel } from '../ui/TweaksPanel';
+import { SettingsModal } from '../settings/SettingsModal';
+import { ExportModal } from '../export/ExportModal';
+import { TakeSnapshotModal } from '../versions/TakeSnapshotModal';
 
 export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
   const {
     seriesTitle, dirtySceneIds,
-    typewriterMode, inspectorOpen, setSeries,
+    typewriterMode, inspectorOpen, setSeries, totalWordCount,
   } = useWorkspace();
   const editorSettings = useEditorSettings();
+  const goalSettings = useWordCountGoal(totalWordCount);
   const explorer = useSeriesExplorer();
 
   const [focusMode, setFocusMode] = useState(false);
@@ -29,6 +34,10 @@ export function AppLayout() {
   const [bottomOpen, setBottomOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSection, setSettingsSection] = useState<'appearance' | 'editor' | 'goals' | 'ai'>('appearance');
+  const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'epub' | null>(null);
 
   useEffect(() => {
     setSeries(explorer.series ?? null);
@@ -52,6 +61,10 @@ export function AppLayout() {
       if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
         e.preventDefault();
         explorer.openSeries();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+        e.preventDefault();
+        setSettingsOpen(o => !o);
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
@@ -148,6 +161,10 @@ export function AppLayout() {
         onCloseSeries={handleCloseSeries}
         onFind={() => editorRef.current?.openFind(false)}
         onFindReplace={() => editorRef.current?.openFind(true)}
+        onOpenSettings={() => { setSettingsSection('appearance'); setSettingsOpen(true); }}
+        bottomOpen={bottomOpen}
+        onBottomToggle={toggleBottom}
+        onViewHistory={() => setSidebarMode('versions')}
       />
       <ShellBody noInspector={!inspectorOpen}>
         <ActivityBar
@@ -170,6 +187,10 @@ export function AppLayout() {
         panelOpen={bottomOpen}
         onPanelToggle={toggleBottom}
         onTweaksToggle={() => setTweaksOpen(o => !o)}
+        dailyGoal={goalSettings.dailyGoal}
+        dailyWritten={goalSettings.dailyWritten}
+        projectGoal={goalSettings.projectGoal}
+        onGoalsClick={() => { setSettingsSection('goals'); setSettingsOpen(true); }}
       />
       <button className="exit-focus" onClick={toggleFocus}>
         Exit focus · esc
@@ -178,15 +199,44 @@ export function AppLayout() {
         <CommandPalette
           onClose={() => setPaletteOpen(false)}
           onOpenScene={handleSceneOpen}
+          hasSeries={!!seriesTitle}
+          onSave={handleSave}
+          onSaveAll={handleSaveAll}
+          onOpenSeries={explorer.openSeries}
+          onCreateSeries={explorer.createSeries}
+          onExportPdf={() => setExportFormat('pdf')}
+          onExportEpub={() => setExportFormat('epub')}
+          onTakeSnapshot={() => setSnapshotModalOpen(true)}
+          onViewHistory={() => setSidebarMode('versions')}
           onToggleFocus={toggleFocus}
           onToggleBottom={toggleBottom}
-          onOpenTweaks={() => { setTweaksOpen(o => !o); }}
+          onFind={() => editorRef.current?.openFind(false)}
+          onFindReplace={() => editorRef.current?.openFind(true)}
+          onOpenSettings={() => { setSettingsSection('appearance'); setSettingsOpen(true); }}
         />
       )}
       {tweaksOpen && (
         <TweaksPanel
           editorSettings={editorSettings}
           onClose={() => setTweaksOpen(false)}
+        />
+      )}
+      {settingsOpen && (
+        <SettingsModal
+          editorSettings={editorSettings}
+          goalSettings={goalSettings}
+          initialSection={settingsSection}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
+      {snapshotModalOpen && (
+        <TakeSnapshotModal onClose={() => setSnapshotModalOpen(false)} />
+      )}
+      {exportFormat && seriesTitle && (
+        <ExportModal
+          seriesTitle={seriesTitle}
+          initialFormat={exportFormat}
+          onClose={() => setExportFormat(null)}
         />
       )}
     </Shell>
