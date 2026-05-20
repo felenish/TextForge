@@ -2,6 +2,7 @@ using TextForge.Api.Interfaces;
 using TextForge.Core.Interfaces;
 using TextForge.Core.Models;
 using TextForge.Core.Requests;
+using TextForge.Versioning.Interfaces;
 
 namespace TextForge.Api.Services;
 
@@ -9,13 +10,18 @@ public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
 {
     private readonly ISeriesStorageService _storage;
     private readonly IAppSettingsService _appSettings;
+    private readonly IVersioningService _versioning;
     private Series? _currentSeries;
     private readonly HashSet<Guid> _dirtyScenes = [];
 
-    public SeriesWorkspaceService(ISeriesStorageService storage, IAppSettingsService appSettings)
+    public SeriesWorkspaceService(
+        ISeriesStorageService storage,
+        IAppSettingsService appSettings,
+        IVersioningService versioning)
     {
         _storage = storage;
         _appSettings = appSettings;
+        _versioning = versioning;
     }
 
     private const string ManifestFileName = "series.tfseries";
@@ -25,6 +31,7 @@ public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
         _currentSeries = await _storage.CreateSeriesAsync(
             new CreateSeriesRequest { Title = title, ParentDirectory = parentDirectory }, ct);
         _dirtyScenes.Clear();
+        await _versioning.EnsureInitialisedAsync(_currentSeries.RootPath, ct);
         var manifestPath = Path.Combine(_currentSeries.RootPath, ManifestFileName);
         await _appSettings.AddRecentSeriesAsync(_currentSeries.Title, manifestPath, ct);
         return _currentSeries;
@@ -34,6 +41,7 @@ public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
     {
         _currentSeries = await _storage.OpenSeriesAsync(seriesFilePath, ct);
         _dirtyScenes.Clear();
+        await _versioning.EnsureInitialisedAsync(_currentSeries.RootPath, ct);
         await _appSettings.AddRecentSeriesAsync(_currentSeries.Title, seriesFilePath, ct);
         return _currentSeries;
     }
