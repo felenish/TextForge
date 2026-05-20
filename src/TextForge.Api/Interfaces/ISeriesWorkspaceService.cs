@@ -10,6 +10,7 @@ public interface ISeriesWorkspaceService
     Task<BookProject> AddBookAsync(string title, CancellationToken ct = default);
     Task RemoveBookAsync(Guid bookId, CancellationToken ct = default);
     Series? GetCurrentSeries();
+    Task SaveSeriesAsync(CancellationToken ct = default);
     void CloseSeries();
     BookProject? GetBook(Guid bookId);
     BookProject? FindBookByScene(Guid sceneId);

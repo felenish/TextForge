@@ -91,6 +91,55 @@ public sealed class ChaptersController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("reorder")]
+    public async Task<IActionResult> ReorderChapters(Guid bookId, [FromBody] ReorderBody request, CancellationToken ct)
+    {
+        var book = _workspace.GetBook(bookId);
+        if (book is null)
+            return NotFound(new ErrorDto("Book not found."));
+
+        var ordered = request.Ids
+            .Select(id => Guid.TryParse(id, out var g) ? book.Chapters.FirstOrDefault(c => c.Id == g) : null)
+            .Where(c => c is not null)
+            .Select(c => c!)
+            .ToList();
+
+        for (var i = 0; i < ordered.Count; i++)
+            ordered[i].SortOrder = i + 1;
+
+        book.Chapters.Clear();
+        book.Chapters.AddRange(ordered);
+        await _storage.SaveBookAsync(book, ct);
+        return NoContent();
+    }
+
+    [HttpPost("{chapterId:guid}/scenes/reorder")]
+    public async Task<IActionResult> ReorderScenes(
+        Guid bookId, Guid chapterId, [FromBody] ReorderBody request, CancellationToken ct)
+    {
+        var book = _workspace.GetBook(bookId);
+        if (book is null)
+            return NotFound(new ErrorDto("Book not found."));
+
+        var chapter = book.Chapters.FirstOrDefault(c => c.Id == chapterId);
+        if (chapter is null)
+            return NotFound(new ErrorDto("Chapter not found."));
+
+        var ordered = request.Ids
+            .Select(id => Guid.TryParse(id, out var g) ? chapter.Scenes.FirstOrDefault(s => s.Id == g) : null)
+            .Where(s => s is not null)
+            .Select(s => s!)
+            .ToList();
+
+        for (var i = 0; i < ordered.Count; i++)
+            ordered[i].SortOrder = i + 1;
+
+        chapter.Scenes.Clear();
+        chapter.Scenes.AddRange(ordered);
+        await _storage.SaveBookAsync(book, ct);
+        return NoContent();
+    }
+
     [HttpPost("{chapterId:guid}/scenes")]
     public async Task<IActionResult> AddScene(
         Guid bookId, Guid chapterId, [FromBody] AddSceneBody request, CancellationToken ct)
@@ -125,3 +174,4 @@ public sealed class ChaptersController : ControllerBase
 public sealed record AddChapterBody(string Title);
 public sealed record UpdateChapterBody(string? Title, int? SortOrder);
 public sealed record AddSceneBody(string Title);
+public sealed record ReorderBody(IReadOnlyList<string> Ids);

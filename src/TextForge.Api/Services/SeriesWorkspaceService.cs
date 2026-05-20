@@ -63,6 +63,13 @@ public sealed class SeriesWorkspaceService : ISeriesWorkspaceService
 
     public Series? GetCurrentSeries() => _currentSeries;
 
+    public async Task SaveSeriesAsync(CancellationToken ct = default)
+    {
+        if (_currentSeries is null)
+            throw new InvalidOperationException("No series is open.");
+        await _storage.SaveSeriesAsync(_currentSeries, ct);
+    }
+
     public void CloseSeries()
     {
         _currentSeries = null;

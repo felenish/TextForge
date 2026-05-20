@@ -29,6 +29,21 @@ export function AppLayout() {
   const goalSettings = useWordCountGoal(totalWordCount);
   const explorer = useSeriesExplorer();
 
+  const dirtyRef = useRef(dirtySceneIds);
+  useEffect(() => { dirtyRef.current = dirtySceneIds; }, [dirtySceneIds]);
+
+  const [lastAutosaved, setLastAutosaved] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (editorSettings.autosaveInterval === 0) return;
+    const id = setInterval(async () => {
+      if (dirtyRef.current.size === 0) return;
+      await editorRef.current?.saveAll();
+      setLastAutosaved(new Date());
+    }, editorSettings.autosaveInterval * 1000);
+    return () => clearInterval(id);
+  }, [editorSettings.autosaveInterval]);
+
   const [focusMode, setFocusMode] = useState(false);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>('manuscript');
   const [bottomOpen, setBottomOpen] = useState(false);
@@ -191,6 +206,7 @@ export function AppLayout() {
         dailyWritten={goalSettings.dailyWritten}
         projectGoal={goalSettings.projectGoal}
         onGoalsClick={() => { setSettingsSection('goals'); setSettingsOpen(true); }}
+        lastAutosaved={lastAutosaved}
       />
       <button className="exit-focus" onClick={toggleFocus}>
         Exit focus · esc

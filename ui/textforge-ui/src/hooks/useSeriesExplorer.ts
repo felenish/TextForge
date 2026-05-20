@@ -29,12 +29,15 @@ export interface UseSeriesExplorerResult {
   addBook: () => Promise<void>;
   renameBook: (bookId: string, title: string) => Promise<void>;
   deleteBook: (bookId: string) => Promise<void>;
+  reorderBooks: (ids: string[]) => void;
   addChapter: (bookId: string, title: string) => Promise<void>;
   renameChapter: (bookId: string, chapterId: string, title: string) => Promise<void>;
   deleteChapter: (bookId: string, chapterId: string) => Promise<void>;
+  reorderChapters: (bookId: string, ids: string[]) => void;
   addScene: (bookId: string, chapterId: string, title: string) => Promise<void>;
   renameScene: (bookId: string, sceneId: string, title: string) => Promise<void>;
   deleteScene: (bookId: string, sceneId: string) => Promise<void>;
+  reorderScenes: (bookId: string, chapterId: string, ids: string[]) => void;
   loadCharacters: () => Promise<void>;
   addCharacter: (name: string, role: string) => Promise<void>;
   renameCharacter: (id: string, name: string) => Promise<void>;
@@ -334,13 +337,48 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     }));
   });
 
+  const reorderBooks = (ids: string[]) => {
+    setSeries(s => {
+      if (!s) return s;
+      const ordered = ids.map(id => s.books.find(b => b.id === id)).filter(Boolean) as BookDto[];
+      return { ...s, books: ordered };
+    });
+    seriesApi.reorderBooks(ids).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder books.')
+    );
+  };
+
+  const reorderChapters = (bookId: string, ids: string[]) => {
+    patchBook(bookId, b => {
+      const ordered = ids.map(id => b.chapters.find(c => c.id === id)).filter(Boolean) as typeof b.chapters;
+      return { ...b, chapters: ordered };
+    });
+    chaptersApi.reorderChapters(bookId, ids).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder chapters.')
+    );
+  };
+
+  const reorderScenes = (bookId: string, chapterId: string, ids: string[]) => {
+    patchBook(bookId, b => ({
+      ...b,
+      chapters: b.chapters.map(c => {
+        if (c.id !== chapterId) return c;
+        const ordered = ids.map(id => c.scenes.find(s => s.id === id)).filter(Boolean) as typeof c.scenes;
+        return { ...c, scenes: ordered };
+      }),
+    }));
+    chaptersApi.reorderScenes(bookId, chapterId, ids).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder scenes.')
+    );
+  };
+
   return {
     series, loading, error,
     characters, charactersLoaded,
     createSeries, openSeries, openSeriesFromPath, closeSeries,
-    addBook, renameBook, deleteBook,
-    addChapter, renameChapter, deleteChapter,
-    addScene, renameScene, deleteScene,
+    addBook, renameBook, deleteBook, reorderBooks,
+    addChapter, renameChapter, deleteChapter, reorderChapters,
+    addScene, renameScene, deleteScene, reorderScenes,
     loadCharacters, addCharacter, renameCharacter, deleteCharacter, patchCharacterInList,
     locations, locationsLoaded,
     loadLocations, addLocation, renameLocation, deleteLocation, patchLocationInList,

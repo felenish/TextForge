@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { Icon } from '../ui/Icon';
 import { getVersionStatus } from '../../api/versions';
@@ -13,6 +13,7 @@ interface StatusBarProps {
   dailyWritten: number;
   projectGoal: number;
   onGoalsClick: () => void;
+  lastAutosaved?: Date | null;
 }
 
 export function StatusBar({
@@ -20,6 +21,7 @@ export function StatusBar({
   panelOpen, onPanelToggle,
   onTweaksToggle,
   dailyGoal, dailyWritten, projectGoal, onGoalsClick,
+  lastAutosaved,
 }: StatusBarProps) {
   const { dirtySceneIds, wordCount, totalWordCount, theme, typewriterMode, setTypewriterMode } = useWorkspace();
   const hasDirty = dirtySceneIds.size > 0;
@@ -27,6 +29,15 @@ export function StatusBar({
 
   const [branch, setBranch] = useState('main');
   const [snapshotRef, setSnapshotRef] = useState<string | null>(null);
+  const [showAutosaved, setShowAutosaved] = useState(false);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!lastAutosaved) return;
+    setShowAutosaved(true);
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => setShowAutosaved(false), 4000);
+  }, [lastAutosaved]);
 
   useEffect(() => {
     getVersionStatus()
@@ -59,6 +70,11 @@ export function StatusBar({
         <div className="dot" style={{ background: hasDirty ? 'var(--signal-warn)' : 'var(--status-final)' }} />
         <span>{hasDirty ? 'Unsaved' : 'Saved'}</span>
       </div>
+      {showAutosaved && lastAutosaved && (
+        <div className="sb-item" style={{ color: 'var(--text-faint)' }}>
+          <span>Autosaved {lastAutosaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      )}
       {snapshotRef && (
         <div className="sb-item" style={{ color: 'var(--text-faint)' }}>
           <span>{snapshotRef}</span>

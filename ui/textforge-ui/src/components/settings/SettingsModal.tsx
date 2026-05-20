@@ -53,7 +53,7 @@ export function SettingsModal({ editorSettings, goalSettings, initialSection = '
     inspectorOpen, setInspectorOpen,
     minimapOpen, setMinimapOpen,
   } = useWorkspace();
-  const { font, fontSize, lineHeight, setFont, setFontSize, setLineHeight } = editorSettings;
+  const { font, fontSize, lineHeight, autosaveInterval, setFont, setFontSize, setLineHeight, setAutosaveInterval } = editorSettings;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -162,6 +162,21 @@ export function SettingsModal({ editorSettings, goalSettings, initialSection = '
                       onChange={e => setLineHeight(Number(e.target.value))}
                     />
                     <span className="sett-slider-val">{lineHeight.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="sett-field">
+                  <div className="sett-field-label">Autosave</div>
+                  <div className="sett-radio-row">
+                    {([0, 30, 60, 120, 300] as const).map(s => (
+                      <button
+                        key={s}
+                        className={`sett-radio-btn${autosaveInterval === s ? ' active' : ''}`}
+                        onClick={() => setAutosaveInterval(s)}
+                      >
+                        {s === 0 ? 'Off' : s < 60 ? `${s}s` : `${s / 60}m`}
+                      </button>
+                    ))}
                   </div>
                 </div>
 

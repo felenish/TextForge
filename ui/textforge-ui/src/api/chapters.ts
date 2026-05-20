@@ -9,3 +9,9 @@ export const updateChapter = (bookId: string, chapterId: string, title: string):
 
 export const deleteChapter = (bookId: string, chapterId: string): Promise<void> =>
   del(`/api/books/${bookId}/chapters/${chapterId}`);
+
+export const reorderChapters = (bookId: string, ids: string[]): Promise<void> =>
+  post(`/api/books/${bookId}/chapters/reorder`, { ids });
+
+export const reorderScenes = (bookId: string, chapterId: string, ids: string[]): Promise<void> =>
+  post(`/api/books/${bookId}/chapters/${chapterId}/scenes/reorder`, { ids });

@@ -12,9 +12,11 @@ export interface EditorSettings {
   font: EditorFont;
   fontSize: number;
   lineHeight: number;
+  autosaveInterval: number;
   setFont: (v: EditorFont) => void;
   setFontSize: (v: number) => void;
   setLineHeight: (v: number) => void;
+  setAutosaveInterval: (v: number) => void;
 }
 
 export function useEditorSettings(): EditorSettings {
@@ -26,6 +28,9 @@ export function useEditorSettings(): EditorSettings {
   );
   const [lineHeight, setLineHeightState] = useState(
     () => Number(localStorage.getItem('tf-editor-lh') ?? '1.7'),
+  );
+  const [autosaveInterval, setAutosaveIntervalState] = useState(
+    () => Number(localStorage.getItem('tf-editor-autosave') ?? '60'),
   );
 
   useEffect(() => {
@@ -43,9 +48,14 @@ export function useEditorSettings(): EditorSettings {
     localStorage.setItem('tf-editor-lh', String(lineHeight));
   }, [lineHeight]);
 
+  useEffect(() => {
+    localStorage.setItem('tf-editor-autosave', String(autosaveInterval));
+  }, [autosaveInterval]);
+
   const setFont = useCallback((v: EditorFont) => setFontState(v), []);
   const setFontSize = useCallback((v: number) => setFontSizeState(v), []);
   const setLineHeight = useCallback((v: number) => setLineHeightState(v), []);
+  const setAutosaveInterval = useCallback((v: number) => setAutosaveIntervalState(v), []);
 
-  return { font, fontSize, lineHeight, setFont, setFontSize, setLineHeight };
+  return { font, fontSize, lineHeight, autosaveInterval, setFont, setFontSize, setLineHeight, setAutosaveInterval };
 }

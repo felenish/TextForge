@@ -27,3 +27,6 @@ export const removeBook = (bookId: string): Promise<void> =>
 
 export const closeSeries = (): Promise<void> =>
   del('/api/series/current');
+
+export const reorderBooks = (ids: string[]): Promise<void> =>
+  post('/api/series/current/books/reorder', { ids });

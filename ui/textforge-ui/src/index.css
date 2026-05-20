@@ -566,6 +566,9 @@ input, textarea {
 }
 .tree-row:hover { background: var(--bg-hover); }
 .tree-row.active { background: var(--bg-active); }
+.tree-row.dragging { opacity: 0.4; }
+.tree-row.drop-before { box-shadow: 0 -2px 0 var(--accent); }
+.tree-row.drop-after  { box-shadow: 0  2px 0 var(--accent); }
 .tree-row.active::before {
   content: "";
   position: absolute;

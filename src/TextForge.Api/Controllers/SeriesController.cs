@@ -46,6 +46,25 @@ public sealed class SeriesController : ControllerBase
         return Ok(DtoMapper.ToBookDto(book));
     }
 
+    [HttpPost("current/books/reorder")]
+    public async Task<IActionResult> ReorderBooks([FromBody] ReorderBooksBody request, CancellationToken ct)
+    {
+        var series = _workspace.GetCurrentSeries();
+        if (series is null)
+            return BadRequest(new ErrorDto("No series is open."));
+
+        var ordered = request.Ids
+            .Select(id => Guid.TryParse(id, out var g) ? series.Books.FirstOrDefault(b => b.Id == g) : null)
+            .Where(b => b is not null)
+            .Select(b => b!)
+            .ToList();
+
+        series.Books.Clear();
+        series.Books.AddRange(ordered);
+        await _workspace.SaveSeriesAsync(ct);
+        return NoContent();
+    }
+
     [HttpDelete("current")]
     public IActionResult CloseSeries()
     {
@@ -68,3 +87,4 @@ public sealed class SeriesController : ControllerBase
 public sealed record CreateSeriesBody(string Title, string ParentDirectory);
 public sealed record OpenSeriesBody(string Path);
 public sealed record AddBookToSeriesBody(string Title);
+public sealed record ReorderBooksBody(IReadOnlyList<string> Ids);

@@ -14,15 +14,41 @@ interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onPlotGridOpen: (plotGridId: string, name: string) => void;
 }
 
+interface DragState {
+  kind: 'book' | 'chapter' | 'scene';
+  id: string;
+  bookId: string;
+  chapterId?: string;
+}
+
+interface DropTarget {
+  id: string;
+  position: 'before' | 'after';
+}
+
+function applyReorder<T extends { id: string }>(
+  items: T[], dragId: string, targetId: string, position: 'before' | 'after',
+): T[] | null {
+  if (dragId === targetId) return null;
+  const dragged = items.find(i => i.id === dragId);
+  if (!dragged) return null;
+  const without = items.filter(i => i.id !== dragId);
+  const targetIdx = without.findIndex(i => i.id === targetId);
+  if (targetIdx === -1) return null;
+  const result = [...without];
+  result.splice(position === 'before' ? targetIdx : targetIdx + 1, 0, dragged);
+  return result;
+}
+
 export function ManuscriptSidebar({
   series, loading, error,
   characters, charactersLoaded,
   locations, locationsLoaded,
   outlines, outlinesLoaded,
   plotGrids, plotGridsLoaded,
-  createSeries, openSeries, addBook, renameBook, deleteBook,
-  addChapter, renameChapter, deleteChapter,
-  addScene, renameScene, deleteScene,
+  createSeries, openSeries, addBook, renameBook, deleteBook, reorderBooks,
+  addChapter, renameChapter, deleteChapter, reorderChapters,
+  addScene, renameScene, deleteScene, reorderScenes,
   loadCharacters, addCharacter, renameCharacter, deleteCharacter,
   loadLocations, addLocation, renameLocation, deleteLocation,
   loadOutlines, addOutline, renameOutline, deleteOutline,
@@ -37,6 +63,8 @@ export function ManuscriptSidebar({
   const [outlinesOpen, setOutlinesOpen] = useState(false);
   const [plotGridsOpen, setPlotGridsOpen] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
   const isExpanded = (id: string) => expanded[id] !== false;
 
@@ -51,6 +79,54 @@ export function ManuscriptSidebar({
 
   const toggle = (id: string) =>
     setExpanded(prev => ({ ...prev, [id]: !isExpanded(id) }));
+
+  const onDragStart = (e: React.DragEvent, state: DragState) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', state.id);
+    setDrag(state);
+  };
+
+  const onDragOver = (e: React.DragEvent, id: string, kind: DragState['kind']) => {
+    if (!drag || drag.kind !== kind) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const position: 'before' | 'after' = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    setDropTarget(prev => prev?.id === id && prev.position === position ? prev : { id, position });
+  };
+
+  const onDragEnd = () => { setDrag(null); setDropTarget(null); };
+
+  const onDropBook = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!drag || drag.kind !== 'book' || !dropTarget || !series) return;
+    const reordered = applyReorder(series.books, drag.id, targetId, dropTarget.position);
+    if (reordered) reorderBooks(reordered.map(b => b.id));
+    setDrag(null); setDropTarget(null);
+  };
+
+  const onDropChapter = (e: React.DragEvent, targetId: string, bookId: string) => {
+    e.preventDefault();
+    if (!drag || drag.kind !== 'chapter' || drag.bookId !== bookId || !dropTarget || !series) return;
+    const book = series.books.find(b => b.id === bookId);
+    if (!book) return;
+    const reordered = applyReorder(book.chapters, drag.id, targetId, dropTarget.position);
+    if (reordered) reorderChapters(bookId, reordered.map(c => c.id));
+    setDrag(null); setDropTarget(null);
+  };
+
+  const onDropScene = (e: React.DragEvent, targetId: string, bookId: string, chapterId: string) => {
+    e.preventDefault();
+    if (!drag || drag.kind !== 'scene' || drag.chapterId !== chapterId || !dropTarget || !series) return;
+    const chapter = series.books.find(b => b.id === bookId)?.chapters.find(c => c.id === chapterId);
+    if (!chapter) return;
+    const reordered = applyReorder(chapter.scenes, drag.id, targetId, dropTarget.position);
+    if (reordered) reorderScenes(bookId, chapterId, reordered.map(s => s.id));
+    setDrag(null); setDropTarget(null);
+  };
+
+  const dropClass = (id: string) =>
+    dropTarget?.id === id ? ` drop-${dropTarget.position}` : '';
 
   const showMenu = (e: React.MouseEvent, items: ContextMenuEntry[]) => {
     e.preventDefault();
@@ -267,8 +343,9 @@ export function ManuscriptSidebar({
         <span>Manuscript</span>
         <div className="actions">
           <button
-            title="New Chapter"
+            title={series?.books.length === 0 ? 'Add Book' : 'New Chapter'}
             onClick={() => {
+              if (series?.books.length === 0) { addBook(); return; }
               const target = activeBook ?? series?.books[0];
               if (!target) return;
               const t = window.prompt('Chapter title:');
@@ -320,7 +397,12 @@ export function ManuscriptSidebar({
               return (
                 <div key={book.id}>
                   <div
-                    className="tree-row is-book"
+                    className={`tree-row is-book${drag?.id === book.id ? ' dragging' : ''}${dropClass(book.id)}`}
+                    draggable
+                    onDragStart={e => onDragStart(e, { kind: 'book', id: book.id, bookId: book.id })}
+                    onDragOver={e => onDragOver(e, book.id, 'book')}
+                    onDrop={e => onDropBook(e, book.id)}
+                    onDragEnd={onDragEnd}
                     onClick={() => toggle(book.id)}
                     onContextMenu={e => showMenu(e, bookMenuItems(book.id, book.title))}
                   >
@@ -337,8 +419,13 @@ export function ManuscriptSidebar({
                     return (
                       <div key={ch.id}>
                         <div
-                          className="tree-row is-chapter"
+                          className={`tree-row is-chapter${drag?.id === ch.id ? ' dragging' : ''}${dropClass(ch.id)}`}
                           style={{ paddingLeft: 20 }}
+                          draggable
+                          onDragStart={e => onDragStart(e, { kind: 'chapter', id: ch.id, bookId: book.id })}
+                          onDragOver={e => onDragOver(e, ch.id, 'chapter')}
+                          onDrop={e => onDropChapter(e, ch.id, book.id)}
+                          onDragEnd={onDragEnd}
                           onClick={() => toggle(ch.id)}
                           onContextMenu={e => showMenu(e, chapterMenuItems(book.id, ch.id, ch.title))}
                         >
@@ -353,8 +440,13 @@ export function ManuscriptSidebar({
                         {chOpen && ch.scenes.map(sc => (
                           <div
                             key={sc.id}
-                            className={`tree-row is-scene${sc.id === activeSceneId ? ' active' : ''}`}
+                            className={`tree-row is-scene${sc.id === activeSceneId ? ' active' : ''}${drag?.id === sc.id ? ' dragging' : ''}${dropClass(sc.id)}`}
                             style={{ paddingLeft: 36 }}
+                            draggable
+                            onDragStart={e => onDragStart(e, { kind: 'scene', id: sc.id, bookId: book.id, chapterId: ch.id })}
+                            onDragOver={e => onDragOver(e, sc.id, 'scene')}
+                            onDrop={e => onDropScene(e, sc.id, book.id, ch.id)}
+                            onDragEnd={onDragEnd}
                             onClick={() => onSceneOpen(sc.id, sc.title)}
                             onContextMenu={e => showMenu(e, sceneMenuItems(book.id, sc.id, sc.title))}
                           >
@@ -387,6 +479,15 @@ export function ManuscriptSidebar({
                 No books in series
               </div>
             )}
+
+            <div
+              className="tree-row"
+              style={{ cursor: 'pointer', color: 'var(--text-faint)' }}
+              onClick={addBook}
+            >
+              <span className="icon"><Icon name="plus" size={12} /></span>
+              <span className="label" style={{ fontSize: 11 }}>Add Book…</span>
+            </div>
 
             <div>
               <div
