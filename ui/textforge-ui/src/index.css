@@ -2642,3 +2642,16 @@ button.versions-branch-bar:hover { border-color: var(--border-strong); }
   text-align: center;
 }
 .vs-modal-msg.error { color: var(--signal-error); }
+.vs-modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.vs-modal-confirm-text {
+  flex: 1;
+  font-size: var(--fs-mono-xs);
+  color: var(--text-muted);
+}

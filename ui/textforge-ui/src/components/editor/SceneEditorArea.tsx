@@ -28,6 +28,7 @@ export interface SceneEditorAreaHandle {
   saveActive: () => Promise<void>;
   closeAll: () => void;
   openFind: (withReplace: boolean) => void;
+  reloadScene: (sceneId: string) => void;
 }
 
 interface SceneEditorAreaProps {
@@ -127,7 +128,40 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       setFindOpen(true);
     }, []);
 
-    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind }), [openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind]);
+    // Reload keys — incrementing a scene's key forces SceneEditor to remount and re-fetch
+    const [reloadKeys, setReloadKeys] = useState<Map<string, number>>(new Map());
+
+    const reloadScene = useCallback((sceneId: string) => {
+      markClean(sceneId);
+      clearSceneWordCount(sceneId);
+      saveRegistry.current.delete(sceneId);
+      setReloadKeys(prev => {
+        const next = new Map(prev);
+        next.set(sceneId, (prev.get(sceneId) ?? 0) + 1);
+        return next;
+      });
+    }, [markClean, clearSceneWordCount]);
+
+    // Listen for restore events fired by VersionsSidebar / ScenePreviewModal
+    useEffect(() => {
+      function onSceneRestored(e: Event) {
+        const sceneId = (e as CustomEvent<{ sceneId: string }>).detail?.sceneId;
+        if (sceneId && tabsRef.current.some(t => t.id === sceneId && t.kind === 'scene'))
+          reloadScene(sceneId);
+      }
+      function onSnapshotRestored() {
+        for (const tab of tabsRef.current)
+          if (tab.kind === 'scene') reloadScene(tab.id);
+      }
+      window.addEventListener('tf:scene-restored', onSceneRestored);
+      window.addEventListener('tf:snapshot-restored', onSnapshotRestored);
+      return () => {
+        window.removeEventListener('tf:scene-restored', onSceneRestored);
+        window.removeEventListener('tf:snapshot-restored', onSnapshotRestored);
+      };
+    }, [reloadScene]);
+
+    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind, reloadScene }), [openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind, reloadScene]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
@@ -256,7 +290,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
           {tabs.map(tab => (
             <div
-              key={tab.id}
+              key={tab.kind === 'scene' ? `s-${tab.id}-${reloadKeys.get(tab.id) ?? 0}` : tab.id}
               style={{
                 position: 'absolute',
                 inset: 0,

@@ -69,6 +69,7 @@ export function VersionsSidebar() {
     setSubmitting(true);
     try {
       await takeSnapshot(label, message);
+      window.dispatchEvent(new CustomEvent('tf:snapshot-taken'));
       setView('list');
       await load();
     } catch (err: unknown) {
@@ -110,6 +111,7 @@ export function VersionsSidebar() {
     setRestoring(true);
     try {
       await restoreSnapshot(id);
+      window.dispatchEvent(new CustomEvent('tf:snapshot-restored'));
       setConfirmRestore(null);
       setView('list');
       setDetail(null);

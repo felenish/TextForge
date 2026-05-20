@@ -162,7 +162,7 @@ export function AppLayout() {
           </div>
           {bottomOpen && <BottomPanel onClose={() => setBottomOpen(false)} />}
         </div>
-        {inspectorOpen && <Inspector />}
+        {inspectorOpen && <Inspector onViewHistory={() => setSidebarMode('versions')} />}
       </ShellBody>
       <StatusBar
         focusMode={focusMode}
