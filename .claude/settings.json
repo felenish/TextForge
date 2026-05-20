@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Projects\\\\TextForge\" -Recurse -Depth 3 | Where-Object {$_.Extension -in @\\('.sln', '.csproj', '.props', '.pubxml', '.wxs', '.wixproj', '.iss', '.json', '.ts'\\)} | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell($wwwrootPath = \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Desktop\\\\bin\\\\Release\\\\net10.0-windows\\\\wwwroot\"; if \\(Test-Path $wwwrootPath\\) { $size = \\(Get-ChildItem -Path $wwwrootPath -Recurse -File | Measure-Object -Property Length -Sum\\).Sum; \"$size bytes \\($\\([math]::Round\\($size / 1MB, 2\\)\\) MB\\) for wwwroot\" } else { \"wwwroot not found\" })",
+      "PowerShell($releasePath = \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Desktop\\\\bin\\\\Release\\\\net10.0-windows\"; $allFiles = Get-ChildItem -Path $releasePath -File -Recurse; [long]$totalSize = \\($allFiles | Measure-Object -Property Length -Sum\\).Sum; \"$totalSize bytes \\($\\([math]::Round\\($totalSize / 1MB, 2\\)\\) MB\\) for entire release output\")"
+    ]
+  }
+}
