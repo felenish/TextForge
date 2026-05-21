@@ -20,6 +20,7 @@ export function ScenePreviewModal({ sceneId, sceneTitle, snapshotId, snapshotLab
   const [restoring, setRestoring] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setData(null);
     setError(null);
     getSceneAtSnapshot(sceneId, snapshotId)

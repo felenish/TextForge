@@ -45,7 +45,6 @@ function ShortcutsTable({ rows }: { rows: [string, string[]][] }) {
 export function HelpTab() {
   const [activeId, setActiveId] = useState(SECTIONS[0].id);
   const contentRef = useRef<HTMLDivElement>(null);
-  const sectionEls = useRef<Map<string, HTMLElement>>(new Map());
 
   useEffect(() => {
     const el = contentRef.current;
@@ -53,9 +52,9 @@ export function HelpTab() {
     function onScroll() {
       const top = el!.scrollTop + 64;
       let current = SECTIONS[0].id;
-      for (const { id } of SECTIONS) {
-        const s = sectionEls.current.get(id);
-        if (s && s.offsetTop <= top) current = id;
+      const sections = el!.querySelectorAll<HTMLElement>('[data-section]');
+      for (const s of sections) {
+        if (s.offsetTop <= top) current = s.dataset.section!;
       }
       setActiveId(current);
     }
@@ -64,17 +63,10 @@ export function HelpTab() {
   }, []);
 
   function scrollTo(id: string) {
-    const el = sectionEls.current.get(id);
+    const el = contentRef.current?.querySelector<HTMLElement>(`[data-section="${id}"]`);
     if (el && contentRef.current) {
       contentRef.current.scrollTo({ top: el.offsetTop - 24, behavior: 'smooth' });
     }
-  }
-
-  function ref(id: string) {
-    return (el: HTMLElement | null) => {
-      if (el) sectionEls.current.set(id, el);
-      else sectionEls.current.delete(id);
-    };
   }
 
   return (
@@ -93,13 +85,13 @@ export function HelpTab() {
       </nav>
 
       <div className="help-content" ref={contentRef}>
-        <section ref={ref('getting-started')} className="help-section">
+        <section data-section="getting-started" className="help-section">
           <h2>Getting Started</h2>
           <p>TextForge Studio is a writing IDE for novels and long-form fiction. Your work lives in a <strong>Series</strong>, which you create or open from <strong>File → New Series</strong> or <strong>File → Open Series</strong>.</p>
           <p>Once a series is open, the Manuscript explorer on the left shows your structure. Click a scene to open it in the editor. All your files are stored as plain text on disk — no proprietary database, no cloud required.</p>
         </section>
 
-        <section ref={ref('manuscript')} className="help-section">
+        <section data-section="manuscript" className="help-section">
           <h2>Manuscript Structure</h2>
           <p>TextForge organises your work in a four-level hierarchy:</p>
           <div className="help-hierarchy">
@@ -123,7 +115,7 @@ export function HelpTab() {
           <p>Add any level by right-clicking in the explorer or using the <strong>+</strong> buttons that appear on hover. Reorder by dragging.</p>
         </section>
 
-        <section ref={ref('editor')} className="help-section">
+        <section data-section="editor" className="help-section">
           <h2>Editor</h2>
           <p>Open a scene by clicking it in the Manuscript explorer. Multiple scenes can be open simultaneously as tabs. Close a tab with <Kbd keys={['Ctrl', 'W']} /> or the × button.</p>
           <h3>Formatting</h3>
@@ -140,7 +132,7 @@ export function HelpTab() {
           <p>The word count for the active scene is shown in the Inspector panel on the right. Set a daily writing goal in <strong>Settings → Goals</strong>.</p>
         </section>
 
-        <section ref={ref('find-replace')} className="help-section">
+        <section data-section="find-replace" className="help-section">
           <h2>Find &amp; Replace</h2>
           <p>The Find bar operates on the currently active scene.</p>
           <ShortcutsTable rows={[
@@ -153,7 +145,7 @@ export function HelpTab() {
           <p>Matches are highlighted in real time as you type. <strong>Replace All</strong> replaces every match in the scene at once.</p>
         </section>
 
-        <section ref={ref('autosave')} className="help-section">
+        <section data-section="autosave" className="help-section">
           <h2>Autosave</h2>
           <p>TextForge can save your work automatically. Configure the interval in <strong>Settings → Editor → Autosave interval</strong>.</p>
           <p>Options: Off · 30 s · 1 min · 2 min · 5 min.</p>
@@ -164,7 +156,7 @@ export function HelpTab() {
           ]} />
         </section>
 
-        <section ref={ref('drag-drop')} className="help-section">
+        <section data-section="drag-drop" className="help-section">
           <h2>Drag &amp; Drop</h2>
           <p>Reorder items in the Manuscript explorer by dragging:</p>
           <ul>
@@ -175,28 +167,28 @@ export function HelpTab() {
           <p>A blue indicator line shows the drop position. Items can only be dropped within the same parent in this release — cross-chapter scene moves are not yet supported.</p>
         </section>
 
-        <section ref={ref('themes')} className="help-section">
+        <section data-section="themes" className="help-section">
           <h2>Themes</h2>
           <p>Three themes are available: <strong>Dark</strong>, <strong>Light</strong>, and <strong>Sepia</strong>.</p>
           <p>Cycle through them with the sun/moon/feather icon in the top-right corner, or set a specific theme in <strong>Settings → Appearance</strong>.</p>
           <p>Font family and font size are also configurable in Settings → Appearance.</p>
         </section>
 
-        <section ref={ref('export')} className="help-section">
+        <section data-section="export" className="help-section">
           <h2>Export</h2>
           <p>Export the current series to <strong>PDF</strong> or <strong>EPUB</strong> from <strong>File → Export</strong> or the command palette.</p>
           <p>The export includes all scenes across all books in their current sort order. Chapter headings and scene breaks are generated automatically.</p>
           <p>PDF output is suitable for review copies and printing. EPUB output is compatible with most e-readers and reading apps.</p>
         </section>
 
-        <section ref={ref('version-history')} className="help-section">
+        <section data-section="version-history" className="help-section">
           <h2>Version History</h2>
           <p>TextForge keeps a snapshot history of your work. Take a snapshot at any time from <strong>Version → Take Snapshot</strong> or the command palette.</p>
           <p>View your snapshots in the <strong>Versions</strong> sidebar — click the clock icon in the activity bar on the left. Click a snapshot to preview its contents, and restore it if you want to roll back.</p>
           <p>Snapshots are stored locally alongside your series files.</p>
         </section>
 
-        <section ref={ref('shortcuts')} className="help-section">
+        <section data-section="shortcuts" className="help-section">
           <h2>Keyboard Shortcuts</h2>
           <ShortcutsTable rows={[
             ['Command palette', ['Ctrl', 'P']],
@@ -213,7 +205,7 @@ export function HelpTab() {
           ]} />
         </section>
 
-        <section ref={ref('beta')} className="help-section">
+        <section data-section="beta" className="help-section">
           <h2>Beta Notes</h2>
           <p>This is an early beta. A few known limitations:</p>
           <ul>

@@ -54,7 +54,7 @@ export function useWordCountGoal(totalWordCount: number): WordCountGoal {
     if (delta <= 0) return;
 
     const today = todayStr();
-    setDailyWritten(_prev => {
+    setDailyWritten(() => {
       const stored = loadProgress();
       const base = stored.date === today ? stored.written : 0;
       const next = base + delta;
