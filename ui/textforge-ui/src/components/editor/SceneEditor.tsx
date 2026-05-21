@@ -28,7 +28,7 @@ function contentToHtml(content: string): string {
   const paras = content.split(/\n{2,}/).filter(p => p.trim());
   return paras.length > 0
     ? paras.map(p => `<p>${escapeHtml(p)}</p>`).join('')
-    : '<p></p>';
+    : '<p><br></p>';
 }
 
 export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onUnregisterSave, onRegisterEditorEl }: SceneEditorProps) {
@@ -90,6 +90,36 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
     setSceneWordCount(sceneId, countWords(content));
   }, [sceneId, content, setSceneWordCount]);
 
+  // Track isActive in a ref so the input listener closure doesn't go stale.
+  const isActiveRef = useRef(isActive);
+  useEffect(() => { isActiveRef.current = isActive; });
+
+  // Native input listener — more reliable than React's synthetic onInput in WebView2
+  // because React delegates events to its root and WebView2 can swallow bubbling.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el || loading) return;
+    function onInput() {
+      const pEls = Array.from(el!.querySelectorAll('p'));
+      const value = pEls.length > 0
+        ? pEls.map(p => p.textContent ?? '').join('\n\n')
+        : (el!.textContent ?? '').trim();
+      onChange(value);
+      if (isActiveRef.current) {
+        const nonEmpty = pEls.map(p => p.textContent ?? '').filter(p => p.trim());
+        setContentStats({
+          paragraphCount: nonEmpty.length,
+          sentenceCount: nonEmpty.reduce(
+            (n, p) => n + (p.match(/[.!?]+/g)?.length ?? 0),
+            0
+          ),
+        });
+      }
+    }
+    el.addEventListener('input', onInput);
+    return () => el.removeEventListener('input', onInput);
+  }, [loading, onChange, setContentStats]);
+
   useEffect(() => {
     if (!typewriterMode || !isActive) return;
     const editor = editorRef.current;
@@ -113,23 +143,6 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
       editor?.querySelectorAll('p.is-current').forEach(el => el.classList.remove('is-current'));
     };
   }, [typewriterMode, isActive]);
-
-  function handleInput() {
-    if (!editorRef.current) return;
-    const paras = Array.from(editorRef.current.querySelectorAll('p'))
-      .map(p => p.textContent ?? '');
-    onChange(paras.join('\n\n'));
-    if (isActive) {
-      const nonEmpty = paras.filter(p => p.trim());
-      setContentStats({
-        paragraphCount: nonEmpty.length,
-        sentenceCount: nonEmpty.reduce(
-          (n, p) => n + (p.match(/[.!?]+/g)?.length ?? 0),
-          0
-        ),
-      });
-    }
-  }
 
   if (loading) {
     return (
@@ -166,7 +179,6 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
                 contentEditable
                 suppressContentEditableWarning
                 spellCheck
-                onInput={handleInput}
               />
             </div>
           </div>
