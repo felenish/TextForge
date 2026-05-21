@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
 using Microsoft.Web.WebView2.Core;
+using TextForge.Desktop.Services;
 
 namespace TextForge.Desktop;
 
@@ -14,6 +15,10 @@ public partial class MainWindow : Window
     private readonly int _port;
     private bool _forceClose;
     private TaskCompletionSource<bool>? _saveAllTcs;
+
+    // Update state — set by background check, consumed when app signals ready.
+    private UpdateInfo? _pendingUpdate;
+    private bool _appReady;
 
     public MainWindow(int port)
     {
@@ -34,7 +39,7 @@ public partial class MainWindow : Window
         if (msg == 0x0024) // WM_GETMINMAXINFO
         {
             var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
-            var monitor = MonitorFromWindow(hwnd, 0x2); // MONITOR_DEFAULTTONEAREST
+            var monitor = MonitorFromWindow(hwnd, 0x2);
             if (monitor != IntPtr.Zero)
             {
                 var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
@@ -70,6 +75,7 @@ public partial class MainWindow : Window
         WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
         WebView.CoreWebView2.Settings.IsNonClientRegionSupportEnabled = true;
         WebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
+        WebView.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
 #if DEBUG
         WebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
 #else
@@ -78,10 +84,83 @@ public partial class MainWindow : Window
         WebView.CoreWebView2.Navigate($"http://localhost:{_port}");
     }
 
-    private void OnWebMessageReceived(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
+    private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
     {
-        if (e.TryGetWebMessageAsString() == "save-complete")
-            _saveAllTcs?.TrySetResult(true);
+        // Fire update check in background; result is held until React signals app-ready.
+        _ = CheckForUpdateAsync();
+    }
+
+    private async Task CheckForUpdateAsync()
+    {
+        var info = await UpdateService.CheckAsync();
+        if (info is null) return;
+
+        await Dispatcher.InvokeAsync(() =>
+        {
+            _pendingUpdate = info;
+            if (_appReady) PostUpdateAvailable(info);
+        });
+    }
+
+    private void PostUpdateAvailable(UpdateInfo info)
+    {
+        var msg = JsonSerializer.Serialize(new { type = "update-available", version = info.Version });
+        WebView.CoreWebView2.PostWebMessageAsString(msg);
+    }
+
+    private void OnWebMessageReceived(
+        object? sender,
+        CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        var raw = e.TryGetWebMessageAsString();
+
+        switch (raw)
+        {
+            case "save-complete":
+                _saveAllTcs?.TrySetResult(true);
+                break;
+
+            case "app-ready":
+                _appReady = true;
+                if (_pendingUpdate is not null)
+                    PostUpdateAvailable(_pendingUpdate);
+                break;
+
+            case "do-update":
+                _ = DoUpdateAsync();
+                break;
+        }
+    }
+
+    private async Task DoUpdateAsync()
+    {
+        var info = _pendingUpdate;
+        if (info is null) return;
+
+        // 1. Save all open scenes.
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _saveAllTcs = tcs;
+        WebView.CoreWebView2.PostWebMessageAsString("save-all");
+        await Task.WhenAny(tcs.Task, Task.Delay(TimeSpan.FromSeconds(15)));
+        _saveAllTcs = null;
+
+        // 2. Download the installer.
+        string installerPath;
+        try
+        {
+            installerPath = await UpdateService.DownloadAsync(info);
+        }
+        catch
+        {
+            // Download failed — notify React so the banner can reset.
+            WebView.CoreWebView2.PostWebMessageAsString(
+                JsonSerializer.Serialize(new { type = "update-error" }));
+            return;
+        }
+
+        // 3. Launch the installer then close.
+        UpdateService.LaunchInstaller(installerPath);
+        DoClose();
     }
 
     private async void OnClosing(object? sender, CancelEventArgs e)

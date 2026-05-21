@@ -29,6 +29,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 DisableProgramGroupPage=yes
+CloseApplications=yes
 UninstallDisplayIcon={app}\{#AppExeName}
 UninstallDisplayName={#AppName} {#AppVersion}
 
@@ -49,7 +50,7 @@ Name: "{userdesktop}\{#AppName}";     Filename: "{app}\{#AppExeName}"; Tasks: de
 [Run]
 Filename: "{app}\{#AppExeName}"; \
   Description: "Launch {#AppName}"; \
-  Flags: nowait postinstall skipifsilent
+  Flags: nowait postinstall
 
 [Code]
 // WebView2 is pre-installed on Win 10/11 via Windows Update in 2026.
