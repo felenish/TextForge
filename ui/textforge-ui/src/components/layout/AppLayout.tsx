@@ -18,6 +18,8 @@ import { TweaksPanel } from '../ui/TweaksPanel';
 import { SettingsModal } from '../settings/SettingsModal';
 import { ExportModal } from '../export/ExportModal';
 import { TakeSnapshotModal } from '../versions/TakeSnapshotModal';
+import { UpdateBanner } from '../ui/UpdateBanner';
+import { getWebView, requestUpdate } from '../../lib/webview';
 
 export function AppLayout() {
   const editorRef = useRef<SceneEditorAreaHandle>(null);
@@ -53,6 +55,11 @@ export function AppLayout() {
   const [settingsSection, setSettingsSection] = useState<'appearance' | 'editor' | 'goals' | 'ai'>('appearance');
   const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState<'pdf' | 'epub' | null>(null);
+
+  // Update banner state
+  type UpdatePhase = 'available' | 'working' | 'error';
+  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+  const [updatePhase, setUpdatePhase] = useState<UpdatePhase>('available');
 
   useEffect(() => {
     setSeries(explorer.series ?? null);
@@ -149,17 +156,41 @@ export function AppLayout() {
     explorer.openSeriesFromPath(path);
   }, [explorer]);
 
-  // WebView2 message bridge — C# posts "save-all" before exit; we save and reply "save-complete"
+  // WebView2 message bridge
   useEffect(() => {
-    const webview = (window as { chrome?: { webview?: { addEventListener: (type: string, fn: (e: MessageEvent) => void) => void; removeEventListener: (type: string, fn: (e: MessageEvent) => void) => void; postMessage: (msg: string) => void } } }).chrome?.webview;
+    const webview = getWebView();
     if (!webview) return;
+
+    // Signal the host that React is mounted and ready to receive messages.
+    webview.postMessage('app-ready');
+
     const handler = async (e: MessageEvent) => {
-      if (e.data !== 'save-all') return;
-      await editorRef.current?.saveAll();
-      webview.postMessage('save-complete');
+      if (e.data === 'save-all') {
+        await editorRef.current?.saveAll();
+        webview.postMessage('save-complete');
+        return;
+      }
+      // Structured messages arrive as JSON strings.
+      try {
+        const msg = JSON.parse(e.data as string) as { type: string; version?: string };
+        if (msg.type === 'update-available' && msg.version) {
+          setUpdateVersion(msg.version);
+          setUpdatePhase('available');
+        } else if (msg.type === 'update-error') {
+          setUpdatePhase('error');
+        }
+      } catch { /* not JSON — ignore */ }
     };
+
     webview.addEventListener('message', handler);
     return () => webview.removeEventListener('message', handler);
+  }, []);
+
+  // Auto-open last series on startup (persisted in localStorage by useSeriesExplorer).
+  useEffect(() => {
+    const last = localStorage.getItem('tf-last-series');
+    if (last) explorer.openSeriesFromPath(last);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -255,6 +286,17 @@ export function AppLayout() {
           seriesTitle={seriesTitle}
           initialFormat={exportFormat}
           onClose={() => setExportFormat(null)}
+        />
+      )}
+      {updateVersion && (
+        <UpdateBanner
+          version={updateVersion}
+          phase={updatePhase}
+          onUpdate={() => {
+            setUpdatePhase('working');
+            requestUpdate();
+          }}
+          onDismiss={() => setUpdateVersion(null)}
         />
       )}
     </Shell>

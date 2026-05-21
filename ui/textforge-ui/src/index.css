@@ -3290,3 +3290,42 @@ button.versions-branch-bar:hover { border-color: var(--border-strong); }
   color: var(--text-faint);
   padding: 0 1px;
 }
+
+/* ===================== UPDATE BANNER ===================== */
+.update-banner {
+  position: fixed;
+  bottom: calc(var(--status-h) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  font-size: var(--fs-mono-sm);
+  color: var(--text);
+  z-index: 9000;
+  white-space: nowrap;
+}
+.update-banner-msg { flex: 1; }
+.update-banner-btn {
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-mono-xs);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.update-banner-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.update-banner-btn.primary:hover { opacity: 0.88; }
+.update-banner-btn.dismiss {
+  background: transparent;
+  color: var(--text-faint);
+  padding: 3px 6px;
+}
+.update-banner-btn.dismiss:hover { color: var(--text); }

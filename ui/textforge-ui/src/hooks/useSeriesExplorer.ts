@@ -123,14 +123,17 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     const path = await shellApi.openFileDialog('Open Series', 'TextForge Series (*.tfseries)|*.tfseries');
     if (!path) return;
     resetSeries(await seriesApi.openSeries(path));
+    localStorage.setItem('tf-last-series', path);
   });
 
   const openSeriesFromPath = (path: string) => run(async () => {
     resetSeries(await seriesApi.openSeries(path));
+    localStorage.setItem('tf-last-series', path);
   });
 
   const closeSeries = () => run(async () => {
     await seriesApi.closeSeries();
+    localStorage.removeItem('tf-last-series');
     resetSeries(null);
   });
 
