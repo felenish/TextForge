@@ -6,6 +6,15 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Version>0.0.1</Version>
+    <AssemblyVersion>0.0.1.0</AssemblyVersion>
+    <FileVersion>0.0.1.0</FileVersion>
+    <Product>TextForge Studio</Product>
+    <Company>TextForge</Company>
+    <Copyright>Copyright © 2026 TextForge</Copyright>
+  </PropertyGroup>
+
   <!-- Strict warnings-as-errors for the domain and storage layers -->
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'TextForge.Core' or
                              '$(MSBuildProjectName)' == 'TextForge.Storage' or

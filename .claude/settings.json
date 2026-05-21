@@ -3,7 +3,20 @@
     "allow": [
       "PowerShell(Get-ChildItem -Path \"c:\\\\Projects\\\\TextForge\" -Recurse -Depth 3 | Where-Object {$_.Extension -in @\\('.sln', '.csproj', '.props', '.pubxml', '.wxs', '.wixproj', '.iss', '.json', '.ts'\\)} | Select-Object FullName | Sort-Object FullName)",
       "PowerShell($wwwrootPath = \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Desktop\\\\bin\\\\Release\\\\net10.0-windows\\\\wwwroot\"; if \\(Test-Path $wwwrootPath\\) { $size = \\(Get-ChildItem -Path $wwwrootPath -Recurse -File | Measure-Object -Property Length -Sum\\).Sum; \"$size bytes \\($\\([math]::Round\\($size / 1MB, 2\\)\\) MB\\) for wwwroot\" } else { \"wwwroot not found\" })",
-      "PowerShell($releasePath = \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Desktop\\\\bin\\\\Release\\\\net10.0-windows\"; $allFiles = Get-ChildItem -Path $releasePath -File -Recurse; [long]$totalSize = \\($allFiles | Measure-Object -Property Length -Sum\\).Sum; \"$totalSize bytes \\($\\([math]::Round\\($totalSize / 1MB, 2\\)\\) MB\\) for entire release output\")"
+      "PowerShell($releasePath = \"c:\\\\Projects\\\\TextForge\\\\src\\\\TextForge.Desktop\\\\bin\\\\Release\\\\net10.0-windows\"; $allFiles = Get-ChildItem -Path $releasePath -File -Recurse; [long]$totalSize = \\($allFiles | Measure-Object -Property Length -Sum\\).Sum; \"$totalSize bytes \\($\\([math]::Round\\($totalSize / 1MB, 2\\)\\) MB\\) for entire release output\")",
+      "PowerShell(dotnet publish src/TextForge.Desktop/TextForge.Desktop.csproj -p:PublishProfile=win-x64 2>&1)",
+      "PowerShell(Remove-Item \"src\\\\TextForge.Api\\\\Program.cs\" -Confirm:$false)",
+      "Read(//c/publish/win-x64/**)",
+      "PowerShell(Test-Path \"C:\\\\Projects\\\\TextForge\\\\publish\\\\win-x64\\\\TextForge.Desktop.exe\"; \\(Get-ChildItem \"C:\\\\Projects\\\\TextForge\\\\publish\\\\win-x64\\\\\" | Measure-Object\\).Count)",
+      "PowerShell(New-Item -ItemType Directory -Path \"installer\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"installer\\\\output\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"scripts\" -Force)",
+      "PowerShell($iscc = Get-Command iscc -ErrorAction SilentlyContinue; if \\($iscc\\) { $iscc.Source } else { \"not found\" }; Test-Path \"C:\\\\Program Files \\(x86\\)\\\\Inno Setup 6\\\\ISCC.exe\")",
+      "PowerShell(.\\\\scripts\\\\build-installer.ps1 -Version 0.0.1 2>&1)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Read(//c/Program Files/Inno Setup 7/**)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Inno Setup 7\\\\ISCC.exe\" /DAppVersion=0.0.1 installer\\\\TextForge.iss 2>&1)",
+      "PowerShell(Get-ChildItem \"C:\\\\Projects\\\\TextForge\\\\installer\\\\output\\\\\" | Select-Object Name, @{N='MB';E={[math]::Round\\($_.Length/1MB,1\\)}})"
     ]
   }
 }

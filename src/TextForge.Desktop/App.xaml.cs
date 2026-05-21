@@ -26,6 +26,8 @@ public partial class App : Application
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
         _port = GetAvailablePort();
         _api = BuildApi(_port);
         await _api.StartAsync();

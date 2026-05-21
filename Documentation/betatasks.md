@@ -6,52 +6,52 @@ Ordered by dependency. Complete each section before moving to the next.
 
 ## Phase 1 — Pre-build fixes
 
-- [ ] **QuestPDF license** — add `QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;` to `App.xaml.cs` `OnStartup()` before any PDF export call
-- [ ] **MSBuild target guard** — add `Condition="'$(SkipBuildReactApp)' != 'true'"` to the `BuildReactApp` target in `src/TextForge.Desktop/TextForge.Desktop.csproj`
+- [x] **QuestPDF license** — add `QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;` to `App.xaml.cs` `OnStartup()` before any PDF export call
+- [x] **MSBuild target guard** — extended existing `Condition` to also check `'$(SkipBuildReactApp)' != 'true'`; the `$(CI)` check was already present and handles GitHub Actions automatically
 
 ---
 
 ## Phase 2 — Versioning
 
-- [ ] **`Directory.Build.props`** — add `<Version>`, `<AssemblyVersion>`, `<FileVersion>`, `<Product>`, `<Company>`, `<Copyright>` properties
-- [ ] Verify version appears in compiled `.exe` Properties → Details tab
+- [x] **`Directory.Build.props`** — add `<Version>`, `<AssemblyVersion>`, `<FileVersion>`, `<Product>`, `<Company>`, `<Copyright>` properties
+- [x] Verify version appears in compiled `.exe` Properties → Details tab — confirmed: FileVersion 0.0.1.0, ProductName TextForge Studio, CompanyName TextForge
 
 ---
 
 ## Phase 3 — Publish profile
 
-- [ ] Create directory `src/TextForge.Desktop/Properties/PublishProfiles/`
-- [ ] Create `win-x64.pubxml` with self-contained, win-x64, PublishSingleFile=false, SkipBuildReactApp=true
+- [x] Create directory `src/TextForge.Desktop/Properties/PublishProfiles/`
+- [x] Create `win-x64.pubxml` with self-contained, win-x64, PublishSingleFile=false, SkipBuildReactApp=true
 
 ---
 
 ## Phase 4 — Installer script
 
-- [ ] Create `installer/` directory at repo root
-- [ ] Create `installer/TextForge.iss` (Inno Setup script per betaplan.md Part 4)
-- [ ] Add `installer/output/` to `.gitignore`
-- [ ] Add `publish/` to `.gitignore`
+- [x] Create `installer/` directory at repo root
+- [x] Create `installer/TextForge.iss` (Inno Setup script per betaplan.md Part 4)
+- [x] Add `installer/output/` to `.gitignore`
+- [x] Add `publish/` to `.gitignore`
 
 ---
 
 ## Phase 5 — Local build script
 
-- [ ] Create `scripts/` directory at repo root
-- [ ] Create `scripts/build-installer.ps1` per betaplan.md Part 6
-- [ ] Install Inno Setup 6 locally (`choco install innosetup` or https://jrsoftware.org/isinfo.php)
+- [x] Create `scripts/` directory at repo root
+- [x] Create `scripts/build-installer.ps1` per betaplan.md Part 6
+- [x] Install Inno Setup 6 locally (`choco install innosetup` or https://jrsoftware.org/isinfo.php)
 
 ---
 
 ## Phase 6 — Local end-to-end test
 
-- [ ] Run `.\scripts\build-installer.ps1 -Version 0.0.1` from repo root — confirm it completes without errors
-- [ ] Confirm `installer/output/TextForge-Studio-0.0.1-win-x64-Setup.exe` exists
-- [ ] Run the installer — verify install directory chooser appears
-- [ ] Verify app launches from installed location (`C:\Program Files\TextForge Studio\`)
-- [ ] Verify Start Menu shortcut appears
-- [ ] Verify optional desktop shortcut works (if selected during install)
-- [ ] Open a series, write something, save — basic smoke test
-- [ ] Run the uninstaller via Add/Remove Programs — verify clean removal
+- [x] Run `.\scripts\build-installer.ps1 -Version 0.0.1` from repo root — confirm it completes without errors
+- [x] Confirm `installer/output/TextForge-Studio-0.0.1-win-x64-Setup.exe` exists
+- [x] Run the installer — verify install directory chooser appears
+- [x] Verify app launches from installed location (`C:\Program Files\TextForge Studio\`)
+- [x] Verify Start Menu shortcut appears
+- [x] Verify optional desktop shortcut works (if selected during install)
+- [x] Open a series, write something, save — basic smoke test
+- [x] Run the uninstaller via Add/Remove Programs — verify clean removal
 
 ---
 

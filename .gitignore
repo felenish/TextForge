@@ -34,6 +34,12 @@ WebView2UserData/
 .DS_Store
 Thumbs.db
 
+# Publish output
+publish/
+
+# Installer output
+installer/output/
+
 # Env / secrets
 *.env
 *.env.local
