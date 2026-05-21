@@ -58,8 +58,8 @@ Ordered by dependency. Complete each section before moving to the next.
 ## Phase 7 — GitHub Actions workflow
 
 - [x] Create `.github/workflows/release.yml` per betaplan.md Part 5
-- [ ] Push to a branch and open a PR — verify the existing `ci.yml` still passes
-- [ ] Merge the PR
+- [x] Push to a branch and open a PR — verify the existing `ci.yml` still passes
+- [x] Merge the PR
 
 ---
 
