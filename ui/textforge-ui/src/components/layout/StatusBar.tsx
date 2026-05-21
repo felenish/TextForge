@@ -34,6 +34,7 @@ export function StatusBar({
 
   useEffect(() => {
     if (!lastAutosaved) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowAutosaved(true);
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     autosaveTimerRef.current = setTimeout(() => setShowAutosaved(false), 4000);

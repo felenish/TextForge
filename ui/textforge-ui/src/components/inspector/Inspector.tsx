@@ -88,6 +88,7 @@ export function Inspector({ onViewHistory }: InspectorProps) {
 
   useEffect(() => {
     if (!activeSceneId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus('draft');
       setPov('');
       setSceneCharIds([]);
@@ -121,7 +122,7 @@ export function Inspector({ onViewHistory }: InspectorProps) {
     if (!activeSceneId || pov === povSavedRef.current) return;
     povSavedRef.current = pov;
     try { await patchScene(activeSceneId, { pov: pov || '' }); }
-    catch {}
+    catch { /* ignore */ }
   }
 
   function handlePovKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -150,7 +151,7 @@ export function Inspector({ onViewHistory }: InspectorProps) {
     notesTimerRef.current = setTimeout(async () => {
       if (!activeSceneId) return;
       try { await patchScene(activeSceneId, { notes: value }); }
-      catch {}
+      catch { /* ignore */ }
     }, 800);
   }
 
