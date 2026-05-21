@@ -12,6 +12,7 @@ import { LocationEditor } from './LocationEditor';
 import { OutlineEditor } from './OutlineEditor';
 import { PlotGridEditor } from './PlotGridEditor';
 import { FindReplaceBar } from './FindReplaceBar';
+import { HelpTab } from './HelpTab';
 
 interface TabsState {
   tabs: Tab[];
@@ -24,6 +25,7 @@ export interface SceneEditorAreaHandle {
   openLocation: (locationId: string, name: string) => void;
   openOutline: (outlineId: string, name: string) => void;
   openPlotGrid: (plotGridId: string, name: string) => void;
+  openHelp: () => void;
   saveAll: () => Promise<void>;
   saveActive: () => Promise<void>;
   closeAll: () => void;
@@ -81,6 +83,14 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
         if (prev.tabs.some(t => t.id === outlineId))
           return { ...prev, activeId: outlineId };
         return { tabs: [...prev.tabs, { id: outlineId, title: name, kind: 'outline' }], activeId: outlineId };
+      });
+    }, []);
+
+    const openHelp = useCallback(() => {
+      setState(prev => {
+        if (prev.tabs.some(t => t.id === '__help__'))
+          return { ...prev, activeId: '__help__' };
+        return { tabs: [...prev.tabs, { id: '__help__', title: 'Help', kind: 'help' }], activeId: '__help__' };
       });
     }, []);
 
@@ -161,7 +171,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       };
     }, [reloadScene]);
 
-    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind, reloadScene }), [openScene, openCharacter, openLocation, openOutline, openPlotGrid, saveAll, saveActive, closeAll, openFind, reloadScene]);
+    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, openOutline, openPlotGrid, openHelp, saveAll, saveActive, closeAll, openFind, reloadScene }), [openScene, openCharacter, openLocation, openOutline, openPlotGrid, openHelp, saveAll, saveActive, closeAll, openFind, reloadScene]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
@@ -322,6 +332,8 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
                   outlineId={tab.id}
                   onSaved={handleOutlineSaved}
                 />
+              ) : tab.kind === 'help' ? (
+                <HelpTab />
               ) : (
                 <PlotGridEditor
                   plotGridId={tab.id}

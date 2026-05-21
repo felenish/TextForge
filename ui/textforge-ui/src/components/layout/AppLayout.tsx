@@ -67,6 +67,7 @@ export function AppLayout() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (e.key === 'F1') { e.preventDefault(); editorRef.current?.openHelp(); }
       if (e.key === 'F11') { e.preventDefault(); setFocusMode(f => !f); }
       if (e.key === 'Escape') { setFocusMode(false); setPaletteOpen(false); }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'p')) {
@@ -177,6 +178,7 @@ export function AppLayout() {
         onFind={() => editorRef.current?.openFind(false)}
         onFindReplace={() => editorRef.current?.openFind(true)}
         onOpenSettings={() => { setSettingsSection('appearance'); setSettingsOpen(true); }}
+        onOpenHelp={() => editorRef.current?.openHelp()}
         bottomOpen={bottomOpen}
         onBottomToggle={toggleBottom}
         onViewHistory={() => setSidebarMode('versions')}

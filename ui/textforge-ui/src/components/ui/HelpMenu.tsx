@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 
 interface HelpMenuProps {
   onOpenSettings: () => void;
+  onOpenHelp: () => void;
 }
 
-export function HelpMenu({ onOpenSettings }: HelpMenuProps) {
+export function HelpMenu({ onOpenSettings, onOpenHelp }: HelpMenuProps) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -50,6 +51,8 @@ export function HelpMenu({ onOpenSettings }: HelpMenuProps) {
       </button>
       {open && (
         <div ref={panelRef} className="filemenu-panel">
+          {item('Help', 'F1', onOpenHelp)}
+          <div className="filemenu-sep" />
           {item('Settings…', 'Ctrl+,', onOpenSettings)}
           <div className="filemenu-sep" />
           <button
