@@ -6,20 +6,32 @@ A desktop-first writing IDE for novelists and long-form fiction writers. TextFor
 
 ---
 
+## Install
+
+Download the latest installer from the [Releases](https://github.com/felenish/TextForge/releases) page.
+
+**Windows SmartScreen warning:** Because the installer is not yet code-signed, Windows may show a "Windows protected your PC" prompt. Click **More info → Run anyway** to proceed.
+
+**Requirements:** Windows 10 or 11 (64-bit). All other dependencies (.NET runtime, WebView2) are bundled in the installer.
+
+---
+
 ## Features
 
-- **Manuscript explorer** — organize work as Series → Books → Chapters → Scenes
+- **Manuscript explorer** — organize work as Series → Books → Chapters → Scenes with drag-and-drop reordering
 - **Multi-tab editor** — open and edit multiple scenes simultaneously
 - **Rich text editing** — bold, italic, underline, font and size controls, typewriter mode
+- **Autosave** — configurable background save (30 s / 1 min / 2 min / 5 min)
 - **Find & Replace** — real-time search with match navigation and replace-all in the active scene
 - **Command palette** — keyboard-first access to common actions (`Ctrl+P`)
 - **File menu** — open, create, save, and close series; recent series history persisted across sessions
 - **Inspector panel** — per-scene metadata and word count
+- **Word count goal** — daily writing target with progress indicator
 - **Minimap** — document overview with synchronized scroll
 - **Themes** — dark, light, and sepia
+- **Export** — PDF and EPUB output
+- **Version history** — snapshot-based scene history with branch support
 - **Local-first** — all data is stored as plain files on disk; no cloud dependency, no proprietary database
-- **Export** *(in development)* — PDF and EPUB output
-- **Version history** *(in development)* — branch-based scene history
 
 ---
 
@@ -63,8 +75,8 @@ TextForge/
 │   ├── TextForge.Core/        # Domain models, interfaces, exceptions, validation
 │   ├── TextForge.Storage/     # File-system storage services (series, books, scenes)
 │   ├── TextForge.Api/         # ASP.NET Core REST API — controllers, DTOs, services
-│   ├── TextForge.Versioning/  # Branch-based version history (in development)
-│   ├── TextForge.Export/      # PDF/EPUB export pipeline (in development)
+│   ├── TextForge.Versioning/  # Snapshot-based version history
+│   ├── TextForge.Export/      # PDF/EPUB export pipeline
 │   └── TextForge.Desktop/     # WPF shell, WebView2 host, platform services
 ├── ui/
 │   └── textforge-ui/          # React 19 + TypeScript + Vite frontend
@@ -72,6 +84,8 @@ TextForge/
 │   ├── TextForge.Core.Tests/
 │   ├── TextForge.Storage.Tests/
 │   └── TextForge.Versioning.Tests/
+├── installer/                 # Inno Setup script (TextForge.iss)
+├── scripts/                   # Local build helpers (build-installer.ps1)
 ├── Documentation/             # Design documents and planning notes
 └── TextForge.slnx             # .NET solution file
 ```
@@ -84,7 +98,7 @@ TextForge/
 |------------|---------|-------|
 | Windows | 10 or 11 | WPF is Windows-only |
 | [.NET SDK](https://dotnet.microsoft.com/download) | **10.0** | `dotnet --version` to verify |
-| [Node.js](https://nodejs.org/) | **20 LTS or later** | Includes npm; needed for the React build |
+| [Node.js](https://nodejs.org/) | **22 LTS or later** | Includes npm; needed for the React build |
 | [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) | Any current | Pre-installed on Windows 11; may need manual install on Windows 10 |
 
 ---
@@ -94,7 +108,7 @@ TextForge/
 ### 1. Clone the repository
 
 ```powershell
-git clone https://github.com/your-org/TextForge.git
+git clone https://github.com/felenish/TextForge.git
 cd TextForge
 ```
 
@@ -124,10 +138,16 @@ To build without running:
 dotnet build
 ```
 
-To build a release binary:
+To build a self-contained release binary:
 
 ```powershell
-dotnet publish src/TextForge.Desktop/TextForge.Desktop.csproj -c Release -r win-x64 --self-contained
+dotnet publish src/TextForge.Desktop/TextForge.Desktop.csproj -p:PublishProfile=win-x64
+```
+
+To build the full installer (requires [Inno Setup 6+](https://jrsoftware.org/isinfo.php)):
+
+```powershell
+.\scripts\build-installer.ps1 -Version 0.0.1
 ```
 
 ---
@@ -159,11 +179,10 @@ Or just use `dotnet run` again — the MSBuild target re-runs the frontend build
 
 ### Skipping the frontend build (faster C# iteration)
 
-When only changing C# code, set `CI=true` to skip the npm build step:
+When only changing C# code, skip the npm build step:
 
 ```powershell
-$env:CI = "true"
-dotnet run --project src/TextForge.Desktop/TextForge.Desktop.csproj
+dotnet run --project src/TextForge.Desktop/TextForge.Desktop.csproj -p:SkipBuildReactApp=true
 ```
 
 ---
