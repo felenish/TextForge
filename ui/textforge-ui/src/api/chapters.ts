@@ -15,3 +15,8 @@ export const reorderChapters = (bookId: string, ids: string[]): Promise<void> =>
 
 export const reorderScenes = (bookId: string, chapterId: string, ids: string[]): Promise<void> =>
   post(`/api/books/${bookId}/chapters/${chapterId}/scenes/reorder`, { ids });
+
+export const moveScene = (
+  bookId: string, sceneId: string, targetChapterId: string, targetIndex: number,
+): Promise<void> =>
+  post(`/api/books/${bookId}/scenes/move`, { sceneId, targetChapterId, targetIndex });

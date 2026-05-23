@@ -1,6 +1,14 @@
 import { del, get, post } from './client';
 import type { BookDto } from './books';
 
+export interface SceneSearchResultDto {
+  sceneId: string;
+  sceneTitle: string;
+  chapterTitle: string;
+  bookTitle: string;
+  snippet: string | null;
+}
+
 export interface SeriesDto {
   id: string;
   title: string;
@@ -30,3 +38,6 @@ export const closeSeries = (): Promise<void> =>
 
 export const reorderBooks = (ids: string[]): Promise<void> =>
   post('/api/series/current/books/reorder', { ids });
+
+export const searchSeries = (q: string): Promise<SceneSearchResultDto[]> =>
+  get(`/api/series/current/search?q=${encodeURIComponent(q)}`);

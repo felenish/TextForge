@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import type { SeriesDto } from '../../api/series';
+import { useEffect, useState } from 'react';
+import type { SeriesDto, SceneSearchResultDto } from '../../api/series';
+import { searchSeries } from '../../api/series';
 import { Icon } from '../ui/Icon';
 
 interface SearchSidebarProps {
@@ -7,35 +8,33 @@ interface SearchSidebarProps {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
 }
 
-interface SearchResult {
-  sceneId: string;
-  sceneTitle: string;
-  chapterTitle: string;
-  bookTitle: string;
-}
-
 export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SceneSearchResultDto[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const results = useMemo<SearchResult[]>(() => {
-    if (!series || !query.trim()) return [];
-    const ql = query.toLowerCase();
-    const out: SearchResult[] = [];
-    for (const book of series.books) {
-      for (const ch of book.chapters) {
-        for (const sc of ch.scenes) {
-          if (
-            sc.title.toLowerCase().includes(ql) ||
-            ch.title.toLowerCase().includes(ql) ||
-            book.title.toLowerCase().includes(ql)
-          ) {
-            out.push({ sceneId: sc.id, sceneTitle: sc.title, chapterTitle: ch.title, bookTitle: book.title });
-          }
-        }
-      }
+  useEffect(() => {
+    const q = query.trim();
+    if (!q || q.length < 2 || !series) {
+      setResults([]);
+      return;
     }
-    return out.slice(0, 50);
-  }, [series, query]);
+
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        setResults(await searchSeries(q));
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, series]);
+
+  const searching = query.trim().length >= 2;
 
   return (
     <>
@@ -55,7 +54,7 @@ export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
             Open a series to search.
           </div>
         )}
-        {series && query.trim() && results.length === 0 && (
+        {series && searching && !loading && results.length === 0 && (
           <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '10px 14px' }}>
             No matches.
           </div>
@@ -72,13 +71,21 @@ export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
               <div className="label" style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <span>{r.sceneTitle}</span>
                 <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>{r.bookTitle} · {r.chapterTitle}</span>
+                {r.snippet && (
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 2 }}>
+                    {r.snippet}
+                  </span>
+                )}
               </div>
             </div>
           ))}
         </div>
       </div>
       <div className="sb-footer">
-        <span><span className="num">{results.length}</span> matches</span>
+        {loading
+          ? <span style={{ color: 'var(--text-faint)' }}>Searching…</span>
+          : <span><span className="num">{searching ? results.length : 0}</span> matches</span>
+        }
       </div>
     </>
   );

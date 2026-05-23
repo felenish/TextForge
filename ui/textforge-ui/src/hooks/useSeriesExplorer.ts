@@ -39,6 +39,7 @@ export interface UseSeriesExplorerResult {
   renameScene: (bookId: string, sceneId: string, title: string) => Promise<void>;
   deleteScene: (bookId: string, sceneId: string) => Promise<void>;
   reorderScenes: (bookId: string, chapterId: string, ids: string[]) => void;
+  moveScene: (bookId: string, sceneId: string, targetChapterId: string, targetIndex: number) => void;
   loadCharacters: () => Promise<void>;
   addCharacter: (name: string, role: string) => Promise<void>;
   renameCharacter: (id: string, name: string) => Promise<void>;
@@ -377,13 +378,37 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     );
   };
 
+  const moveScene = (bookId: string, sceneId: string, targetChapterId: string, targetIndex: number) => {
+    patchBook(bookId, b => {
+      let moved: SceneMetaDto | undefined;
+      const withoutScene = b.chapters.map(c => {
+        const s = c.scenes.find(s => s.id === sceneId);
+        if (s) { moved = s; return { ...c, scenes: c.scenes.filter(s => s.id !== sceneId) }; }
+        return c;
+      });
+      if (!moved) return b;
+      return {
+        ...b,
+        chapters: withoutScene.map(c => {
+          if (c.id !== targetChapterId) return c;
+          const scenes = [...c.scenes];
+          scenes.splice(Math.min(targetIndex, scenes.length), 0, moved!);
+          return { ...c, scenes };
+        }),
+      };
+    });
+    chaptersApi.moveScene(bookId, sceneId, targetChapterId, targetIndex).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to move scene.')
+    );
+  };
+
   return {
     series, loading, error,
     characters, charactersLoaded,
     createSeries, openSeries, openSeriesFromPath, closeSeries,
     addBook, renameBook, deleteBook, reorderBooks,
     addChapter, renameChapter, deleteChapter, reorderChapters,
-    addScene, renameScene, deleteScene, reorderScenes,
+    addScene, renameScene, deleteScene, reorderScenes, moveScene,
     loadCharacters, addCharacter, renameCharacter, deleteCharacter, patchCharacterInList,
     locations, locationsLoaded,
     loadLocations, addLocation, renameLocation, deleteLocation, patchLocationInList,

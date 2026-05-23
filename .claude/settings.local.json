@@ -28,7 +28,11 @@
       "Bash(Format-Table -AutoSize)",
       "Bash(Remove-Item \"c:\\\\Projects\\\\TextForge\\\\ui\\\\textforge-ui\\\\src\\\\components\\\\explorer\\\\CharactersSidebar.tsx\" -Force)",
       "Bash(npx eslint *)",
-      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}, indent=2\\)\\)\")"
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}, indent=2\\)\\)\")",
+      "Bash(xargs grep -l \"filter.*title\\\\|title.*filter\\\\|content.*search\")",
+      "Bash(node_modules\\\\.bin\\\\tsc --noEmit)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(npm install *)"
     ]
   }
 }

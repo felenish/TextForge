@@ -49,7 +49,7 @@ export function ManuscriptSidebar({
   plotGrids, plotGridsLoaded,
   createSeries, openSeries, addBook, renameBook, deleteBook, reorderBooks,
   addChapter, renameChapter, deleteChapter, reorderChapters,
-  addScene, renameScene, deleteScene, reorderScenes,
+  addScene, renameScene, deleteScene, reorderScenes, moveScene,
   loadCharacters, addCharacter, renameCharacter, deleteCharacter,
   loadLocations, addLocation, renameLocation, deleteLocation,
   loadOutlines, addOutline, renameOutline, deleteOutline,
@@ -97,6 +97,17 @@ export function ManuscriptSidebar({
     setDropTarget(prev => prev?.id === id && prev.position === position ? prev : { id, position });
   };
 
+  const onDragOverChapter = (e: React.DragEvent, id: string, bookId: string) => {
+    if (!drag) return;
+    if (drag.kind === 'chapter' && drag.bookId !== bookId) return;
+    if (drag.kind !== 'chapter' && drag.kind !== 'scene') return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const position: 'before' | 'after' = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    setDropTarget(prev => prev?.id === id && prev.position === position ? prev : { id, position });
+  };
+
   const onDragEnd = () => { setDrag(null); setDropTarget(null); };
 
   const onDropBook = (e: React.DragEvent, targetId: string) => {
@@ -109,21 +120,36 @@ export function ManuscriptSidebar({
 
   const onDropChapter = (e: React.DragEvent, targetId: string, bookId: string) => {
     e.preventDefault();
-    if (!drag || drag.kind !== 'chapter' || drag.bookId !== bookId || !dropTarget || !series) return;
+    if (!drag || !dropTarget || !series) return;
     const book = series.books.find(b => b.id === bookId);
     if (!book) return;
-    const reordered = applyReorder(book.chapters, drag.id, targetId, dropTarget.position);
-    if (reordered) reorderChapters(bookId, reordered.map(c => c.id));
+
+    if (drag.kind === 'chapter' && drag.bookId === bookId) {
+      const reordered = applyReorder(book.chapters, drag.id, targetId, dropTarget.position);
+      if (reordered) reorderChapters(bookId, reordered.map(c => c.id));
+    } else if (drag.kind === 'scene') {
+      const targetChapter = book.chapters.find(c => c.id === targetId);
+      if (targetChapter) moveScene(bookId, drag.id, targetId, targetChapter.scenes.length);
+    }
     setDrag(null); setDropTarget(null);
   };
 
   const onDropScene = (e: React.DragEvent, targetId: string, bookId: string, chapterId: string) => {
     e.preventDefault();
-    if (!drag || drag.kind !== 'scene' || drag.chapterId !== chapterId || !dropTarget || !series) return;
-    const chapter = series.books.find(b => b.id === bookId)?.chapters.find(c => c.id === chapterId);
-    if (!chapter) return;
-    const reordered = applyReorder(chapter.scenes, drag.id, targetId, dropTarget.position);
-    if (reordered) reorderScenes(bookId, chapterId, reordered.map(s => s.id));
+    if (!drag || drag.kind !== 'scene' || !dropTarget || !series) return;
+    const book = series.books.find(b => b.id === bookId);
+    const chapter = book?.chapters.find(c => c.id === chapterId);
+    if (!book || !chapter) return;
+
+    if (drag.chapterId === chapterId) {
+      const reordered = applyReorder(chapter.scenes, drag.id, targetId, dropTarget.position);
+      if (reordered) reorderScenes(bookId, chapterId, reordered.map(s => s.id));
+    } else {
+      const idx = chapter.scenes.findIndex(s => s.id === targetId);
+      const insertAt = idx === -1 ? chapter.scenes.length
+        : dropTarget.position === 'before' ? idx : idx + 1;
+      moveScene(bookId, drag.id, chapterId, insertAt);
+    }
     setDrag(null); setDropTarget(null);
   };
 
@@ -431,7 +457,7 @@ export function ManuscriptSidebar({
                           style={{ paddingLeft: 20 }}
                           draggable
                           onDragStart={e => onDragStart(e, { kind: 'chapter', id: ch.id, bookId: book.id })}
-                          onDragOver={e => onDragOver(e, ch.id, 'chapter')}
+                          onDragOver={e => onDragOverChapter(e, ch.id, book.id)}
                           onDrop={e => onDropChapter(e, ch.id, book.id)}
                           onDragEnd={onDragEnd}
                           onClick={() => toggle(ch.id)}

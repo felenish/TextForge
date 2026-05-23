@@ -140,6 +140,68 @@ public sealed class ChaptersController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("/api/books/{bookId:guid}/scenes/move")]
+    public async Task<IActionResult> MoveScene(Guid bookId, [FromBody] MoveSceneBody request, CancellationToken ct)
+    {
+        var book = _workspace.GetBook(bookId);
+        if (book is null)
+            return NotFound(new ErrorDto("Book not found."));
+
+        Chapter? sourceChapter = null;
+        Scene? scene = null;
+        foreach (var ch in book.Chapters)
+        {
+            var s = ch.Scenes.FirstOrDefault(s => s.Id == request.SceneId);
+            if (s is not null) { sourceChapter = ch; scene = s; break; }
+        }
+        if (sourceChapter is null || scene is null)
+            return NotFound(new ErrorDto("Scene not found."));
+
+        var targetChapter = book.Chapters.FirstOrDefault(c => c.Id == request.TargetChapterId);
+        if (targetChapter is null)
+            return NotFound(new ErrorDto("Target chapter not found."));
+
+        if (sourceChapter.Id != targetChapter.Id)
+        {
+            var oldAbsPath = Path.Combine(book.RootPath, scene.FilePath);
+            var fileName = Path.GetFileName(scene.FilePath);
+            var newAbsPath = Path.Combine(book.RootPath, targetChapter.FolderPath, fileName);
+
+            if (System.IO.File.Exists(newAbsPath) && !string.Equals(oldAbsPath, newAbsPath, StringComparison.OrdinalIgnoreCase))
+            {
+                var stem = Path.GetFileNameWithoutExtension(fileName);
+                var ext = Path.GetExtension(fileName);
+                for (var i = 2; i <= 999; i++)
+                {
+                    newAbsPath = Path.Combine(book.RootPath, targetChapter.FolderPath, $"{stem}-{i}{ext}");
+                    if (!System.IO.File.Exists(newAbsPath)) break;
+                }
+                fileName = Path.GetFileName(newAbsPath);
+            }
+
+            if (System.IO.File.Exists(oldAbsPath))
+                System.IO.File.Move(oldAbsPath, newAbsPath);
+
+            scene.FilePath = Path.Combine(targetChapter.FolderPath, fileName).Replace('\\', '/');
+            sourceChapter.Scenes.Remove(scene);
+            var insertAt = Math.Clamp(request.TargetIndex, 0, targetChapter.Scenes.Count);
+            targetChapter.Scenes.Insert(insertAt, scene);
+        }
+        else
+        {
+            sourceChapter.Scenes.Remove(scene);
+            var insertAt = Math.Clamp(request.TargetIndex, 0, sourceChapter.Scenes.Count);
+            sourceChapter.Scenes.Insert(insertAt, scene);
+        }
+
+        for (var i = 0; i < sourceChapter.Scenes.Count; i++) sourceChapter.Scenes[i].SortOrder = i + 1;
+        if (targetChapter.Id != sourceChapter.Id)
+            for (var i = 0; i < targetChapter.Scenes.Count; i++) targetChapter.Scenes[i].SortOrder = i + 1;
+
+        await _storage.SaveBookAsync(book, ct);
+        return NoContent();
+    }
+
     [HttpPost("{chapterId:guid}/scenes")]
     public async Task<IActionResult> AddScene(
         Guid bookId, Guid chapterId, [FromBody] AddSceneBody request, CancellationToken ct)
@@ -175,3 +237,4 @@ public sealed record AddChapterBody(string Title);
 public sealed record UpdateChapterBody(string? Title, int? SortOrder);
 public sealed record AddSceneBody(string Title);
 public sealed record ReorderBody(IReadOnlyList<string> Ids);
+public sealed record MoveSceneBody(Guid SceneId, Guid TargetChapterId, int TargetIndex);
