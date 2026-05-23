@@ -13,13 +13,11 @@ export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
   const [results, setResults] = useState<SceneSearchResultDto[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const q = query.trim();
-    if (!q || q.length < 2 || !series) {
-      setResults([]);
-      return;
-    }
+  const active = query.trim().length >= 2 && !!series;
 
+  useEffect(() => {
+    if (!active) return;
+    const q = query.trim();
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -32,9 +30,7 @@ export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, series]);
-
-  const searching = query.trim().length >= 2;
+  }, [query, series, active]);
 
   return (
     <>
@@ -54,13 +50,13 @@ export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
             Open a series to search.
           </div>
         )}
-        {series && searching && !loading && results.length === 0 && (
+        {active && !loading && results.length === 0 && (
           <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '10px 14px' }}>
             No matches.
           </div>
         )}
         <div className="tree">
-          {results.map(r => (
+          {active && results.map(r => (
             <div
               key={r.sceneId}
               className="tree-row is-scene"
@@ -84,7 +80,7 @@ export function SearchSidebar({ series, onSceneOpen }: SearchSidebarProps) {
       <div className="sb-footer">
         {loading
           ? <span style={{ color: 'var(--text-faint)' }}>Searching…</span>
-          : <span><span className="num">{searching ? results.length : 0}</span> matches</span>
+          : <span><span className="num">{active ? results.length : 0}</span> matches</span>
         }
       </div>
     </>
