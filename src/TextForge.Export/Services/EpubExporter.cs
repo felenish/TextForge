@@ -64,8 +64,9 @@ internal static class EpubExporter
                         foreach (var para in content.Split(["\r\n\r\n", "\n\n"], StringSplitOptions.RemoveEmptyEntries))
                         {
                             var trimmed = para.Trim();
-                            if (!string.IsNullOrEmpty(trimmed))
-                                sb.Append("<p>").Append(EscapeXml(trimmed.Replace("\n", " "))).AppendLine("</p>");
+                            if (string.IsNullOrEmpty(trimmed)) continue;
+                            if (trimmed.StartsWith("[[img:") && trimmed.EndsWith("]]")) continue;
+                            sb.Append("<p>").Append(EscapeXml(trimmed.Replace("\n", " "))).AppendLine("</p>");
                         }
                     }
 

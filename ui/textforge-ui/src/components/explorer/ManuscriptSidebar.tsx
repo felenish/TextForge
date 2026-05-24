@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useDialog } from '../../contexts/DialogContext';
@@ -6,6 +6,8 @@ import type { LocationDto } from '../../api/locations';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 import * as shellApi from '../../api/shell';
+import { listSeriesAssets, getSeriesAssetUrl } from '../../api/series';
+import { setSceneStatus } from '../../api/scenes';
 
 interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onSceneOpen: (sceneId: string, sceneTitle: string) => void;
@@ -56,10 +58,12 @@ export function ManuscriptSidebar({
   loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid,
   onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen,
 }: ManuscriptSidebarProps) {
-  const { dirtySceneIds, activeSceneId, activeBookId } = useWorkspace();
+  const { dirtySceneIds, activeSceneId, activeBookId, patchSceneMeta } = useWorkspace();
   const { prompt, confirm } = useDialog();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [assetsOpen, setAssetsOpen] = useState(false);
+  const [assetsCache, setAssetsCache] = useState<{ seriesId: string; filenames: string[] } | null>(null);
   const [charsOpen, setCharsOpen] = useState(false);
   const [locsOpen, setLocsOpen] = useState(false);
   const [outlinesOpen, setOutlinesOpen] = useState(false);
@@ -67,6 +71,38 @@ export function ManuscriptSidebar({
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+
+  const assetsLoaded = !!assetsCache && !!series && assetsCache.seriesId === series.id;
+  const assets = assetsLoaded ? assetsCache!.filenames : [];
+
+  const loadAssets = async (seriesId: string) => {
+    try {
+      const list = await listSeriesAssets();
+      setAssetsCache({ seriesId, filenames: list.map(a => a.filename) });
+    } catch {
+      setAssetsCache({ seriesId, filenames: [] });
+    }
+  };
+
+  const toggleAssets = () => {
+    if (!assetsOpen && !assetsLoaded && series) loadAssets(series.id);
+    setAssetsOpen(v => !v);
+  };
+
+  useEffect(() => {
+    const handleAssetUploaded = async () => {
+      if (!series) return;
+      const seriesId = series.id;
+      try {
+        const list = await listSeriesAssets();
+        setAssetsCache({ seriesId, filenames: list.map(a => a.filename) });
+      } catch {
+        setAssetsCache({ seriesId, filenames: [] });
+      }
+    };
+    window.addEventListener('tf-asset-uploaded', handleAssetUploaded);
+    return () => window.removeEventListener('tf-asset-uploaded', handleAssetUploaded);
+  }, [series]);
 
   const isExpanded = (id: string) => expanded[id] !== false;
 
@@ -330,6 +366,10 @@ export function ManuscriptSidebar({
     },
     { label: 'Reveal in Explorer', onClick: () => shellApi.revealScene(sceneId).catch(() => {}) },
     { type: 'separator' },
+    { label: 'Set Draft', onClick: () => { setSceneStatus(sceneId, 'draft').then(() => patchSceneMeta(sceneId, { status: 'draft' })).catch(() => {}); } },
+    { label: 'Set Revised', onClick: () => { setSceneStatus(sceneId, 'revised').then(() => patchSceneMeta(sceneId, { status: 'revised' })).catch(() => {}); } },
+    { label: 'Set Final', onClick: () => { setSceneStatus(sceneId, 'final').then(() => patchSceneMeta(sceneId, { status: 'final' })).catch(() => {}); } },
+    { type: 'separator' },
     {
       label: 'Delete Scene',
       danger: true,
@@ -522,6 +562,52 @@ export function ManuscriptSidebar({
               <span className="icon"><Icon name="plus" size={12} /></span>
               <span className="label" style={{ fontSize: 11 }}>Add Book…</span>
             </div>
+
+            {/* Assets */}
+            {series && (
+              <div>
+                <div
+                  className="tree-row is-book"
+                  onClick={toggleAssets}
+                >
+                  <span className={`chev${assetsOpen ? ' open' : ''}`}>
+                    <Icon name="chev-right" size={11} />
+                  </span>
+                  <span className="icon"><Icon name="image" size={13} /></span>
+                  <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>Assets</span>
+                  {assetsLoaded && (
+                    <span className="meta-right">{assets.length}</span>
+                  )}
+                </div>
+
+                {assetsOpen && (
+                  <>
+                    {assets.length === 0 && assetsLoaded && (
+                      <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '4px 14px 4px 28px' }}>
+                        No assets yet — drag or paste an image into a scene
+                      </div>
+                    )}
+                    {assets.length > 0 && (
+                      <div className="asset-grid">
+                        {assets.map(filename => (
+                          <img
+                            key={filename}
+                            src={getSeriesAssetUrl(filename)}
+                            className="asset-thumb"
+                            title={filename}
+                            draggable
+                            onDragStart={e => {
+                              e.dataTransfer.effectAllowed = 'copy';
+                              e.dataTransfer.setData('application/textforge-asset', filename);
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
             <div>
               <div

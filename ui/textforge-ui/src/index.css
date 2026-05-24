@@ -1498,6 +1498,92 @@ input, textarea {
   user-select: none;
 }
 
+.image-block {
+  display: block;
+  margin: 0 0 1.1em;
+  line-height: 0;
+  user-select: none;
+  cursor: pointer;
+}
+.image-block img {
+  display: block;
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+}
+.image-block.is-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.image-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  font-family: var(--font-mono);
+}
+.image-toolbar-label {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-right: 2px;
+  user-select: none;
+}
+.image-toolbar-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+  margin: 0 6px;
+}
+.image-toolbar button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+}
+.image-toolbar button:hover { background: var(--bg-hover); }
+.image-toolbar button.active { color: var(--accent); background: var(--bg-hover); }
+.image-toolbar-slider {
+  width: 90px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0 4px;
+}
+.image-toolbar-width-value {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  min-width: 32px;
+  text-align: right;
+  user-select: none;
+}
+
+.asset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 4px;
+  padding: 6px 12px 8px;
+}
+.asset-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  cursor: grab;
+}
+.asset-thumb:hover { border-color: var(--accent); }
+
 .scene-divider {
   text-align: center;
   font-family: var(--font-serif);

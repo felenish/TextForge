@@ -28,3 +28,4 @@ export const getBook = (id: string): Promise<BookDto> =>
 
 export const renameBook = (id: string, title: string): Promise<BookDto> =>
   patch(`/api/books/${id}`, { title });
+

@@ -43,6 +43,7 @@ export function Inspector({ onViewHistory }: InspectorProps) {
     activeBookId,
     wordCount,
     contentStats,
+    patchSceneMeta,
   } = useWorkspace();
 
   const activeBook = activeBookId ? series?.books.find(b => b.id === activeBookId) ?? null : null;
@@ -114,7 +115,10 @@ export function Inspector({ onViewHistory }: InspectorProps) {
     if (!activeSceneId || next === status) return;
     const prev = status;
     setStatus(next);
-    try { await setSceneStatus(activeSceneId, next); }
+    try {
+      await setSceneStatus(activeSceneId, next);
+      patchSceneMeta(activeSceneId, { status: next });
+    }
     catch { setStatus(prev); }
   }
 

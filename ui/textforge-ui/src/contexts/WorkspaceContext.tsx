@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { SeriesDto } from '../api/series';
+import type { SceneMetaDto } from '../api/books';
 
 type Theme = 'dark' | 'light' | 'sepia';
 
@@ -35,6 +36,7 @@ interface WorkspaceContextValue {
   setTypewriterMode: (v: boolean) => void;
   setInspectorOpen: (v: boolean) => void;
   setMinimapOpen: (v: boolean) => void;
+  patchSceneMeta: (sceneId: string, patch: Partial<Pick<SceneMetaDto, 'status' | 'title'>>) => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue>({
@@ -64,6 +66,7 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   setTypewriterMode: () => {},
   setInspectorOpen: () => {},
   setMinimapOpen: () => {},
+  patchSceneMeta: () => {},
 });
 
 function getInitialTheme(): Theme {
@@ -166,6 +169,22 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setMinimapOpenState(v);
   }, []);
 
+  const patchSceneMeta = useCallback((sceneId: string, meta: Partial<Pick<SceneMetaDto, 'status' | 'title'>>) => {
+    setSeriesState(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        books: prev.books.map(b => ({
+          ...b,
+          chapters: b.chapters.map(ch => ({
+            ...ch,
+            scenes: ch.scenes.map(s => s.id === sceneId ? { ...s, ...meta } : s),
+          })),
+        })),
+      };
+    });
+  }, []);
+
   const seriesTitle = series?.title ?? null;
   const activeBookId = useMemo(
     () => activeSceneId && series
@@ -207,6 +226,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setTypewriterMode,
       setInspectorOpen,
       setMinimapOpen,
+      patchSceneMeta,
     }}>
       {children}
     </WorkspaceContext.Provider>

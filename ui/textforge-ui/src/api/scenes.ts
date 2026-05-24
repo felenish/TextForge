@@ -40,3 +40,14 @@ export const patchScene = (sceneId: string, body: PatchSceneBody): Promise<void>
 
 export const deleteScene = (sceneId: string): Promise<void> =>
   del(`/api/scenes/${sceneId}`);
+
+export const uploadSceneAsset = async (sceneId: string, file: File): Promise<{ filename: string }> => {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(`/api/scenes/${sceneId}/assets`, { method: 'POST', body: form });
+  if (!res.ok) throw await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+  return res.json();
+};
+
+export const getSceneAssetUrl = (sceneId: string, filename: string): string =>
+  `/api/scenes/${sceneId}/assets/${encodeURIComponent(filename)}`;

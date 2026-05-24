@@ -129,6 +129,52 @@ public sealed class SeriesController : ControllerBase
         return Ok(results.Take(50));
     }
 
+    [HttpGet("current/assets")]
+    public IActionResult ListAssets()
+    {
+        var series = _workspace.GetCurrentSeries();
+        if (series is null)
+            return BadRequest(new ErrorDto("No series is open."));
+
+        var assetsDir = Path.Combine(series.RootPath, "assets");
+        if (!Directory.Exists(assetsDir))
+            return Ok(Array.Empty<object>());
+
+        string[] imageExts = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"];
+        var files = Directory.GetFiles(assetsDir)
+            .Where(f => imageExts.Contains(Path.GetExtension(f).ToLowerInvariant()))
+            .Select(f => new { filename = Path.GetFileName(f) })
+            .ToList();
+
+        return Ok(files);
+    }
+
+    [HttpGet("current/assets/{filename}")]
+    public IActionResult GetAsset(string filename)
+    {
+        var series = _workspace.GetCurrentSeries();
+        if (series is null)
+            return BadRequest(new ErrorDto("No series is open."));
+
+        var safeName = Path.GetFileName(filename);
+        var absPath = Path.Combine(series.RootPath, "assets", safeName);
+
+        if (!System.IO.File.Exists(absPath))
+            return NotFound(new ErrorDto("Asset not found."));
+
+        var mime = Path.GetExtension(safeName).ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png"            => "image/png",
+            ".gif"            => "image/gif",
+            ".webp"           => "image/webp",
+            ".svg"            => "image/svg+xml",
+            _                 => "application/octet-stream",
+        };
+
+        return PhysicalFile(absPath, mime);
+    }
+
     private static string ExtractSnippet(string text, int matchIdx, int matchLen, int window = 60)
     {
         var start = Math.Max(0, matchIdx - window);

@@ -40,6 +40,7 @@ public sealed class BooksController : ControllerBase
         await _storage.SaveBookAsync(book, ct);
         return Ok(DtoMapper.ToBookDto(book));
     }
+
 }
 
 public sealed record PatchBookBody(string? Title);
