@@ -76,12 +76,19 @@ public partial class MainWindow : Window
         WebView.CoreWebView2.Settings.IsNonClientRegionSupportEnabled = true;
         WebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
         WebView.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
+        WebView.CoreWebView2.PermissionRequested += OnPermissionRequested;
 #if DEBUG
         WebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
 #else
         WebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
 #endif
         WebView.CoreWebView2.Navigate($"http://localhost:{_port}");
+    }
+
+    private static void OnPermissionRequested(object? sender, CoreWebView2PermissionRequestedEventArgs e)
+    {
+        if (e.PermissionKind == CoreWebView2PermissionKind.ClipboardRead)
+            e.State = CoreWebView2PermissionState.Allow;
     }
 
     private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)

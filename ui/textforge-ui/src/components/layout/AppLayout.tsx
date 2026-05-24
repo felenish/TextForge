@@ -19,6 +19,7 @@ import { SettingsModal } from '../settings/SettingsModal';
 import { ExportModal } from '../export/ExportModal';
 import { TakeSnapshotModal } from '../versions/TakeSnapshotModal';
 import { UpdateBanner } from '../ui/UpdateBanner';
+import { EditorContextMenu } from '../ui/EditorContextMenu';
 import { getWebView, requestUpdate } from '../../lib/webview';
 
 export function AppLayout() {
@@ -299,6 +300,7 @@ export function AppLayout() {
           onDismiss={() => setUpdateVersion(null)}
         />
       )}
+      <EditorContextMenu />
     </Shell>
   );
 }

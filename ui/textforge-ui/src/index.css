@@ -2134,6 +2134,15 @@ input, textarea {
   background: var(--border-subtle);
   margin: 4px 6px;
 }
+.ctx-item.ctx-disabled {
+  opacity: 0.38;
+  cursor: default;
+  pointer-events: none;
+}
+.ctx-item.ctx-ai-toggle { gap: 6px; }
+.ctx-item.ctx-ai-toggle .ctx-chevron { margin-left: auto; font-size: 10px; color: var(--text-faint); }
+.ctx-item.ctx-ai-item { padding-left: 28px; color: var(--text-muted); }
+.ctx-item.ctx-ai-item:hover { color: var(--text-strong); }
 
 /* ===================== COMMAND PALETTE ===================== */
 .cmd-overlay {

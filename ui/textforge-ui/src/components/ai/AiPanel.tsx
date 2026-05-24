@@ -15,6 +15,22 @@ interface Template {
 
 const TEMPLATES: Template[] = [
   {
+    id: 'copy-edit',
+    label: 'Copy Edit',
+    systemPrompt: 'You are a professional copy editor. Correct grammar, punctuation, word choice, and sentence flow while strictly preserving the author\'s voice and intent. Return only the corrected text with no commentary.',
+    buildPrompt: t => t
+      ? `Copy edit the following passage, fixing grammar, punctuation, and style:\n\n${t}`
+      : 'No text provided.',
+  },
+  {
+    id: 'revise',
+    label: 'Revise',
+    systemPrompt: 'You are a skilled fiction editor. Rewrite the passage for greater clarity, impact, and narrative strength while preserving the author\'s voice. Return only the revised text.',
+    buildPrompt: t => t
+      ? `Revise the following passage for clarity and narrative impact:\n\n${t}`
+      : 'No text provided.',
+  },
+  {
     id: 'continue',
     label: 'Continue Writing',
     systemPrompt: 'You are a skilled fiction author. Continue the story naturally, matching the existing tone, voice, and pacing. Write 2–4 paragraphs.',
@@ -88,7 +104,17 @@ function stripHtml(html: string): string {
 
 type PanelMode = 'prompt' | 'config';
 
-export function AiPanel() {
+export interface AiAction {
+  templateId: string;
+  selectedText: string;
+}
+
+interface AiPanelProps {
+  pendingAction?: AiAction | null;
+  onActionConsumed?: () => void;
+}
+
+export function AiPanel({ pendingAction, onActionConsumed }: AiPanelProps) {
   const { activeSceneId } = useWorkspace();
   const [mode, setMode] = useState<PanelMode>('prompt');
   const [configured, setConfigured] = useState<boolean | null>(null);
@@ -99,6 +125,7 @@ export function AiPanel() {
   const [running, setRunning] = useState(false);
   const [copied, setCopied] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const runningRef = useRef(false);
   const outputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -112,29 +139,23 @@ export function AiPanel() {
     setMode('prompt');
   }
 
-  async function handleRun() {
-    if (running) {
+  async function execute(tid: string, text: string | null) {
+    if (runningRef.current) {
       abortRef.current?.abort();
-      return;
+      abortRef.current = null;
+      runningRef.current = false;
+      setRunning(false);
     }
 
-    const template = TEMPLATES.find(t => t.id === templateId) ?? TEMPLATES[0];
-    let sceneText: string | null = null;
-
-    if (includeScene && activeSceneId) {
-      try {
-        const scene = await getScene(activeSceneId);
-        if (scene.content) sceneText = stripHtml(scene.content);
-      } catch { /* ignore */ }
-    }
-
-    let prompt = template.buildPrompt(sceneText);
+    const template = TEMPLATES.find(t => t.id === tid) ?? TEMPLATES[0];
+    let prompt = template.buildPrompt(text);
     if (extraInstructions.trim()) {
       prompt += `\n\nAdditional instructions: ${extraInstructions.trim()}`;
     }
 
     setOutput('');
     setRunning(true);
+    runningRef.current = true;
     abortRef.current = new AbortController();
 
     try {
@@ -144,9 +165,7 @@ export function AiPanel() {
           setOutput(prev => {
             const next = prev + token;
             setTimeout(() => {
-              if (outputRef.current) {
-                outputRef.current.scrollTop = outputRef.current.scrollHeight;
-              }
+              if (outputRef.current) outputRef.current.scrollTop = outputRef.current.scrollHeight;
             }, 0);
             return next;
           });
@@ -160,9 +179,31 @@ export function AiPanel() {
       }
     } finally {
       setRunning(false);
+      runningRef.current = false;
       abortRef.current = null;
     }
   }
+
+  async function handleRun() {
+    if (running) { abortRef.current?.abort(); return; }
+    let sceneText: string | null = null;
+    if (includeScene && activeSceneId) {
+      try {
+        const scene = await getScene(activeSceneId);
+        if (scene.content) sceneText = stripHtml(scene.content);
+      } catch { /* ignore */ }
+    }
+    await execute(templateId, sceneText);
+  }
+
+  useEffect(() => {
+    if (!pendingAction) return;
+    onActionConsumed?.();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void execute(pendingAction.templateId, pendingAction.selectedText || null);
+  // execute captures only refs and stable setters; pendingAction is the sole trigger
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAction]);
 
   async function handleCopy() {
     if (!output) return;
