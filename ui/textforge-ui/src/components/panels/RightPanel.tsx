@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Inspector } from '../inspector/Inspector';
 import { AiPanel } from '../ai/AiPanel';
 import { Icon } from '../ui/Icon';
@@ -9,8 +9,24 @@ interface RightPanelProps {
   onViewHistory?: () => void;
 }
 
+export interface AiAction {
+  templateId: string;
+  selectedText: string;
+}
+
 export function RightPanel({ onViewHistory }: RightPanelProps) {
   const [tab, setTab] = useState<RightTab>('inspector');
+  const [pendingAction, setPendingAction] = useState<AiAction | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<AiAction>).detail;
+      setTab('ai');
+      setPendingAction(detail);
+    };
+    window.addEventListener('tf-ai-action', handler);
+    return () => window.removeEventListener('tf-ai-action', handler);
+  }, []);
 
   return (
     <aside className="inspector">
@@ -34,7 +50,12 @@ export function RightPanel({ onViewHistory }: RightPanelProps) {
       </div>
 
       {tab === 'inspector' && <Inspector onViewHistory={onViewHistory} />}
-      {tab === 'ai' && <AiPanel />}
+      {tab === 'ai' && (
+        <AiPanel
+          pendingAction={pendingAction}
+          onActionConsumed={() => setPendingAction(null)}
+        />
+      )}
     </aside>
   );
 }
