@@ -136,6 +136,24 @@ public partial class MainWindow : Window
             case "do-update":
                 _ = DoUpdateAsync();
                 break;
+
+            default:
+                try
+                {
+                    using var doc = JsonDocument.Parse(raw);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("type", out var typeProp) &&
+                        typeProp.GetString() == "open-url" &&
+                        root.TryGetProperty("url", out var urlProp))
+                    {
+                        var url = urlProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(url))
+                            System.Diagnostics.Process.Start(
+                                new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+                    }
+                }
+                catch { /* not JSON or unknown type — ignore */ }
+                break;
         }
     }
 

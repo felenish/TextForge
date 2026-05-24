@@ -19,6 +19,8 @@ import { SettingsModal } from '../settings/SettingsModal';
 import { ExportModal } from '../export/ExportModal';
 import { TakeSnapshotModal } from '../versions/TakeSnapshotModal';
 import { UpdateBanner } from '../ui/UpdateBanner';
+import { BackendBanner } from '../ui/BackendBanner';
+import { AboutModal } from '../ui/AboutModal';
 import { EditorContextMenu } from '../ui/EditorContextMenu';
 import { getWebView, requestUpdate } from '../../lib/webview';
 
@@ -56,6 +58,7 @@ export function AppLayout() {
   const [settingsSection, setSettingsSection] = useState<'appearance' | 'editor' | 'goals' | 'ai'>('appearance');
   const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState<'pdf' | 'epub' | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   // Update banner state
   type UpdatePhase = 'available' | 'working' | 'error';
@@ -97,6 +100,10 @@ export function AppLayout() {
       if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
         e.preventDefault();
         editorRef.current?.openFind(true);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        void editorRef.current?.saveAll();
       }
     };
     window.addEventListener('keydown', handler);
@@ -194,6 +201,17 @@ export function AppLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // First-run: auto-open HelpTab once after the initial load settles.
+  const firstRunChecked = useRef(false);
+  useEffect(() => {
+    if (firstRunChecked.current || explorer.loading) return;
+    firstRunChecked.current = true;
+    if (!localStorage.getItem('tf-first-run')) {
+      localStorage.setItem('tf-first-run', '1');
+      setTimeout(() => editorRef.current?.openHelp(), 150);
+    }
+  }, [explorer.loading]);
+
   return (
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
       <TitleBar />
@@ -211,6 +229,7 @@ export function AppLayout() {
         onFindReplace={() => editorRef.current?.openFind(true)}
         onOpenSettings={() => { setSettingsSection('appearance'); setSettingsOpen(true); }}
         onOpenHelp={() => editorRef.current?.openHelp()}
+        onAbout={() => setAboutOpen(true)}
         bottomOpen={bottomOpen}
         onBottomToggle={toggleBottom}
         onViewHistory={() => setSidebarMode('versions')}
@@ -221,7 +240,7 @@ export function AppLayout() {
           onModeChange={setSidebarMode}
           dirtyCount={dirtySceneIds.size}
         />
-        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} onLocationOpen={handleLocationOpen} onOutlineOpen={handleOutlineOpen} onPlotGridOpen={handlePlotGridOpen} />
+        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} onLocationOpen={handleLocationOpen} onOutlineOpen={handleOutlineOpen} onPlotGridOpen={handlePlotGridOpen} onOpenHelp={() => editorRef.current?.openHelp()} />
         <div className={`center-col${bottomOpen ? '' : ' no-bottom'}`}>
           <div className="editor-col">
             <SceneEditorArea ref={editorRef} onCharacterSaved={handleCharacterSaved} onLocationSaved={handleLocationSaved} onOutlineSaved={handleOutlineSaved} onPlotGridSaved={handlePlotGridSaved} />
@@ -300,6 +319,10 @@ export function AppLayout() {
           onDismiss={() => setUpdateVersion(null)}
         />
       )}
+      {explorer.networkError && (
+        <BackendBanner onDismiss={() => explorer.clearNetworkError()} />
+      )}
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
       <EditorContextMenu />
     </Shell>
   );

@@ -3424,3 +3424,91 @@ button.versions-branch-bar:hover { border-color: var(--border-strong); }
   padding: 3px 6px;
 }
 .update-banner-btn.dismiss:hover { color: var(--text); }
+
+/* ===================== BACKEND BANNER ===================== */
+.backend-banner {
+  position: fixed;
+  top: calc(var(--titlebar-h) + var(--menubar-h) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--bg-panel);
+  border: 1px solid #c0392b;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  font-size: var(--fs-mono-sm);
+  color: #e74c3c;
+  z-index: 9000;
+  white-space: nowrap;
+}
+.backend-banner-msg { flex: 1; }
+
+/* ===================== ABOUT MODAL ===================== */
+.about-modal { width: 340px; }
+.about-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 24px 28px;
+  text-align: center;
+}
+.about-icon { color: var(--accent); margin-bottom: 4px; }
+.about-name { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+.about-version { font-size: var(--fs-mono-sm); color: var(--text-muted); }
+.about-copy { font-size: var(--fs-mono-xs); color: var(--text-faint); margin-top: 2px; }
+.about-link {
+  margin-top: 10px;
+  font-size: var(--fs-mono-xs);
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.about-link:hover { opacity: 0.8; }
+
+/* ===================== WELCOME PANEL ===================== */
+.welcome-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 24px;
+  gap: 8px;
+  text-align: center;
+}
+.welcome-icon { color: var(--accent); margin-bottom: 4px; }
+.welcome-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.welcome-desc {
+  font-size: 11px;
+  color: var(--text-faint);
+  line-height: 1.6;
+  margin: 4px 0 8px;
+}
+.welcome-btn {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  border: none;
+}
+.welcome-btn.primary { background: var(--accent); color: #16140f; }
+.welcome-btn.primary:hover { opacity: 0.88; }
+.welcome-btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.welcome-btn.secondary:hover { background: var(--bg-hover); }
+.welcome-guide {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.welcome-guide:hover { opacity: 0.8; }

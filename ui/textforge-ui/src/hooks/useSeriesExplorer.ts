@@ -21,6 +21,8 @@ export interface UseSeriesExplorerResult {
   series: SeriesDto | null;
   loading: boolean;
   error: string | null;
+  networkError: boolean;
+  clearNetworkError: () => void;
   characters: CharacterDto[];
   charactersLoaded: boolean;
   createSeries: () => Promise<void>;
@@ -72,6 +74,7 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const [series, setSeries] = useState<SeriesDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [networkError, setNetworkError] = useState(false);
   const [characters, setCharacters] = useState<CharacterDto[]>([]);
   const [charactersLoaded, setCharactersLoaded] = useState(false);
   const [locations, setLocations] = useState<LocationDto[]>([]);
@@ -88,10 +91,16 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     setError(null);
     try {
       await fn();
+      setNetworkError(false);
     } catch (e: unknown) {
-      const message = (e as { message?: string }).message ?? 'An error occurred.';
+      const err = e as { message?: string; name?: string };
+      const message = err.message ?? 'An error occurred.';
       setError(message);
       showToast(message);
+      const isNetwork = message === 'Failed to fetch' ||
+        err.name === 'TimeoutError' || err.name === 'AbortError' ||
+        message.toLowerCase().includes('networkerror');
+      if (isNetwork) setNetworkError(true);
     } finally {
       setLoading(false);
     }
@@ -402,8 +411,10 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     );
   };
 
+  const clearNetworkError = () => setNetworkError(false);
+
   return {
-    series, loading, error,
+    series, loading, error, networkError, clearNetworkError,
     characters, charactersLoaded,
     createSeries, openSeries, openSeriesFromPath, closeSeries,
     addBook, renameBook, deleteBook, reorderBooks,

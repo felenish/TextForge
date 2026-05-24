@@ -16,6 +16,17 @@ internal static class PdfExporter
     {
         QuestPDF.Settings.License = LicenseType.Community;
 
+        // Pre-collect TOC entries so we can reference their section IDs both
+        // in the TOC page and when rendering chapter headings.
+        var tocEntries = new List<(string SectionId, string Label)>();
+        bool multiBook = books.Count > 1;
+        foreach (var book in books)
+        {
+            var prefix = multiBook ? $"{book.Title}: " : string.Empty;
+            foreach (var chapter in book.Chapters.OrderBy(c => c.SortOrder))
+                tocEntries.Add(($"ch-{chapter.Id:N}", $"{prefix}{chapter.Title}"));
+        }
+
         Document.Create(container =>
         {
             container.Page(page =>
@@ -51,9 +62,30 @@ internal static class PdfExporter
                                     .Text(options.Author);
                         });
 
+                    // Table of Contents
+                    if (tocEntries.Count > 0)
+                    {
+                        col.Item().PageBreak();
+                        col.Item()
+                            .PaddingBottom(24)
+                            .DefaultTextStyle(x => x.Bold().FontSize(18))
+                            .Text("Contents");
+
+                        foreach (var (sectionId, label) in tocEntries)
+                        {
+                            col.Item().PaddingBottom(5).Row(row =>
+                            {
+                                row.RelativeItem().Text(label);
+                                row.ConstantItem(36).AlignRight()
+                                    .Text(t => t.BeginPageNumberOfSection(sectionId));
+                            });
+                        }
+                    }
+
+                    // Manuscript content
                     foreach (var book in books)
                     {
-                        if (books.Count > 1)
+                        if (multiBook)
                         {
                             col.Item().PageBreak();
                             col.Item()
@@ -65,8 +97,10 @@ internal static class PdfExporter
 
                         foreach (var chapter in book.Chapters.OrderBy(c => c.SortOrder))
                         {
+                            var sectionId = $"ch-{chapter.Id:N}";
                             col.Item().PageBreak();
                             col.Item()
+                                .Section(sectionId)
                                 .PaddingBottom(24)
                                 .DefaultTextStyle(x => x.Bold().FontSize(16))
                                 .Text(chapter.Title);
@@ -88,7 +122,16 @@ internal static class PdfExporter
                                     {
                                         var trimmed = para.Trim();
                                         if (string.IsNullOrEmpty(trimmed)) continue;
-                                        if (trimmed.StartsWith("[[img:") && trimmed.EndsWith("]]")) continue;
+                                        if (trimmed.StartsWith("[[img:") && trimmed.EndsWith("]]"))
+                                        {
+                                            // Extract filename and emit a placeholder
+                                            var filename = trimmed[6..^2];
+                                            col.Item()
+                                                .PaddingBottom(6)
+                                                .Text($"[Image: {filename}]")
+                                                .Italic();
+                                            continue;
+                                        }
                                         col.Item().PaddingBottom(6).Text(trimmed);
                                     }
                                 }

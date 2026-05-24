@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 interface HelpMenuProps {
   onOpenSettings: () => void;
   onOpenHelp: () => void;
+  onAbout: () => void;
 }
 
-export function HelpMenu({ onOpenSettings, onOpenHelp }: HelpMenuProps) {
+export function HelpMenu({ onOpenSettings, onOpenHelp, onAbout }: HelpMenuProps) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -55,13 +56,7 @@ export function HelpMenu({ onOpenSettings, onOpenHelp }: HelpMenuProps) {
           <div className="filemenu-sep" />
           {item('Settings…', 'Ctrl+,', onOpenSettings)}
           <div className="filemenu-sep" />
-          <button
-            className="filemenu-item disabled"
-            disabled
-            onMouseDown={e => e.preventDefault()}
-          >
-            <span>About TextForge Studio</span>
-          </button>
+          {item('About TextForge Studio', null, onAbout)}
         </div>
       )}
     </div>

@@ -4,7 +4,7 @@ export interface ApiError {
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init);
+  const response = await fetch(url, { ...init, signal: AbortSignal.timeout(10_000) });
   if (!response.ok) {
     let error: ApiError;
     try {

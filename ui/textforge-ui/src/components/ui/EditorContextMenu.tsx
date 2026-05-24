@@ -40,10 +40,11 @@ function captureSel(target: HTMLElement): { text: string; sel: SavedSel } {
 }
 
 export function EditorContextMenu() {
-  const [visible, setVisible]       = useState(false);
-  const [pos, setPos]               = useState({ x: 0, y: 0 });
-  const [selectedText, setSelected] = useState('');
-  const [aiOpen, setAiOpen]         = useState(false);
+  const [visible, setVisible]             = useState(false);
+  const [pos, setPos]                     = useState({ x: 0, y: 0 });
+  const [selectedText, setSelected]       = useState('');
+  const [aiOpen, setAiOpen]               = useState(false);
+  const [inContentEditable, setInCE]      = useState(false);
   const menuRef  = useRef<HTMLDivElement>(null);
   const savedSel = useRef<SavedSel>(null);
 
@@ -57,6 +58,7 @@ export function EditorContextMenu() {
       const { text, sel } = captureSel(target);
       savedSel.current = sel;
       setSelected(text);
+      setInCE(sel?.kind === 'range');
       setAiOpen(false);
       setPos({ x: e.clientX, y: e.clientY });
       setVisible(true);
@@ -164,6 +166,11 @@ export function EditorContextMenu() {
       style={{ left: pos.x, top: pos.y }}
       onMouseDown={e => e.preventDefault()}
     >
+      <div className={`ctx-item${!inContentEditable ? ' ctx-disabled' : ''}`}
+        onClick={inContentEditable ? () => { document.execCommand('undo'); close(); } : undefined}>Undo</div>
+      <div className={`ctx-item${!inContentEditable ? ' ctx-disabled' : ''}`}
+        onClick={inContentEditable ? () => { document.execCommand('redo'); close(); } : undefined}>Redo</div>
+      <div className="ctx-sep" />
       <div className={`ctx-item${!hasSelection ? ' ctx-disabled' : ''}`}
         onClick={hasSelection ? () => void cut() : undefined}>Cut</div>
       <div className={`ctx-item${!hasSelection ? ' ctx-disabled' : ''}`}

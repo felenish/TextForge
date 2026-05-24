@@ -11,6 +11,14 @@ public sealed class WorkspaceController : ControllerBase
 
     public WorkspaceController(ISeriesWorkspaceService workspace) => _workspace = workspace;
 
+    [HttpGet("version")]
+    public IActionResult GetVersion()
+    {
+        var v = typeof(WorkspaceController).Assembly.GetName().Version;
+        var label = v is null ? "unknown" : $"v{v.Major}.{v.Minor}.{v.Build}";
+        return Ok(new { version = label });
+    }
+
     [HttpGet("dirty")]
     public IActionResult GetDirtyScenes()
     {

@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { Icon } from '../ui/Icon';
 import * as windowApi from '../../api/window';
+import { getVersion } from '../../api/workspace';
 
 export function TitleBar() {
   const { seriesTitle, dirtySceneIds } = useWorkspace();
   const hasUnsaved = dirtySceneIds.size > 0;
   const [isMaximized, setIsMaximized] = useState(false);
+  const [appVersion, setAppVersion] = useState('');
+
+  useEffect(() => {
+    getVersion().then(v => setAppVersion(v)).catch(() => {});
+  }, []);
 
   const handleMinimize = () => windowApi.minimizeWindow().catch(() => {});
   const handleToggleMaximize = () => {
@@ -25,7 +31,7 @@ export function TitleBar() {
       <div className="tb-brand">
         <Icon name="feather" size={13} stroke={1.5} />
         <span>TextForge Studio</span>
-        <span className="tb-version">v0.1</span>
+        {appVersion && <span className="tb-version">{appVersion}</span>}
       </div>
       <div className="tb-title">
         {seriesTitle ? (

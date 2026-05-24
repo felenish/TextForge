@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 
 const SECTIONS = [
-  { id: 'getting-started', label: 'Getting Started' },
-  { id: 'manuscript', label: 'Manuscript Structure' },
-  { id: 'editor', label: 'Editor' },
-  { id: 'find-replace', label: 'Find & Replace' },
-  { id: 'autosave', label: 'Autosave' },
-  { id: 'drag-drop', label: 'Drag & Drop' },
-  { id: 'themes', label: 'Themes' },
-  { id: 'export', label: 'Export' },
-  { id: 'version-history', label: 'Version History' },
-  { id: 'shortcuts', label: 'Keyboard Shortcuts' },
-  { id: 'beta', label: 'Beta Notes' },
+  { id: 'getting-started',  label: 'Getting Started'       },
+  { id: 'manuscript',       label: 'Manuscript Structure'   },
+  { id: 'editor',           label: 'Editor'                 },
+  { id: 'scene-status',     label: 'Scene Status'           },
+  { id: 'images',           label: 'Images'                 },
+  { id: 'command-palette',  label: 'Command Palette'        },
+  { id: 'sidebar-panels',   label: 'Sidebar Panels'         },
+  { id: 'find-replace',     label: 'Find & Replace'         },
+  { id: 'autosave',         label: 'Autosave'               },
+  { id: 'drag-drop',        label: 'Drag & Drop'            },
+  { id: 'themes',           label: 'Themes'                 },
+  { id: 'export',           label: 'Export'                 },
+  { id: 'version-history',  label: 'Version History'        },
+  { id: 'shortcuts',        label: 'Keyboard Shortcuts'     },
+  { id: 'beta',             label: 'Beta Notes'             },
 ];
 
 function Kbd({ keys }: { keys: string[] }) {
@@ -118,29 +122,111 @@ export function HelpTab() {
         <section data-section="editor" className="help-section">
           <h2>Editor</h2>
           <p>Open a scene by clicking it in the Manuscript explorer. Multiple scenes can be open simultaneously as tabs. Close a tab with <Kbd keys={['Ctrl', 'W']} /> or the × button.</p>
+
           <h3>Formatting</h3>
           <ShortcutsTable rows={[
-            ['Bold', ['Ctrl', 'B']],
-            ['Italic', ['Ctrl', 'I']],
+            ['Bold',      ['Ctrl', 'B']],
+            ['Italic',    ['Ctrl', 'I']],
             ['Underline', ['Ctrl', 'U']],
           ]} />
+
+          <h3>Undo / Redo</h3>
+          <p>Full undo and redo history is available in the <strong>Edit</strong> menu and via keyboard:</p>
+          <ShortcutsTable rows={[
+            ['Undo', ['Ctrl', 'Z']],
+            ['Redo', ['Ctrl', 'Y']],
+          ]} />
+
+          <h3>Context Menu</h3>
+          <p>Right-click anywhere in an editable area to open the context menu. It provides:</p>
+          <ul>
+            <li><strong>Undo / Redo</strong> — available in contenteditable areas.</li>
+            <li><strong>Cut / Copy / Paste / Paste as Plain Text</strong> — clipboard operations.</li>
+            <li><strong>AI Assistant</strong> — appears when text is selected. Choose Copy Edit, Revise, Improve Prose, Analyze, or Summarize to send the selection to the AI panel.</li>
+          </ul>
+
+          <h3>Spell Check</h3>
+          <p>The editor has spell check enabled. Misspelled words are underlined in red by the system. Because the default browser context menu is disabled, corrections must be typed manually — the underlines are visual only.</p>
+
           <h3>Typewriter Mode</h3>
           <p>Keeps the active line vertically centred so your focus never has to move. Toggle from the <strong>View</strong> menu or the status bar tweaks panel.</p>
+
+          <h3>Tweaks Panel</h3>
+          <p>The <strong>Tweaks</strong> button in the status bar (bottom-right) opens a floating panel with quick-access controls for typewriter mode, line height, and other editor settings without opening the full Settings dialog.</p>
+
           <h3>Minimap</h3>
           <p>The minimap on the right edge of the editor shows a compressed overview of the document. Click anywhere on it to jump to that position.</p>
+
           <h3>Word Count</h3>
           <p>The word count for the active scene is shown in the Inspector panel on the right. Set a daily writing goal in <strong>Settings → Goals</strong>.</p>
+        </section>
+
+        <section data-section="scene-status" className="help-section">
+          <h2>Scene Status</h2>
+          <p>Each scene has a status that helps you track your progress through a draft:</p>
+          <ul>
+            <li><strong>Draft</strong> — work in progress (grey dot in the sidebar).</li>
+            <li><strong>Revised</strong> — a second pass has been done (yellow dot).</li>
+            <li><strong>Final</strong> — the scene is complete (green dot).</li>
+          </ul>
+          <p>Change the status by right-clicking the scene in the Manuscript explorer and choosing <em>Set Draft / Set Revised / Set Final</em>, or by clicking the status indicator in the <strong>Inspector</strong> panel on the right.</p>
+        </section>
+
+        <section data-section="images" className="help-section">
+          <h2>Images</h2>
+          <p>You can embed images in scene prose using the <strong>Assets panel</strong> in the Manuscript sidebar.</p>
+          <h3>Adding Assets</h3>
+          <p>Drag an image file from your computer into the Assets panel to add it to the series. Assets are stored in the <code>assets/</code> folder alongside your series file.</p>
+          <h3>Embedding in a Scene</h3>
+          <p>Drag an image from the Assets panel into the open scene editor to insert it. The image is stored as a tag in the scene text:</p>
+          <p><code>{'[[img:filename.png]]'}</code></p>
+          <p>You can also type this tag manually. The editor renders the image inline.</p>
+          <h3>Exports</h3>
+          <p>Image tags are currently omitted from PDF and EPUB exports. A placeholder <em>[Image: filename]</em> appears in their place so you know where each image was.</p>
+        </section>
+
+        <section data-section="command-palette" className="help-section">
+          <h2>Command Palette</h2>
+          <p>The command palette gives you keyboard-first access to every major action. Open it with <Kbd keys={['Ctrl', 'P']} /> or <Kbd keys={['Ctrl', 'K']} />.</p>
+          <p>Available commands include:</p>
+          <ul>
+            <li>Open a scene by title</li>
+            <li>New Series / Open Series</li>
+            <li>Save / Save All</li>
+            <li>Find / Find &amp; Replace</li>
+            <li>Export to PDF / EPUB</li>
+            <li>Take Snapshot</li>
+            <li>View Version History</li>
+            <li>Toggle Focus Mode / Bottom Panel</li>
+            <li>Open Settings</li>
+          </ul>
+          <p>Type any part of a command or scene title to filter the list.</p>
+        </section>
+
+        <section data-section="sidebar-panels" className="help-section">
+          <h2>Sidebar Panels</h2>
+          <p>The activity bar on the left switches between sidebar modes. Below the Manuscript view, the sidebar also contains panels for series reference data:</p>
+          <h3>Characters</h3>
+          <p>Track named characters with a role (protagonist, antagonist, supporting, etc.) and notes. Open a character card from the sidebar to view and edit their details in a full editor tab.</p>
+          <h3>Locations</h3>
+          <p>Store locations with descriptions. Like characters, each location opens in a dedicated editor tab.</p>
+          <h3>Outline</h3>
+          <p>Free-form outline documents attached to the series. Useful for plot notes, chapter plans, or research that doesn't belong in a scene.</p>
+          <h3>Plot Grid</h3>
+          <p>A spreadsheet-style grid for tracking story threads, character arcs, or chapter beats across multiple axes. Each row and column is user-defined.</p>
+          <h3>Assets</h3>
+          <p>Image and file assets stored with the series. Drag assets into a scene to embed them.</p>
         </section>
 
         <section data-section="find-replace" className="help-section">
           <h2>Find &amp; Replace</h2>
           <p>The Find bar operates on the currently active scene.</p>
           <ShortcutsTable rows={[
-            ['Open Find', ['Ctrl', 'F']],
-            ['Open Find & Replace', ['Ctrl', 'H']],
-            ['Next match', ['Enter']],
-            ['Previous match', ['Shift', 'Enter']],
-            ['Close', ['Escape']],
+            ['Open Find',            ['Ctrl', 'F']],
+            ['Open Find & Replace',  ['Ctrl', 'H']],
+            ['Next match',           ['Enter']],
+            ['Previous match',       ['Shift', 'Enter']],
+            ['Close',                ['Escape']],
           ]} />
           <p>Matches are highlighted in real time as you type. <strong>Replace All</strong> replaces every match in the scene at once.</p>
         </section>
@@ -151,7 +237,7 @@ export function HelpTab() {
           <p>Options: Off · 30 s · 1 min · 2 min · 5 min.</p>
           <p>When autosave fires the status bar briefly shows <em>Autosaved HH:MM</em>. You can also save manually at any time:</p>
           <ShortcutsTable rows={[
-            ['Save active scene', ['Ctrl', 'S']],
+            ['Save active scene',    ['Ctrl', 'S']],
             ['Save all open scenes', ['Ctrl', 'Shift', 'S']],
           ]} />
         </section>
@@ -160,11 +246,11 @@ export function HelpTab() {
           <h2>Drag &amp; Drop</h2>
           <p>Reorder items in the Manuscript explorer by dragging:</p>
           <ul>
-            <li>Drag a <strong>scene</strong> to reorder it within its chapter.</li>
+            <li>Drag a <strong>scene</strong> to reorder it within its chapter, or move it to a different chapter.</li>
             <li>Drag a <strong>chapter</strong> to reorder it within its book.</li>
             <li>Drag a <strong>book</strong> to reorder it within the series.</li>
           </ul>
-          <p>A blue indicator line shows the drop position. Items can only be dropped within the same parent in this release — cross-chapter scene moves are not yet supported.</p>
+          <p>A blue indicator line shows the drop position. Cross-chapter scene moves are supported — drop a scene onto any chapter to move it there.</p>
         </section>
 
         <section data-section="themes" className="help-section">
@@ -179,6 +265,7 @@ export function HelpTab() {
           <p>Export the current series to <strong>PDF</strong> or <strong>EPUB</strong> from <strong>File → Export</strong> or the command palette.</p>
           <p>The export includes all scenes across all books in their current sort order. Chapter headings and scene breaks are generated automatically.</p>
           <p>PDF output is suitable for review copies and printing. EPUB output is compatible with most e-readers and reading apps.</p>
+          <p>Note: embedded images are not yet included in exports — a placeholder appears in their place.</p>
         </section>
 
         <section data-section="version-history" className="help-section">
@@ -191,27 +278,31 @@ export function HelpTab() {
         <section data-section="shortcuts" className="help-section">
           <h2>Keyboard Shortcuts</h2>
           <ShortcutsTable rows={[
-            ['Command palette', ['Ctrl', 'P']],
-            ['Save scene', ['Ctrl', 'S']],
-            ['Save all', ['Ctrl', 'Shift', 'S']],
-            ['Close tab', ['Ctrl', 'W']],
-            ['Find', ['Ctrl', 'F']],
-            ['Find & Replace', ['Ctrl', 'H']],
-            ['Bold', ['Ctrl', 'B']],
-            ['Italic', ['Ctrl', 'I']],
-            ['Underline', ['Ctrl', 'U']],
-            ['Focus mode', ['F11']],
-            ['Settings', ['Ctrl', ',']],
+            ['Command palette',    ['Ctrl', 'P']],
+            ['Save scene',         ['Ctrl', 'S']],
+            ['Save all',           ['Ctrl', 'Shift', 'S']],
+            ['Close tab',          ['Ctrl', 'W']],
+            ['Undo',               ['Ctrl', 'Z']],
+            ['Redo',               ['Ctrl', 'Y']],
+            ['Find',               ['Ctrl', 'F']],
+            ['Find & Replace',     ['Ctrl', 'H']],
+            ['Bold',               ['Ctrl', 'B']],
+            ['Italic',             ['Ctrl', 'I']],
+            ['Underline',          ['Ctrl', 'U']],
+            ['Focus mode',         ['F11']],
+            ['Settings',           ['Ctrl', ',']],
+            ['Help',               ['F1']],
           ]} />
         </section>
 
         <section data-section="beta" className="help-section">
           <h2>Beta Notes</h2>
-          <p>This is an early beta. A few known limitations:</p>
+          <p>This is an early beta. Known limitations:</p>
           <ul>
             <li><strong>Search is title-only</strong> — the command palette searches scene titles, not scene prose.</li>
-            <li><strong>Drag & drop is same-parent only</strong> — scenes cannot be moved between chapters yet.</li>
-<li><strong>No auto-update</strong> — download a new installer from the Releases page for each new version.</li>
+            <li><strong>Images not exported</strong> — embedded images are replaced by a text placeholder in PDF and EPUB output.</li>
+            <li><strong>Spell check corrections</strong> — misspelled words are underlined but the right-click menu does not offer corrections; type them manually.</li>
+            <li><strong>Open tabs reset on restart</strong> — editor tabs are not restored after closing and reopening the app.</li>
             <li><strong>SmartScreen warning</strong> — the installer is not yet code-signed. Click <em>More info → Run anyway</em> to proceed.</li>
           </ul>
           <p>Found a bug or have feedback? Open an issue at <strong>github.com/felenish/TextForge</strong>.</p>

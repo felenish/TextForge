@@ -37,7 +37,13 @@
       "Bash(git merge *)",
       "Bash(git tag *)",
       "Bash(git push *)",
-      "Bash(Test-Path \"c:\\\\Users\\\\felen\\\\source\\\\repos\\\\TextForge\\\\TextForge\\\\ui\\\\textforge-ui\\\\src\\\\components\\\\ui\\\\EditorContextMenu.tsx\")"
+      "Bash(Test-Path \"c:\\\\Users\\\\felen\\\\source\\\\repos\\\\TextForge\\\\TextForge\\\\ui\\\\textforge-ui\\\\src\\\\components\\\\ui\\\\EditorContextMenu.tsx\")",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\felen\\\\source\\\\repos\\\\TextForge\\\\TextForge\" -Recurse -File | Select-Object -First 30 | ForEach-Object { $_.FullName })",
+      "Bash(dotnet list *)",
+      "Bash(cd \"c:\\\\Users\\\\felen\\\\source\\\\repos\\\\TextForge\\\\TextForge\" && dotnet build src/TextForge.Export/TextForge.Export.csproj -c Release --no-restore -v quiet 2>&1 | head -5 & grep -r \"SectionPage\\\\|Section\\\\b\" \"C:\\\\Users\\\\felen\\\\.nuget\\\\packages\\\\questpdf\" --include=\"*.cs\" -l 2>/dev/null | head -5)",
+      "Read(//c/Users/felen/.nuget/packages/questpdf/**)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\felen\\\\.nuget\\\\packages\\\\questpdf\\\\2024.10.0\" -Recurse -Filter \"*.dll\")",
+      "Bash(Select-Object -First 1 -ExpandProperty FullName)"
     ]
   }
 }

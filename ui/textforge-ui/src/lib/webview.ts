@@ -22,3 +22,8 @@ export type AppMessage =
 export function requestUpdate() {
   getWebView()?.postMessage('do-update');
 }
+
+/** Open a URL in the system default browser. No-op in a plain browser. */
+export function openUrl(url: string) {
+  getWebView()?.postMessage(JSON.stringify({ type: 'open-url', url }));
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useDialog } from '../../contexts/DialogContext';
@@ -15,6 +15,7 @@ interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onLocationOpen: (locationId: string, name: string) => void;
   onOutlineOpen: (outlineId: string, name: string) => void;
   onPlotGridOpen: (plotGridId: string, name: string) => void;
+  onOpenHelp: () => void;
 }
 
 interface DragState {
@@ -56,12 +57,13 @@ export function ManuscriptSidebar({
   loadLocations, addLocation, renameLocation, deleteLocation,
   loadOutlines, addOutline, renameOutline, deleteOutline,
   loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid,
-  onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen,
+  onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen, onOpenHelp,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId, patchSceneMeta } = useWorkspace();
   const { prompt, confirm } = useDialog();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const skipExpandedSave = useRef(false);
   const [assetsOpen, setAssetsOpen] = useState(false);
   const [assetsCache, setAssetsCache] = useState<{ seriesId: string; filenames: string[] } | null>(null);
   const [charsOpen, setCharsOpen] = useState(false);
@@ -103,6 +105,29 @@ export function ManuscriptSidebar({
     window.addEventListener('tf-asset-uploaded', handleAssetUploaded);
     return () => window.removeEventListener('tf-asset-uploaded', handleAssetUploaded);
   }, [series]);
+
+  // Restore expanded state from localStorage when the series changes.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!series) { setExpanded({}); return; }
+    skipExpandedSave.current = true;
+    try {
+      const stored = localStorage.getItem(`tf-expanded-${series.id}`);
+      setExpanded(stored ? (JSON.parse(stored) as Record<string, boolean>) : {});
+    } catch {
+      setExpanded({});
+    }
+  // series?.id is the correct dep — we only want to reload when the open series changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [series?.id]);
+
+  // Persist expanded state whenever it changes (skip the frame where we loaded it).
+  useEffect(() => {
+    if (!series) return;
+    if (skipExpandedSave.current) { skipExpandedSave.current = false; return; }
+    localStorage.setItem(`tf-expanded-${series.id}`, JSON.stringify(expanded));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, series?.id]);
 
   const isExpanded = (id: string) => expanded[id] !== false;
 
@@ -389,22 +414,20 @@ export function ManuscriptSidebar({
     return (
       <>
         <div className="sb-header"><span>Manuscript</span></div>
-        <div className="sb-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '24px 16px' }}>
-          <Icon name="book" size={28} stroke={1} style={{ color: 'var(--text-faint)', opacity: 0.5 }} />
-          <span style={{ color: 'var(--text-faint)', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
-            No series open
-          </span>
-          <button
-            onClick={createSeries}
-            style={{ width: '100%', padding: '5px 10px', background: 'var(--accent)', color: '#16140f', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-mono)' }}
-          >
+        <div className="welcome-panel">
+          <Icon name="feather" size={32} stroke={1.5} className="welcome-icon" />
+          <div className="welcome-title">TextForge Studio</div>
+          <p className="welcome-desc">
+            A focused writing environment for novelists and long-form writers.
+          </p>
+          <button className="welcome-btn primary" onClick={createSeries}>
             New Series
           </button>
-          <button
-            onClick={openSeries}
-            style={{ width: '100%', padding: '5px 10px', background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-mono)' }}
-          >
+          <button className="welcome-btn secondary" onClick={openSeries}>
             Open Series
+          </button>
+          <button className="welcome-guide" onClick={onOpenHelp}>
+            Read the guide →
           </button>
         </div>
       </>
