@@ -107,17 +107,18 @@ export function EditorContextMenu() {
     }
   }
 
-  function insertText(text: string) {
+  // Route all mutations through execCommand so the browser's undo stack stays intact.
+  // setRangeText / deleteContents are direct DOM mutations that bypass undo history.
+  function execOnSel(cmd: string, value?: string) {
     const s = savedSel.current;
     if (!s) return;
     if (s.kind === 'input') {
       s.el.focus();
-      s.el.setRangeText(text, s.start, s.end, 'end');
-      s.el.dispatchEvent(new Event('input', { bubbles: true }));
+      s.el.setSelectionRange(s.start, s.end);
     } else {
       restoreSel();
-      document.execCommand('insertText', false, text);
     }
+    document.execCommand(cmd, false, value);
   }
 
   async function copy() {
@@ -127,23 +128,14 @@ export function EditorContextMenu() {
 
   async function cut() {
     await navigator.clipboard.writeText(selectedText).catch(() => {});
-    const s = savedSel.current;
-    if (s?.kind === 'input') {
-      s.el.focus();
-      s.el.setRangeText('', s.start, s.end, 'end');
-      s.el.dispatchEvent(new Event('input', { bubbles: true }));
-    } else if (s?.kind === 'range') {
-      restoreSel();
-      s.range.deleteContents();
-      s.range.startContainer.parentElement?.dispatchEvent(new Event('input', { bubbles: true }));
-    }
+    execOnSel('delete');
     close();
   }
 
   async function paste() {
     try {
       const text = await navigator.clipboard.readText();
-      insertText(text);
+      execOnSel('insertText', text);
     } catch { /* clipboard-read not permitted */ }
     close();
   }
@@ -151,8 +143,7 @@ export function EditorContextMenu() {
   async function pastePlain() {
     try {
       const text = await navigator.clipboard.readText();
-      // Strip any residual line-break normalisation — always insert as-is plain text
-      insertText(text.replace(/\r\n/g, '\n'));
+      execOnSel('insertText', text.replace(/\r\n/g, '\n'));
     } catch { /* clipboard-read not permitted */ }
     close();
   }

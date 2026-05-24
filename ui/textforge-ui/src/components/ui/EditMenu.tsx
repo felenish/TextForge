@@ -52,6 +52,9 @@ export function EditMenu({ onFind, onFindReplace }: EditMenuProps) {
       </button>
       {open && (
         <div ref={panelRef} className="filemenu-panel">
+          {clipboardItem('Undo', 'Ctrl+Z', 'undo')}
+          {clipboardItem('Redo', 'Ctrl+Y', 'redo')}
+          <div className="filemenu-sep" />
           {clipboardItem('Cut', 'Ctrl+X', 'cut')}
           {clipboardItem('Copy', 'Ctrl+C', 'copy')}
           {clipboardItem('Paste', 'Ctrl+V', 'paste')}
