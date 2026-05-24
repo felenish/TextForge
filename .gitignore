@@ -44,3 +44,7 @@ installer/output/
 *.env
 *.env.local
 appsettings.Development.json
+RELEASE_NOTES.md
+docs/openrouter-setup-discord.md
+docs/openrouter-setup.md
+.claude/settings.local.json
