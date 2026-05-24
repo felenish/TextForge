@@ -168,7 +168,7 @@ export function SettingsModal({ editorSettings, goalSettings, initialSection = '
                 <div className="sett-field">
                   <div className="sett-field-label">Autosave</div>
                   <div className="sett-radio-row">
-                    {([0, 30, 60, 120, 300] as const).map(s => (
+                    {([0, 15, 30, 60, 120, 300] as const).map(s => (
                       <button
                         key={s}
                         className={`sett-radio-btn${autosaveInterval === s ? ' active' : ''}`}

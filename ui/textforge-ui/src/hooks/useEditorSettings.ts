@@ -30,7 +30,7 @@ export function useEditorSettings(): EditorSettings {
     () => Number(localStorage.getItem('tf-editor-lh') ?? '1.7'),
   );
   const [autosaveInterval, setAutosaveIntervalState] = useState(
-    () => Number(localStorage.getItem('tf-editor-autosave') ?? '60'),
+    () => Number(localStorage.getItem('tf-editor-autosave') ?? '15'),
   );
 
   useEffect(() => {
