@@ -198,12 +198,10 @@ export function AiPanel({ pendingAction, onActionConsumed }: AiPanelProps) {
 
   useEffect(() => {
     if (!pendingAction) return;
-    const { templateId: tid, selectedText } = pendingAction;
-    setTemplateId(tid);
-    setOutput('');
     onActionConsumed?.();
-    void execute(tid, selectedText || null);
-  // execute is stable across renders (all deps are refs/setters); pendingAction is the real trigger
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void execute(pendingAction.templateId, pendingAction.selectedText || null);
+  // execute captures only refs and stable setters; pendingAction is the sole trigger
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingAction]);
 

@@ -88,7 +88,6 @@ export function EditorContextMenu() {
       x: rect.right  > vw ? Math.max(0, vw - rect.width  - 4) : prev.x,
       y: rect.bottom > vh ? Math.max(0, vh - rect.height - 4) : prev.y,
     }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   if (!visible) return null;
