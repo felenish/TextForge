@@ -32,7 +32,11 @@
       "Bash(xargs grep -l \"filter.*title\\\\|title.*filter\\\\|content.*search\")",
       "Bash(node_modules\\\\.bin\\\\tsc --noEmit)",
       "Bash(npx --no-install tsc --noEmit)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git tag *)",
+      "Bash(git push *)"
     ]
   }
 }

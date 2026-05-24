@@ -31,10 +31,22 @@ public static class UpdateService
         try
         {
             var json = await _http.GetStringAsync(
-                $"https://api.github.com/repos/{Repo}/releases/latest");
+                $"https://api.github.com/repos/{Repo}/releases");
 
             using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
+            // /releases/latest returns 404 when the newest release is a draft, so we
+            // fetch the list and pick the first published, non-prerelease entry instead.
+            JsonElement? match = null;
+            foreach (var rel in doc.RootElement.EnumerateArray())
+            {
+                if (!rel.GetProperty("draft").GetBoolean() &&
+                    !rel.GetProperty("prerelease").GetBoolean())
+                {
+                    match = rel;
+                    break;
+                }
+            }
+            if (match is not { } root) { return null; }
 
             var tag = root.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
             if (!Version.TryParse(tag, out var latest)) return null;
@@ -50,7 +62,7 @@ public static class UpdateService
             }
             return null;
         }
-        catch
+        catch (Exception ex)
         {
             return null;
         }
