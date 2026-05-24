@@ -211,8 +211,7 @@ export function HelpTab() {
           <ul>
             <li><strong>Search is title-only</strong> — the command palette searches scene titles, not scene prose.</li>
             <li><strong>Drag & drop is same-parent only</strong> — scenes cannot be moved between chapters yet.</li>
-            <li><strong>No scene status picker</strong> — the status dot is visible in the sidebar but cannot be changed yet.</li>
-            <li><strong>No auto-update</strong> — download a new installer from the Releases page for each new version.</li>
+<li><strong>No auto-update</strong> — download a new installer from the Releases page for each new version.</li>
             <li><strong>SmartScreen warning</strong> — the installer is not yet code-signed. Click <em>More info → Run anyway</em> to proceed.</li>
           </ul>
           <p>Found a bug or have feedback? Open an issue at <strong>github.com/felenish/TextForge</strong>.</p>

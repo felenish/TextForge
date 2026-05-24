@@ -87,8 +87,9 @@ internal static class PdfExporter
                                     foreach (var para in paragraphs)
                                     {
                                         var trimmed = para.Trim();
-                                        if (!string.IsNullOrEmpty(trimmed))
-                                            col.Item().PaddingBottom(6).Text(trimmed);
+                                        if (string.IsNullOrEmpty(trimmed)) continue;
+                                        if (trimmed.StartsWith("[[img:") && trimmed.EndsWith("]]")) continue;
+                                        col.Item().PaddingBottom(6).Text(trimmed);
                                     }
                                 }
 

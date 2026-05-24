@@ -41,3 +41,9 @@ export const reorderBooks = (ids: string[]): Promise<void> =>
 
 export const searchSeries = (q: string): Promise<SceneSearchResultDto[]> =>
   get(`/api/series/current/search?q=${encodeURIComponent(q)}`);
+
+export const listSeriesAssets = (): Promise<{ filename: string }[]> =>
+  get('/api/series/current/assets');
+
+export const getSeriesAssetUrl = (filename: string): string =>
+  `/api/series/current/assets/${encodeURIComponent(filename)}`;

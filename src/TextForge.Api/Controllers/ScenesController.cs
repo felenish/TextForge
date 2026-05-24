@@ -90,6 +90,56 @@ public sealed class ScenesController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{id:guid}/assets")]
+    public async Task<IActionResult> UploadAsset(Guid id, IFormFile file, CancellationToken ct)
+    {
+        var series = _workspace.GetCurrentSeries();
+        if (series is null || _workspace.FindBookByScene(id) is null)
+            return NotFound(new ErrorDto("Scene not found."));
+
+        string[] allowed = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
+        if (!allowed.Contains(file.ContentType?.ToLowerInvariant()))
+            return BadRequest(new ErrorDto("Only image files are allowed."));
+
+        var assetsDir = Path.Combine(series.RootPath, "assets");
+        Directory.CreateDirectory(assetsDir);
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (string.IsNullOrEmpty(ext)) ext = ".jpg";
+        var filename = $"{Guid.NewGuid():N}{ext}";
+        var absPath = Path.Combine(assetsDir, filename);
+
+        await using var stream = new FileStream(absPath, FileMode.Create, FileAccess.Write);
+        await file.CopyToAsync(stream, ct);
+
+        return Ok(new { filename });
+    }
+
+    [HttpGet("{id:guid}/assets/{filename}")]
+    public IActionResult GetAsset(Guid id, string filename)
+    {
+        var series = _workspace.GetCurrentSeries();
+        if (series is null || _workspace.FindBookByScene(id) is null)
+            return NotFound(new ErrorDto("Scene not found."));
+
+        var safeName = Path.GetFileName(filename);
+        var absPath = Path.Combine(series.RootPath, "assets", safeName);
+
+        if (!System.IO.File.Exists(absPath))
+            return NotFound(new ErrorDto("Asset not found."));
+
+        var mime = Path.GetExtension(safeName).ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png"            => "image/png",
+            ".gif"            => "image/gif",
+            ".webp"           => "image/webp",
+            ".svg"            => "image/svg+xml",
+            _                 => "application/octet-stream",
+        };
+        return PhysicalFile(absPath, mime);
+    }
+
     private static (Core.Models.Chapter chapter, Core.Models.Scene scene)? FindSceneWithChapter(
         Core.Models.BookProject book, Guid sceneId)
     {
