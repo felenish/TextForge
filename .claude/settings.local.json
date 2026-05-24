@@ -45,7 +45,8 @@
       "Bash(Get-ChildItem \"C:\\\\Users\\\\felen\\\\.nuget\\\\packages\\\\questpdf\\\\2024.10.0\" -Recurse -Filter \"*.dll\")",
       "Bash(Select-Object -First 1 -ExpandProperty FullName)",
       "Bash(dotnet add *)",
-      "Bash(dir /s /b)"
+      "Bash(dir /s /b)",
+      "PowerShell($content = Get-Content \"docs\\\\openrouter-setup-discord.md\" -Raw; $content.Length)"
     ]
   }
 }
