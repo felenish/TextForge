@@ -11,11 +11,13 @@ public sealed class ScenesController : ControllerBase
 {
     private readonly ISeriesWorkspaceService _workspace;
     private readonly IBookStorageService _storage;
+    private readonly ILogger<ScenesController> _log;
 
-    public ScenesController(ISeriesWorkspaceService workspace, IBookStorageService storage)
+    public ScenesController(ISeriesWorkspaceService workspace, IBookStorageService storage, ILogger<ScenesController> log)
     {
         _workspace = workspace;
         _storage = storage;
+        _log = log;
     }
 
     [HttpGet("{id:guid}")]
@@ -83,8 +85,16 @@ public sealed class ScenesController : ControllerBase
         _workspace.ClearDirtyScene(id);
 
         var absPath = Path.Combine(book.RootPath, scene.FilePath);
-        if (System.IO.File.Exists(absPath))
-            System.IO.File.Delete(absPath);
+        try
+        {
+            if (System.IO.File.Exists(absPath))
+                System.IO.File.Delete(absPath);
+        }
+        catch (IOException ex)
+        {
+            _log.LogError(ex, "Failed to delete scene file {Path}", absPath);
+            return StatusCode(500, new ErrorDto("Could not delete the scene file. It may be open in another application."));
+        }
 
         await _storage.SaveBookAsync(book, ct);
         return NoContent();
@@ -109,8 +119,16 @@ public sealed class ScenesController : ControllerBase
         var filename = $"{Guid.NewGuid():N}{ext}";
         var absPath = Path.Combine(assetsDir, filename);
 
-        await using var stream = new FileStream(absPath, FileMode.Create, FileAccess.Write);
-        await file.CopyToAsync(stream, ct);
+        try
+        {
+            await using var stream = new FileStream(absPath, FileMode.Create, FileAccess.Write);
+            await file.CopyToAsync(stream, ct);
+        }
+        catch (IOException ex)
+        {
+            _log.LogError(ex, "Failed to write asset {Filename}", filename);
+            return StatusCode(500, new ErrorDto("Could not save the asset file."));
+        }
 
         return Ok(new { filename });
     }

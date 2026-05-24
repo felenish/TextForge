@@ -24,7 +24,17 @@ public static class ApiExtensions
             {
                 ctx.Response.StatusCode = 500;
                 ctx.Response.ContentType = "application/json";
+
                 var feature = ctx.Features.Get<IExceptionHandlerFeature>();
+                if (feature?.Error is { } ex)
+                {
+                    var logger = ctx.RequestServices
+                        .GetRequiredService<ILogger<WebApplication>>();
+                    logger.LogError(ex,
+                        "Unhandled exception on {Method} {Path}",
+                        ctx.Request.Method, ctx.Request.Path);
+                }
+
                 var isDev = app.Environment.IsDevelopment();
                 var message = isDev && feature?.Error is not null
                     ? feature.Error.Message

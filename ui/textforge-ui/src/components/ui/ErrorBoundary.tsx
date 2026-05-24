@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { logError } from '../../lib/logger';
 
 interface State {
   hasError: boolean;
@@ -14,8 +15,9 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(_error: Error, info: { componentStack: string }) {
+  componentDidCatch(error: Error, info: { componentStack: string }) {
     this.setState({ stack: info.componentStack });
+    logError(error.message, error.stack, info.componentStack);
   }
 
   render() {

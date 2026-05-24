@@ -12,10 +12,15 @@ namespace TextForge.Api.Controllers;
 public sealed class AiController : ControllerBase
 {
     private readonly IAppSettingsService _settings;
+    private readonly ILogger<AiController> _log;
     private static readonly HttpClient Http = new();
     private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-    public AiController(IAppSettingsService settings) => _settings = settings;
+    public AiController(IAppSettingsService settings, ILogger<AiController> log)
+    {
+        _settings = settings;
+        _log = log;
+    }
 
     [HttpGet("config")]
     public async Task<IActionResult> GetConfig(CancellationToken ct)
@@ -70,35 +75,61 @@ public sealed class AiController : ControllerBase
         Response.ContentType = "text/plain; charset=utf-8";
         Response.Headers["X-Accel-Buffering"] = "no";
 
-        using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
-        if (!resp.IsSuccessStatusCode)
+        HttpResponseMessage resp;
+        try
         {
-            Response.StatusCode = (int)resp.StatusCode;
-            await Response.WriteAsync(await resp.Content.ReadAsStringAsync(ct), ct);
+            resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _log.LogError(ex, "Failed to connect to AI provider at {BaseUrl}", config.BaseUrl);
+            Response.StatusCode = 502;
+            await Response.WriteAsync("Could not reach the AI provider. Check your Base URL in Settings → AI.", ct);
             return;
         }
 
-        await using var stream = await resp.Content.ReadAsStreamAsync(ct);
-        using var reader = new StreamReader(stream);
-        string? line;
-        while (!ct.IsCancellationRequested && (line = await reader.ReadLineAsync(ct)) is not null)
+        using (resp)
         {
-            if (!line.StartsWith("data: ")) continue;
-
-            var data = line[6..];
-            if (data == "[DONE]") break;
+            if (!resp.IsSuccessStatusCode)
+            {
+                Response.StatusCode = (int)resp.StatusCode;
+                var errorBody = await resp.Content.ReadAsStringAsync(ct);
+                _log.LogWarning("AI provider returned {Status}: {Body}", (int)resp.StatusCode, errorBody);
+                await Response.WriteAsync(errorBody, ct);
+                return;
+            }
 
             try
             {
-                using var doc = JsonDocument.Parse(data);
-                var content = doc.RootElement
-                    .GetProperty("choices")[0]
-                    .GetProperty("delta")
-                    .TryGetProperty("content", out var c) ? c.GetString() : null;
-                if (content is not null)
-                    await Response.WriteAsync(content, ct);
+                await using var stream = await resp.Content.ReadAsStreamAsync(ct);
+                using var reader = new StreamReader(stream);
+                string? line;
+                while (!ct.IsCancellationRequested && (line = await reader.ReadLineAsync(ct)) is not null)
+                {
+                    if (!line.StartsWith("data: ")) continue;
+
+                    var data = line[6..];
+                    if (data == "[DONE]") break;
+
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(data);
+                        var content = doc.RootElement
+                            .GetProperty("choices")[0]
+                            .GetProperty("delta")
+                            .TryGetProperty("content", out var c) ? c.GetString() : null;
+                        if (content is not null)
+                            await Response.WriteAsync(content, ct);
+                    }
+                    catch (JsonException) { /* malformed SSE chunk — skip */ }
+                }
             }
-            catch (JsonException) { /* malformed SSE chunk — skip */ }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // Headers already sent; we can't change the status code.
+                // Log the error but don't rethrow — the client will see a truncated stream.
+                _log.LogError(ex, "Error reading AI streaming response");
+            }
         }
     }
 

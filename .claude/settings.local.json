@@ -43,7 +43,8 @@
       "Bash(cd \"c:\\\\Users\\\\felen\\\\source\\\\repos\\\\TextForge\\\\TextForge\" && dotnet build src/TextForge.Export/TextForge.Export.csproj -c Release --no-restore -v quiet 2>&1 | head -5 & grep -r \"SectionPage\\\\|Section\\\\b\" \"C:\\\\Users\\\\felen\\\\.nuget\\\\packages\\\\questpdf\" --include=\"*.cs\" -l 2>/dev/null | head -5)",
       "Read(//c/Users/felen/.nuget/packages/questpdf/**)",
       "Bash(Get-ChildItem \"C:\\\\Users\\\\felen\\\\.nuget\\\\packages\\\\questpdf\\\\2024.10.0\" -Recurse -Filter \"*.dll\")",
-      "Bash(Select-Object -First 1 -ExpandProperty FullName)"
+      "Bash(Select-Object -First 1 -ExpandProperty FullName)",
+      "Bash(dotnet add *)"
     ]
   }
 }

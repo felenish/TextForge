@@ -14,15 +14,18 @@ public sealed class ExportController : ControllerBase
     private readonly ISeriesWorkspaceService _workspace;
     private readonly IExportService _export;
     private readonly IShellDialogService _dialogs;
+    private readonly ILogger<ExportController> _log;
 
     public ExportController(
         ISeriesWorkspaceService workspace,
         IExportService export,
-        IShellDialogService dialogs)
+        IShellDialogService dialogs,
+        ILogger<ExportController> log)
     {
         _workspace = workspace;
         _export = export;
         _dialogs = dialogs;
+        _log = log;
     }
 
     [HttpPost]
@@ -57,7 +60,22 @@ public sealed class ExportController : ControllerBase
             Format: format,
             BookIds: request.BookIds?.Select(Guid.Parse).ToList());
 
-        await _export.ExportAsync(series, options, outputPath, ct);
+        try
+        {
+            await _export.ExportAsync(series, options, outputPath, ct);
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Export failed — format={Format} path={Path}", format, outputPath);
+            // Clean up the partially-written output file if it exists.
+            if (System.IO.File.Exists(outputPath))
+            {
+                try { System.IO.File.Delete(outputPath); }
+                catch { /* best effort */ }
+            }
+            return StatusCode(500, new ErrorDto($"Export failed: {ex.Message}"));
+        }
+
         return Ok(new ExportResultDto(outputPath, Cancelled: false));
     }
 }

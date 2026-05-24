@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows;
@@ -5,6 +6,7 @@ using System.Windows.Threading;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using TextForge.Api;
 using TextForge.Core.Interfaces;
 using TextForge.Desktop.Services;
@@ -24,7 +26,14 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        ConfigureSerilog();
+
+        Log.Information("TextForge Studio starting — version {Version}",
+            UpdateService.CurrentVersion);
+
         DispatcherUnhandledException += OnDispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
 
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
@@ -32,14 +41,39 @@ public partial class App : Application
         _api = BuildApi(_port);
         await _api.StartAsync();
 
+        Log.Information("API listening on port {Port}", _port);
+
         new MainWindow(_port).Show();
     }
 
     protected override async void OnExit(ExitEventArgs e)
     {
+        Log.Information("TextForge Studio shutting down");
         if (_api is not null)
             await _api.StopAsync();
+        await Log.CloseAndFlushAsync();
         base.OnExit(e);
+    }
+
+    private static void ConfigureSerilog()
+    {
+        var logDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TextForge Studio", "logs");
+        Directory.CreateDirectory(logDir);
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .Enrich.FromLogContext()
+            .WriteTo.File(
+                path: Path.Combine(logDir, "app-.log"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 30,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+#if DEBUG
+            .WriteTo.Debug()
+#endif
+            .CreateLogger();
     }
 
     private static int GetAvailablePort()
@@ -56,6 +90,9 @@ public partial class App : Application
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls($"http://localhost:{port}");
         builder.WebHost.UseContentRoot(AppContext.BaseDirectory);
+
+        // Route all Microsoft.Extensions.Logging output through Serilog.
+        builder.Host.UseSerilog();
 
         builder.Services.AddApiServices();
         builder.Services.AddSingleton<IBookStorageService, BookStorageService>();
@@ -91,11 +128,22 @@ public partial class App : Application
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
+        Log.Fatal(e.Exception, "Unhandled WPF dispatcher exception");
+        Log.CloseAndFlush();
         MessageBox.Show(
             $"An unexpected error occurred:\n{e.Exception.Message}",
             "TextForge Studio",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
         e.Handled = true;
+    }
+
+    private static void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception ex)
+            Log.Fatal(ex, "Unhandled AppDomain exception (terminating={IsTerminating})", e.IsTerminating);
+        else
+            Log.Fatal("Unhandled AppDomain exception (non-Exception object)");
+        Log.CloseAndFlush();
     }
 }
