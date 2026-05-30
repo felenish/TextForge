@@ -214,6 +214,14 @@ public sealed class BookStorageService : IBookStorageService
                     Pov = sm.Pov,
                     CharacterIds = [..sm.CharacterIds],
                     Notes = sm.Notes,
+                    ChecklistItems = sm.ChecklistItems
+                        .Select(i => new SceneChecklistItem
+                        {
+                            Id = i.Id,
+                            Text = i.Text,
+                            Done = i.Done,
+                        })
+                        .ToList(),
                 });
             }
 
@@ -251,6 +259,14 @@ public sealed class BookStorageService : IBookStorageService
                             Pov = s.Pov,
                             CharacterIds = [..s.CharacterIds],
                             Notes = s.Notes,
+                            ChecklistItems = s.ChecklistItems
+                                .Select(i => new SceneChecklistItemManifest
+                                {
+                                    Id = i.Id,
+                                    Text = i.Text,
+                                    Done = i.Done,
+                                })
+                                .ToList(),
                         })
                         .ToList(),
                 })

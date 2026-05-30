@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TextForge.Api.Dtos;
 using TextForge.Api.Interfaces;
 using TextForge.Core.Interfaces;
+using TextForge.Core.Models;
 
 namespace TextForge.Api.Controllers;
 
@@ -64,6 +65,17 @@ public sealed class ScenesController : ControllerBase
         if (request.CharacterIds is not null)
             scene.CharacterIds = request.CharacterIds.Select(Guid.Parse).ToList();
         if (request.Notes is not null) scene.Notes = request.Notes.Length == 0 ? null : request.Notes;
+        if (request.ChecklistItems is not null)
+        {
+            scene.ChecklistItems = request.ChecklistItems
+                .Select(i => new SceneChecklistItem
+                {
+                    Id = Guid.Parse(i.Id),
+                    Text = i.Text,
+                    Done = i.Done,
+                })
+                .ToList();
+        }
 
         await _storage.SaveBookAsync(book, ct);
         return NoContent();
@@ -177,4 +189,10 @@ public sealed record PatchSceneBody(
     string? Status,
     string? Pov,
     IReadOnlyList<string>? CharacterIds,
-    string? Notes);
+    string? Notes,
+    IReadOnlyList<ChecklistItemBody>? ChecklistItems);
+
+public sealed record ChecklistItemBody(
+    string Id,
+    string Text,
+    bool Done);

@@ -10,4 +10,5 @@ public sealed class SceneManifest
     public string? Pov { get; set; }
     public List<Guid> CharacterIds { get; set; } = [];
     public string? Notes { get; set; }
+    public List<SceneChecklistItemManifest> ChecklistItems { get; set; } = [];
 }

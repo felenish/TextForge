@@ -11,4 +11,5 @@ public sealed class Scene
     public string? Pov { get; set; }
     public List<Guid> CharacterIds { get; set; } = [];
     public string? Notes { get; set; }
+    public List<SceneChecklistItem> ChecklistItems { get; set; } = [];
 }

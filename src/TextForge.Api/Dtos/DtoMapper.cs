@@ -51,7 +51,10 @@ internal static class DtoMapper
         scene.Status,
         scene.Pov,
         scene.CharacterIds.Select(id => id.ToString()).ToArray(),
-        scene.Notes);
+        scene.Notes,
+        scene.ChecklistItems
+            .Select(i => new ChecklistItemDto(i.Id.ToString(), i.Text, i.Done))
+            .ToArray());
 
     public static SceneDto ToSceneMeta(Scene scene) => new(
         scene.Id,
@@ -62,5 +65,6 @@ internal static class DtoMapper
         scene.Status,
         null,
         [],
-        null);
+        null,
+        []);
 }

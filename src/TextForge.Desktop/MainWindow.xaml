@@ -9,6 +9,7 @@
         Icon="TextForge.ico"
         Height="800" Width="1280"
         MinHeight="600" MinWidth="800"
+        WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         Background="#1f2127">
     <WindowChrome.WindowChrome>
