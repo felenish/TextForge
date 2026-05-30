@@ -12,10 +12,28 @@ namespace TextForge.Desktop;
 
 public partial class MainWindow : Window
 {
+    private static readonly string[] _quotes =
+    [
+        "\"There is nothing to writing. All you do is sit down at a typewriter and bleed.\" — Ernest Hemingway",
+        "\"You can always edit a bad page. You can't edit a blank page.\" — Jodi Picoult",
+        "\"Start writing, no matter what. The water does not flow until the faucet is turned on.\" — Louis L'Amour",
+        "\"A word after a word after a word is power.\" — Margaret Atwood",
+        "\"If there's a book that you want to read, but it hasn't been written yet, then you must write it.\" — Toni Morrison",
+        "\"The first draft is just you telling yourself the story.\" — Terry Pratchett",
+        "\"You have to write the book that wants to be written.\" — Madeleine L'Engle",
+        "\"Fill your paper with the breathings of your heart.\" — William Wordsworth",
+        "\"A story has no beginning or end; arbitrarily one chooses that moment of experience from which to look back or from which to look ahead.\" — Graham Greene",
+        "\"Either write something worth reading or do something worth writing.\" — Benjamin Franklin",
+        "\"The scariest moment is always just before you start.\" — Stephen King",
+        "\"Writing is an exploration. You start from nothing and learn as you go.\" — E.L. Doctorow",
+        "\"One day I will find the right words, and they will be simple.\" — Jack Kerouac",
+        "\"Writing is thinking. To write well is to think clearly.\" — David McCullough",
+        "\"We write to taste life twice, in the moment and in retrospect.\" — Anaïs Nin",
+    ];
+
     private readonly int _port;
     private bool _forceClose;
     private TaskCompletionSource<bool>? _saveAllTcs;
-
     // Update state — set by background check, consumed when app signals ready.
     private UpdateInfo? _pendingUpdate;
     private bool _appReady;
@@ -69,7 +87,17 @@ public partial class MainWindow : Window
     {
         var userDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "TextForge Studio", "WebView2");
+            "TextForge", "WebView2");
+
+        if (Directory.Exists(userDataFolder))
+        {
+            try { Directory.Delete(userDataFolder, true); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+
+        QuoteText.Text = _quotes[Random.Shared.Next(_quotes.Length)];
+
         var env = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
         await WebView.EnsureCoreWebView2Async(env);
         WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
@@ -83,6 +111,14 @@ public partial class MainWindow : Window
         WebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
 #endif
         WebView.CoreWebView2.Navigate($"http://localhost:{_port}");
+        _ = CollapseOverlayAfterDelayAsync();
+    }
+
+    private async Task CollapseOverlayAfterDelayAsync()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(3));
+        LoadingOverlay.Visibility = Visibility.Collapsed;
+        WebView.Visibility = Visibility.Visible;
     }
 
     private static void OnPermissionRequested(object? sender, CoreWebView2PermissionRequestedEventArgs e)

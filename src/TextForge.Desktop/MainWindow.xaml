@@ -19,7 +19,29 @@
     </WindowChrome.WindowChrome>
     <Grid>
         <wv2:WebView2 x:Name="WebView"
+                      Visibility="Collapsed"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch" />
+
+        <!-- Loading overlay shown first while WebView initializes -->
+        <Grid x:Name="LoadingOverlay" Visibility="Visible" Background="#1f2127">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical">
+                <Image Source="TextForgeIconLarge.png"
+                       Width="64" Height="64"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Margin="0,0,0,16" />
+                <TextBlock x:Name="QuoteText"
+                           Foreground="#8b949e"
+                           FontSize="14"
+                           FontFamily="Segoe UI"
+                           FontStyle="Italic"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="420" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

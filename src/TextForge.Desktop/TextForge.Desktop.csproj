@@ -26,6 +26,10 @@
     <Resource Include="TextForge.ico" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="TextForgeIconLarge.png" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
   <PropertyGroup>
     <!-- Detect Node.js install dir; override via /p:NodeJsDir=... if needed -->
     <NodeJsDir Condition="'$(NodeJsDir)' == '' AND Exists('$(ProgramW6432)\nodejs')">$(ProgramW6432)\nodejs</NodeJsDir>
