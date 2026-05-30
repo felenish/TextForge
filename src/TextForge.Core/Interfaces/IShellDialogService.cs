@@ -13,4 +13,7 @@ public interface IShellDialogService
 
     /// <summary>Opens File Explorer with the given path selected.</summary>
     Task RevealPathAsync(string absolutePath);
+
+    /// <summary>Opens File Explorer at the given folder path.</summary>
+    Task OpenFolderPathAsync(string folderPath);
 }

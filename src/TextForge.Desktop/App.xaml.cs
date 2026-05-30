@@ -27,10 +27,11 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        ConfigureSerilog();
+        var logDir = ConfigureSerilog();
 
         Log.Information("TextForge Studio starting — version {Version}",
             UpdateService.CurrentVersion);
+        Log.Information("Log directory: {LogDirectory}", logDir);
 
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
@@ -55,12 +56,40 @@ public partial class App : Application
         base.OnExit(e);
     }
 
-    private static void ConfigureSerilog()
+    private static string ConfigureSerilog()
     {
-        var logDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "TextForge Studio", "logs");
-        Directory.CreateDirectory(logDir);
+        static string ResolveLogDirectory()
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var preferred = Path.Combine(localAppData, "TextForge", "logs");
+
+            try
+            {
+                Directory.CreateDirectory(preferred);
+                return preferred;
+            }
+            catch
+            {
+                var fallback = Path.Combine(Path.GetTempPath(), "TextForge", "logs");
+                Directory.CreateDirectory(fallback);
+                return fallback;
+            }
+        }
+
+        var logDir = ResolveLogDirectory();
+
+        Serilog.Debugging.SelfLog.Enable(msg =>
+        {
+            try
+            {
+                var selfLogPath = Path.Combine(logDir, "serilog-selflog.txt");
+                File.AppendAllText(selfLogPath, msg + Environment.NewLine);
+            }
+            catch
+            {
+                // Never throw from self-log sink.
+            }
+        });
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
@@ -69,11 +98,15 @@ public partial class App : Application
                 path: Path.Combine(logDir, "app-.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 30,
+                shared: true,
+                flushToDiskInterval: TimeSpan.FromSeconds(1),
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
 #if DEBUG
             .WriteTo.Debug()
 #endif
             .CreateLogger();
+
+        return logDir;
     }
 
     private static int GetAvailablePort()

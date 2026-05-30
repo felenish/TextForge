@@ -23,8 +23,16 @@ import { BackendBanner } from '../ui/BackendBanner';
 import { AboutModal } from '../ui/AboutModal';
 import { EditorContextMenu } from '../ui/EditorContextMenu';
 import { getWebView, requestUpdate } from '../../lib/webview';
+import { logInfo } from '../../lib/logger';
+import * as shellApi from '../../api/shell';
 
 export function AppLayout() {
+  const bootStartRef = useRef<number>(performance.now());
+  const startupLoggedRef = useRef(false);
+  const autoOpenStartedAtRef = useRef<number | null>(null);
+  const autoOpenAttemptedRef = useRef(false);
+  const autoOpenLoggedRef = useRef(false);
+
   const editorRef = useRef<SceneEditorAreaHandle>(null);
   const {
     seriesTitle, dirtySceneIds,
@@ -170,6 +178,7 @@ export function AppLayout() {
     if (!webview) return;
 
     // Signal the host that React is mounted and ready to receive messages.
+    logInfo(`[perf] app_ready_post_message ms=${Math.round(performance.now() - bootStartRef.current)}`);
     webview.postMessage('app-ready');
 
     const handler = async (e: MessageEvent) => {
@@ -194,12 +203,42 @@ export function AppLayout() {
     return () => webview.removeEventListener('message', handler);
   }, []);
 
+  useEffect(() => {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (!nav) return;
+
+    logInfo(
+      `[perf] navigation dcl=${Math.round(nav.domContentLoadedEventEnd)}ms load=${Math.round(nav.loadEventEnd)}ms response=${Math.round(nav.responseEnd)}ms`
+    );
+  }, []);
+
   // Auto-open last series on startup (persisted in localStorage by useSeriesExplorer).
   useEffect(() => {
     const last = localStorage.getItem('tf-last-series');
-    if (last) explorer.openSeriesFromPath(last);
+    if (last) {
+      autoOpenAttemptedRef.current = true;
+      autoOpenStartedAtRef.current = performance.now();
+      void explorer.openSeriesFromPath(last);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (autoOpenAttemptedRef.current && !autoOpenLoggedRef.current && !explorer.loading) {
+      autoOpenLoggedRef.current = true;
+      const started = autoOpenStartedAtRef.current ?? bootStartRef.current;
+      const elapsed = Math.round(performance.now() - started);
+      logInfo(`[perf] auto_open_complete ms=${elapsed} seriesLoaded=${explorer.series ? 'yes' : 'no'}`);
+    }
+  }, [explorer.loading, explorer.series]);
+
+  useEffect(() => {
+    if (startupLoggedRef.current || explorer.loading) return;
+    startupLoggedRef.current = true;
+    logInfo(
+      `[perf] startup_settled ms=${Math.round(performance.now() - bootStartRef.current)} seriesLoaded=${explorer.series ? 'yes' : 'no'}`
+    );
+  }, [explorer.loading, explorer.series]);
 
   // First-run: auto-open HelpTab once after the initial load settles.
   const firstRunChecked = useRef(false);
@@ -229,6 +268,7 @@ export function AppLayout() {
         onFindReplace={() => editorRef.current?.openFind(true)}
         onOpenSettings={() => { setSettingsSection('appearance'); setSettingsOpen(true); }}
         onOpenHelp={() => editorRef.current?.openHelp()}
+        onOpenLogFolder={() => { void shellApi.openLogFolder(); }}
         onAbout={() => setAboutOpen(true)}
         bottomOpen={bottomOpen}
         onBottomToggle={toggleBottom}

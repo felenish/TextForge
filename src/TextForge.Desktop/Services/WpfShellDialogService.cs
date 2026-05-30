@@ -33,4 +33,10 @@ public sealed class WpfShellDialogService : IShellDialogService
         Process.Start("explorer.exe", $"/select,\"{absolutePath}\"");
         return Task.CompletedTask;
     }
+
+    public Task OpenFolderPathAsync(string folderPath)
+    {
+        Process.Start("explorer.exe", $"\"{folderPath}\"");
+        return Task.CompletedTask;
+    }
 }

@@ -54,6 +54,17 @@ public sealed class ShellController : ControllerBase
         await _dialogs.RevealPathAsync(absolutePath);
         return NoContent();
     }
+
+    [HttpPost("open-log-folder")]
+    public async Task<IActionResult> OpenLogFolder()
+    {
+        var logDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "TextForge", "logs");
+        Directory.CreateDirectory(logDir);
+        await _dialogs.OpenFolderPathAsync(logDir);
+        return NoContent();
+    }
 }
 
 public sealed record FolderDialogBody(string Title);

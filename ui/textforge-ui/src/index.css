@@ -944,6 +944,19 @@ input, textarea {
   min-width: 160px;
   width: 160px;
 }
+.pg-corner-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-size: var(--fs-mono-xs);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  padding: 8px 6px;
+}
+.pg-corner-add:hover { color: var(--text); }
 .pg-col-hdr {
   position: sticky;
   top: 0;
@@ -998,6 +1011,15 @@ input, textarea {
   gap: 2px;
   padding: 6px 8px;
 }
+.pg-row-inner { gap: 4px; }
+.pg-row-drag {
+  color: var(--text-faint);
+  font-size: 12px;
+  cursor: grab;
+  line-height: 1;
+  user-select: none;
+}
+.pg-row-drag:active { cursor: grabbing; }
 .pg-hdr-input {
   flex: 1;
   min-width: 0;
@@ -1028,6 +1050,25 @@ input, textarea {
 .pg-col-hdr:hover .pg-del,
 .pg-row-hdr:hover .pg-del { opacity: 1; }
 .pg-del:hover { background: var(--bg-hover); border-color: var(--border); color: var(--text); }
+.pg-mini {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-faint);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.pg-row-hdr:hover .pg-mini { opacity: 1; }
+.pg-mini:hover { background: var(--bg-hover); border-color: var(--border); color: var(--text); }
+.pg-row-drop-target th,
+.pg-row-drop-target td { background: var(--bg-hover); }
 
 .pg-cell {
   min-width: 200px;
