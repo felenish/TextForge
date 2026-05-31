@@ -38,13 +38,15 @@ export function BottomPanel({ onClose }: BottomPanelProps) {
   useEffect(() => {
     let cancelled = false;
 
+    // Reset interaction state synchronously when the active scene changes so stale
+    // editing/drag UI from the previous scene is never visible on the new scene.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEditingId(null);
     setEditingText('');
     setDraggingId(null);
     setDragOverId(null);
 
-    if (!activeSceneId)
-    {
+    if (!activeSceneId) {
       setNotes([]);
       return () => { cancelled = true; };
     }

@@ -48,7 +48,7 @@ describe('PlotGridEditor chapter management', () => {
 
     getPlotGridMock.mockResolvedValue(baseGrid());
     // Reject to avoid the component's delayed "saved" timer path, which causes noisy act warnings.
-    savePlotGridMock.mockImplementation(async (_id: string, _dto: unknown) => {
+    savePlotGridMock.mockImplementation(async () => {
       throw new Error('save failed in test');
     });
     confirmMock.mockResolvedValue(true);

@@ -27,7 +27,8 @@ import { logInfo } from '../../lib/logger';
 import * as shellApi from '../../api/shell';
 
 export function AppLayout() {
-  const bootStartRef = useRef<number>(performance.now());
+  const [bootStart] = useState<number>(() => performance.now());
+  const bootStartRef = useRef<number>(bootStart);
   const startupLoggedRef = useRef(false);
   const autoOpenStartedAtRef = useRef<number | null>(null);
   const autoOpenAttemptedRef = useRef(false);
