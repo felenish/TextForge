@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { CharacterDto } from '../../api/characters';
+import type { CharacterDto, CharacterSectionDto } from '../../api/characters';
 import * as charactersApi from '../../api/characters';
 import { Icon } from '../ui/Icon';
 
@@ -11,6 +11,10 @@ interface CharacterEditorProps {
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 const GENDER_OPTIONS = ['', 'Male', 'Female', 'Non-binary', 'Other'];
+
+function newSection(): CharacterSectionDto {
+  return { id: crypto.randomUUID(), title: '', content: '' };
+}
 
 export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) {
   const [character, setCharacter] = useState<CharacterDto | null>(null);
@@ -50,6 +54,7 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
         gender: c.gender,
         personality: c.personality,
         biography: c.biography,
+        customSections: c.customSections,
       });
       setSaveStatus('saved');
       onSaved?.(saved);
@@ -69,6 +74,36 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
     setCharacter(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...patch };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const addSection = useCallback(() => {
+    setCharacter(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, customSections: [...prev.customSections, newSection()] };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const updateSection = useCallback((id: string, patch: Partial<CharacterSectionDto>) => {
+    setCharacter(prev => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        customSections: prev.customSections.map(s => s.id === id ? { ...s, ...patch } : s),
+      };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const removeSection = useCallback((id: string) => {
+    setCharacter(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, customSections: prev.customSections.filter(s => s.id !== id) };
       scheduleSave(updated);
       return updated;
     });
@@ -218,6 +253,38 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
               rows={8}
             />
           </div>
+
+          {/* Custom sections */}
+          {character.customSections.map(section => (
+            <div key={section.id} className="char-ed-custom-section">
+              <div className="char-ed-custom-section-header">
+                <input
+                  className="char-ed-custom-section-title"
+                  value={section.title}
+                  onChange={e => updateSection(section.id, { title: e.target.value })}
+                  placeholder="Section title…"
+                />
+                <button
+                  className="char-ed-custom-section-remove"
+                  onClick={() => removeSection(section.id)}
+                  title="Remove section"
+                >
+                  <Icon name="x" size={14} />
+                </button>
+              </div>
+              <textarea
+                className="char-ed-textarea char-ed-custom-section-content"
+                value={section.content}
+                onChange={e => updateSection(section.id, { content: e.target.value })}
+                placeholder="Notes, details, continuity…"
+                rows={4}
+              />
+            </div>
+          ))}
+
+          <button className="char-ed-add-section" onClick={addSection}>
+            <Icon name="plus" size={14} /> Add section
+          </button>
 
         </div>
       </div>

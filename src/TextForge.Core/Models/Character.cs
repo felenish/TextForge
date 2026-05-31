@@ -10,4 +10,12 @@ public sealed class Character
     public string? Personality { get; set; }
     public string? Biography { get; set; }
     public string? ImageFileName { get; set; }
+    public List<CharacterSection> CustomSections { get; set; } = [];
+}
+
+public sealed class CharacterSection
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
 }

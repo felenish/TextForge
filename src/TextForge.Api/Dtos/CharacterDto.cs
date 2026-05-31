@@ -8,4 +8,7 @@ public sealed record CharacterDto(
     string? Gender,
     string? Personality,
     string? Biography,
-    bool HasImage);
+    bool HasImage,
+    IReadOnlyList<CharacterSectionDto> CustomSections);
+
+public sealed record CharacterSectionDto(Guid Id, string Title, string Content);

@@ -50,7 +50,7 @@ public sealed class CharactersControllerTests
     public async Task Put_WhenNoSeriesOpen_ReturnsBadRequest()
     {
         var sut = MakeSut(series: null);
-        var result = await sut.Put(Guid.NewGuid(), new PutCharacterBody("Ada", null, null, null, null, null), CancellationToken.None);
+        var result = await sut.Put(Guid.NewGuid(), new PutCharacterBody("Ada", null, null, null, null, null, []), CancellationToken.None);
         AssertNoSeries(result);
     }
 
@@ -113,7 +113,7 @@ public sealed class CharactersControllerTests
     public async Task Put_WhenCharacterNotFound_ReturnsNotFound()
     {
         var sut = MakeSut(series: MakeSeries());
-        var result = await sut.Put(Guid.NewGuid(), new PutCharacterBody("Ada", null, null, null, null, null), CancellationToken.None);
+        var result = await sut.Put(Guid.NewGuid(), new PutCharacterBody("Ada", null, null, null, null, null, []), CancellationToken.None);
         result.Should().BeOfType<NotFoundObjectResult>();
     }
 
@@ -211,7 +211,7 @@ public sealed class CharactersControllerTests
         var sut = MakeSut(series: MakeSeries(), storage: storage);
 
         await sut.Put(character.Id,
-            new PutCharacterBody("Ada", Role: null, Age: null, Gender: "", Personality: null, Biography: null),
+            new PutCharacterBody("Ada", Role: null, Age: null, Gender: "", Personality: null, Biography: null, CustomSections: []),
             CancellationToken.None);
 
         // IsNullOrEmpty coerces "" → null but does not strip whitespace
@@ -226,7 +226,7 @@ public sealed class CharactersControllerTests
         var sut = MakeSut(series: MakeSeries(), storage: storage);
 
         await sut.Put(character.Id,
-            new PutCharacterBody("Ada", "Protagonist", Age: 30, Gender: "Female", Personality: "Curious", Biography: "Bio text"),
+            new PutCharacterBody("Ada", "Protagonist", Age: 30, Gender: "Female", Personality: "Curious", Biography: "Bio text", CustomSections: []),
             CancellationToken.None);
 
         character.Name.Should().Be("Ada");

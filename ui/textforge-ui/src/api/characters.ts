@@ -1,5 +1,11 @@
 import { del, get, patch, post, put } from './client';
 
+export interface CharacterSectionDto {
+  id: string;
+  title: string;
+  content: string;
+}
+
 export interface CharacterDto {
   id: string;
   name: string;
@@ -9,6 +15,7 @@ export interface CharacterDto {
   personality: string | null;
   biography: string | null;
   hasImage: boolean;
+  customSections: CharacterSectionDto[];
 }
 
 export interface PutCharacterBody {
@@ -18,6 +25,7 @@ export interface PutCharacterBody {
   gender: string | null;
   personality: string | null;
   biography: string | null;
+  customSections: CharacterSectionDto[];
 }
 
 export const getCharacters = (): Promise<CharacterDto[]> =>

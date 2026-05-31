@@ -88,6 +88,9 @@ public sealed class CharactersController : ControllerBase
         character.Gender = string.IsNullOrEmpty(request.Gender) ? null : request.Gender;
         character.Personality = string.IsNullOrEmpty(request.Personality) ? null : request.Personality;
         character.Biography = string.IsNullOrEmpty(request.Biography) ? null : request.Biography;
+        character.CustomSections = request.CustomSections
+            .Select(s => new TextForge.Core.Models.CharacterSection { Id = s.Id, Title = s.Title, Content = s.Content })
+            .ToList();
 
         await _storage.SaveAsync(path, character, ct);
         return Ok(DtoMapper.ToCharacterDto(character));
@@ -159,4 +162,7 @@ public sealed record PutCharacterBody(
     int? Age,
     string? Gender,
     string? Personality,
-    string? Biography);
+    string? Biography,
+    IReadOnlyList<PutCharacterSectionBody> CustomSections);
+
+public sealed record PutCharacterSectionBody(Guid Id, string Title, string Content);

@@ -19,7 +19,8 @@ internal static class DtoMapper
 
     public static CharacterDto ToCharacterDto(Character c) => new(
         c.Id, c.Name, c.Role, c.Age, c.Gender, c.Personality, c.Biography,
-        c.ImageFileName is not null);
+        c.ImageFileName is not null,
+        c.CustomSections.Select(s => new CharacterSectionDto(s.Id, s.Title, s.Content)).ToArray());
     public static SeriesDto ToSeriesDto(Series series) => new(
         series.Id,
         series.Title,

@@ -849,6 +849,64 @@ input, textarea {
 }
 .char-ed-textarea:focus { border-color: var(--accent); outline: none; }
 .char-ed-biography { min-height: 160px; }
+.char-ed-custom-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.char-ed-custom-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.char-ed-custom-section-title {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 2px 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.char-ed-custom-section-title:focus { border-bottom-color: var(--accent); color: var(--text); }
+.char-ed-custom-section-title::placeholder { color: var(--text-faint); }
+.char-ed-custom-section-remove {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+}
+.char-ed-custom-section-remove:hover { color: var(--signal-error); }
+.char-ed-custom-section-content { min-height: 80px; }
+.char-ed-add-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.char-ed-add-section:hover { color: var(--accent); border-color: var(--accent); }
 .char-ed-status {
   position: absolute;
   bottom: 12px;
