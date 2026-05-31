@@ -52,31 +52,64 @@ public partial class MainWindow : Window
         ((HwndSource)PresentationSource.FromVisual(this)).AddHook(HwndHook);
     }
 
+    private const int ResizeBorder = 6; // must match WindowChrome ResizeBorderThickness
+
     private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (msg == 0x0024) // WM_GETMINMAXINFO
+        switch (msg)
         {
-            var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
-            var monitor = MonitorFromWindow(hwnd, 0x2);
-            if (monitor != IntPtr.Zero)
+            case 0x0024: // WM_GETMINMAXINFO
             {
-                var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
-                GetMonitorInfo(monitor, ref info);
-                mmi.ptMaxPosition = new WinPoint(
-                    Math.Abs(info.rcWork.left - info.rcMonitor.left),
-                    Math.Abs(info.rcWork.top - info.rcMonitor.top));
-                mmi.ptMaxSize = new WinPoint(
-                    info.rcWork.right - info.rcWork.left,
-                    info.rcWork.bottom - info.rcWork.top);
+                var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+                var monitor = MonitorFromWindow(hwnd, 0x2);
+                if (monitor != IntPtr.Zero)
+                {
+                    var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+                    GetMonitorInfo(monitor, ref info);
+                    mmi.ptMaxPosition = new WinPoint(
+                        Math.Abs(info.rcWork.left - info.rcMonitor.left),
+                        Math.Abs(info.rcWork.top - info.rcMonitor.top));
+                    mmi.ptMaxSize = new WinPoint(
+                        info.rcWork.right - info.rcWork.left,
+                        info.rcWork.bottom - info.rcWork.top);
+                }
+                Marshal.StructureToPtr(mmi, lParam, true);
+                handled = true;
+                break;
             }
-            Marshal.StructureToPtr(mmi, lParam, true);
-            handled = true;
+
+            case 0x0084: // WM_NCHITTEST — restore resize cursors swallowed by WebView2
+            {
+                // Skip when maximized; there is nothing to resize.
+                if (WindowState == WindowState.Maximized)
+                    break;
+
+                GetWindowRect(hwnd, out var rc);
+                int x = (short)(lParam.ToInt32() & 0xFFFF);
+                int y = (short)((lParam.ToInt32() >> 16) & 0xFFFF);
+
+                bool left   = x < rc.left   + ResizeBorder;
+                bool right  = x > rc.right  - ResizeBorder;
+                bool top    = y < rc.top    + ResizeBorder;
+                bool bottom = y > rc.bottom - ResizeBorder;
+
+                if      (top    && left)  { handled = true; return (IntPtr)13; } // HTTOPLEFT
+                else if (top    && right) { handled = true; return (IntPtr)14; } // HTTOPRIGHT
+                else if (bottom && left)  { handled = true; return (IntPtr)16; } // HTBOTTOMLEFT
+                else if (bottom && right) { handled = true; return (IntPtr)17; } // HTBOTTOMRIGHT
+                else if (top)             { handled = true; return (IntPtr)12; } // HTTOP
+                else if (bottom)          { handled = true; return (IntPtr)15; } // HTBOTTOM
+                else if (left)            { handled = true; return (IntPtr)10; } // HTLEFT
+                else if (right)           { handled = true; return (IntPtr)11; } // HTRIGHT
+                break;
+            }
         }
         return IntPtr.Zero;
     }
 
     [DllImport("user32")] static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
     [DllImport("user32")] static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+    [DllImport("user32")] static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
 
     [StructLayout(LayoutKind.Sequential)] struct WinPoint(int x, int y) { public int X = x, Y = y; }
     [StructLayout(LayoutKind.Sequential)] struct RECT { public int left, top, right, bottom; }

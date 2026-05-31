@@ -413,8 +413,14 @@ input, textarea {
   font-size: 13px;
   color: var(--text-faint);
 }
+.filemenu-sub-container {
+  position: relative;
+}
+
 .filemenu-item.has-sub { cursor: default; }
+.filemenu-item.has-sub.hovered,
 .filemenu-item.has-sub:hover { background: var(--accent); color: var(--text-on-accent, #fff); }
+.filemenu-item.has-sub.hovered .filemenu-arrow,
 .filemenu-item.has-sub:hover .filemenu-arrow { color: rgba(255,255,255,.7); }
 
 .filemenu-sub {
@@ -1177,13 +1183,27 @@ input, textarea {
 /* ===================== FORMAT BAR ===================== */
 .format-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  padding: 5px 14px;
+  gap: 2px 0;
+  padding: 4px 8px;
   background: var(--bg-tabs);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   user-select: none;
+}
+
+.format-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+/* Vertical separator between groups using a right border on all but the last */
+.format-bar-group + .format-bar-group {
+  border-left: 1px solid var(--border-strong);
 }
 
 .format-bar select {
@@ -1199,15 +1219,6 @@ input, textarea {
 }
 .format-bar select:focus { border-color: var(--border-strong); }
 
-.format-bar-sep {
-  display: inline-block;
-  width: 1px;
-  height: 16px;
-  background: var(--border-strong);
-  margin: 0 4px;
-  flex-shrink: 0;
-}
-
 .format-bar button {
   width: 26px;
   height: 26px;
@@ -1222,6 +1233,43 @@ input, textarea {
 }
 .format-bar button:hover { background: var(--bg-hover); border-color: var(--border); color: var(--text); }
 .format-bar button.active { background: var(--bg-hover); border-color: var(--border); color: var(--accent); }
+
+
+.format-bar-color-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.format-bar-color-btn:hover { background: var(--bg-hover); border-color: var(--border); }
+
+.format-bar-color-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  color: var(--text);
+  font-size: 11px;
+}
+
+.format-bar-color-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  padding: 0;
+  border: none;
+}
 
 /* ===================== FIND / REPLACE BAR ===================== */
 .frb {

@@ -342,6 +342,48 @@ export function Icon({ name, size = 16, stroke = 1.5, className, style }: IconPr
         <rect x="9" y="9" width="13" height="13" rx="2" />
       </svg>
     );
+    case 'align-left': return (
+      <svg {...base}>
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="15" y2="12" />
+        <line x1="3" y1="18" x2="18" y2="18" />
+      </svg>
+    );
+    case 'align-center': return (
+      <svg {...base}>
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="6" y1="12" x2="18" y2="12" />
+        <line x1="4" y1="18" x2="20" y2="18" />
+      </svg>
+    );
+    case 'align-right': return (
+      <svg {...base}>
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="9" y1="12" x2="21" y2="12" />
+        <line x1="6" y1="18" x2="21" y2="18" />
+      </svg>
+    );
+    case 'align-justify': return (
+      <svg {...base}>
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    );
+    case 'eraser': return (
+      <svg {...base}>
+        <path d="M20 20H7L3 16l11-11 6 6-5 5" />
+        <path d="M6.0001 11L13 18" />
+      </svg>
+    );
+    case 'line-height': return (
+      <svg {...base}>
+        <path d="M5 3v18M3 5l2-2 2 2M3 19l2 2 2-2" />
+        <line x1="10" y1="7" x2="21" y2="7" />
+        <line x1="10" y1="12" x2="21" y2="12" />
+        <line x1="10" y1="17" x2="21" y2="17" />
+      </svg>
+    );
     case 'help-circle': return (
       <svg {...base}>
         <circle cx="12" cy="12" r="9" />
