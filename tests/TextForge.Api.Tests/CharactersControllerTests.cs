@@ -401,5 +401,14 @@ public sealed class CharactersControllerTests
         }
 
         public void DeleteImage(string charactersPath, Guid id) => DeleteImageCalls++;
+
+        public Task ReorderAsync(string charactersPath, IReadOnlyList<Guid> ids, CancellationToken ct = default)
+            => Task.CompletedTask;
+
+        public Task<IReadOnlyList<WorldFolder>> GetFoldersAsync(string charactersPath, CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyList<WorldFolder>>([]);
+
+        public Task SaveFoldersAsync(string charactersPath, IReadOnlyList<WorldFolder> folders, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }

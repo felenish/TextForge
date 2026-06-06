@@ -128,6 +128,12 @@ public sealed class SeriesWorkspaceServiceTests
 
         public Task SetAiConfigAsync(AiConfig config, CancellationToken ct = default)
             => Task.CompletedTask;
+
+        public Task<UiPreferences> GetUiPreferencesAsync(CancellationToken ct = default)
+            => Task.FromResult(new UiPreferences());
+
+        public Task SetUiPreferencesAsync(UiPreferences prefs, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 
     private sealed class FakeVersioningService : IVersioningService

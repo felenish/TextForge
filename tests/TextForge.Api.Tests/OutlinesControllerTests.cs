@@ -294,5 +294,8 @@ public sealed class OutlinesControllerTests
             DeleteCalls++;
             return Task.CompletedTask;
         }
+
+        public Task ReorderAsync(string outlinesPath, IReadOnlyList<Guid> ids, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }

@@ -125,5 +125,8 @@ public sealed class PlotGridsControllerTests
 
         public Task DeleteAsync(string plotGridsPath, Guid id, CancellationToken ct = default)
             => Task.CompletedTask;
+
+        public Task ReorderAsync(string plotGridsPath, IReadOnlyList<Guid> ids, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }

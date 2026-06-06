@@ -388,5 +388,14 @@ public sealed class LocationsControllerTests
         }
 
         public void DeleteImage(string locationsPath, Guid id) => DeleteImageCalls++;
+
+        public Task ReorderAsync(string locationsPath, IReadOnlyList<Guid> ids, CancellationToken ct = default)
+            => Task.CompletedTask;
+
+        public Task<IReadOnlyList<WorldFolder>> GetFoldersAsync(string locationsPath, CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyList<WorldFolder>>([]);
+
+        public Task SaveFoldersAsync(string locationsPath, IReadOnlyList<WorldFolder> folders, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }
