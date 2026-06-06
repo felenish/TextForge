@@ -1,8 +1,8 @@
 ; TextForge Studio — Inno Setup script
-; Build: iscc /DAppVersion=0.0.1 installer\TextForge.iss
+; Build: iscc /DAppVersion=0.1.1 installer\TextForge.iss
 
 #ifndef AppVersion
-  #define AppVersion "0.0.1"
+  #define AppVersion "0.1.1"
 #endif
 
 #define AppName      "TextForge Studio"
