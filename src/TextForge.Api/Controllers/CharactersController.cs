@@ -152,6 +152,49 @@ public sealed class CharactersController : ControllerBase
         await _storage.SaveAsync(path, character, ct);
         return NoContent();
     }
+
+    [HttpPost("reorder")]
+    public async Task<IActionResult> Reorder([FromBody] ReorderWorldItemsBody request, CancellationToken ct)
+    {
+        var path = CharactersPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+
+        var ids = request.Ids.Select(s => Guid.TryParse(s, out var g) ? g : (Guid?)null)
+            .Where(g => g.HasValue).Select(g => g!.Value).ToList();
+        await _storage.ReorderAsync(path, ids, ct);
+        return NoContent();
+    }
+
+    [HttpGet("folders")]
+    public async Task<IActionResult> GetFolders(CancellationToken ct)
+    {
+        var path = CharactersPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+        var folders = await _storage.GetFoldersAsync(path, ct);
+        return Ok(folders.Select(f => new WorldFolderDto(f.Id, f.Name, f.SortOrder)));
+    }
+
+    [HttpPut("folders")]
+    public async Task<IActionResult> SaveFolders([FromBody] IReadOnlyList<WorldFolderDto> request, CancellationToken ct)
+    {
+        var path = CharactersPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+        var folders = request.Select(f => new TextForge.Core.Models.WorldFolder { Id = f.Id, Name = f.Name, SortOrder = f.SortOrder }).ToList();
+        await _storage.SaveFoldersAsync(path, folders, ct);
+        return Ok(request);
+    }
+
+    [HttpPatch("{id:guid}/folder")]
+    public async Task<IActionResult> SetFolder(Guid id, [FromBody] SetFolderBody request, CancellationToken ct)
+    {
+        var path = CharactersPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+        var character = await _storage.GetAsync(path, id, ct);
+        if (character is null) return NotFound(new ErrorDto("Character not found."));
+        character.FolderId = string.IsNullOrEmpty(request.FolderId) ? null : request.FolderId;
+        await _storage.SaveAsync(path, character, ct);
+        return Ok(DtoMapper.ToCharacterDto(character));
+    }
 }
 
 public sealed record CreateCharacterBody(string Name, string? Role);

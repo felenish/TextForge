@@ -11,7 +11,9 @@ import * as chaptersApi from '../api/chapters';
 import * as scenesApi from '../api/scenes';
 import * as shellApi from '../api/shell';
 import * as charactersApi from '../api/characters';
+import type { WorldFolderDto as CharacterFolderDto } from '../api/characters';
 import * as locationsApi from '../api/locations';
+import type { WorldFolderDto as LocationFolderDto } from '../api/locations';
 import * as outlinesApi from '../api/outlines';
 import * as plotGridsApi from '../api/plotGrids';
 import { useToast } from '../contexts/ToastContext';
@@ -46,20 +48,39 @@ export interface UseSeriesExplorerResult {
   addCharacter: (name: string, role: string) => Promise<void>;
   renameCharacter: (id: string, name: string) => Promise<void>;
   deleteCharacter: (id: string) => Promise<void>;
+  reorderCharacters: (ids: string[]) => void;
   patchCharacterInList: (character: CharacterDto) => void;
+  characterFolders: CharacterFolderDto[];
+  characterFoldersLoaded: boolean;
+  loadCharacterFolders: () => Promise<void>;
+  addCharacterFolder: (name: string) => Promise<void>;
+  renameCharacterFolder: (id: string, name: string) => Promise<void>;
+  deleteCharacterFolder: (id: string) => Promise<void>;
+  reorderCharacterFolders: (ids: string[]) => void;
+  setCharacterFolder: (characterId: string, folderId: string | null) => Promise<void>;
   locations: LocationDto[];
   locationsLoaded: boolean;
   loadLocations: () => Promise<void>;
   addLocation: (name: string) => Promise<void>;
   renameLocation: (id: string, name: string) => Promise<void>;
   deleteLocation: (id: string) => Promise<void>;
+  reorderLocations: (ids: string[]) => void;
   patchLocationInList: (location: LocationDto) => void;
+  locationFolders: LocationFolderDto[];
+  locationFoldersLoaded: boolean;
+  loadLocationFolders: () => Promise<void>;
+  addLocationFolder: (name: string) => Promise<void>;
+  renameLocationFolder: (id: string, name: string) => Promise<void>;
+  deleteLocationFolder: (id: string) => Promise<void>;
+  reorderLocationFolders: (ids: string[]) => void;
+  setLocationFolder: (locationId: string, folderId: string | null) => Promise<void>;
   outlines: OutlineDto[];
   outlinesLoaded: boolean;
   loadOutlines: () => Promise<void>;
   addOutline: (name: string) => Promise<void>;
   renameOutline: (id: string, name: string) => Promise<void>;
   deleteOutline: (id: string) => Promise<void>;
+  reorderOutlines: (ids: string[]) => void;
   patchOutlineInList: (outline: OutlineDto) => void;
   plotGrids: PlotGridMeta[];
   plotGridsLoaded: boolean;
@@ -67,6 +88,7 @@ export interface UseSeriesExplorerResult {
   addPlotGrid: (name: string) => Promise<void>;
   renamePlotGrid: (id: string, name: string) => Promise<void>;
   deletePlotGrid: (id: string) => Promise<void>;
+  reorderPlotGrids: (ids: string[]) => void;
   patchPlotGridInList: (dto: PlotGridDto) => void;
 }
 
@@ -77,8 +99,12 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const [networkError, setNetworkError] = useState(false);
   const [characters, setCharacters] = useState<CharacterDto[]>([]);
   const [charactersLoaded, setCharactersLoaded] = useState(false);
+  const [characterFolders, setCharacterFolders] = useState<CharacterFolderDto[]>([]);
+  const [characterFoldersLoaded, setCharacterFoldersLoaded] = useState(false);
   const [locations, setLocations] = useState<LocationDto[]>([]);
   const [locationsLoaded, setLocationsLoaded] = useState(false);
+  const [locationFolders, setLocationFolders] = useState<LocationFolderDto[]>([]);
+  const [locationFoldersLoaded, setLocationFoldersLoaded] = useState(false);
   const [outlines, setOutlines] = useState<OutlineDto[]>([]);
   const [outlinesLoaded, setOutlinesLoaded] = useState(false);
   const [plotGrids, setPlotGrids] = useState<PlotGridMeta[]>([]);
@@ -113,8 +139,12 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     setSeries(s);
     setCharacters([]);
     setCharactersLoaded(false);
+    setCharacterFolders([]);
+    setCharacterFoldersLoaded(false);
     setLocations([]);
     setLocationsLoaded(false);
+    setLocationFolders([]);
+    setLocationFoldersLoaded(false);
     setOutlines([]);
     setOutlinesLoaded(false);
     setPlotGrids([]);
@@ -172,11 +202,63 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   });
 
   const patchCharacterInList = (character: CharacterDto) => {
-    setCharacters(prev =>
-      prev.map(c => c.id === character.id ? character : c)
-          .sort((a, b) => a.name.localeCompare(b.name))
+    setCharacters(prev => prev.map(c => c.id === character.id ? character : c));
+  };
+
+  const reorderCharacters = (ids: string[]) => {
+    setCharacters(prev => {
+      const map = new Map(prev.map(c => [c.id, c]));
+      const ordered = ids.map(id => map.get(id)).filter(Boolean) as CharacterDto[];
+      const rest = prev.filter(c => !ids.includes(c.id));
+      return [...ordered, ...rest];
+    });
+    charactersApi.reorderCharacters(ids).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder characters.')
     );
   };
+
+  const loadCharacterFolders = () => run(async () => {
+    const list = await charactersApi.getCharacterFolders();
+    setCharacterFolders(list.sort((a, b) => a.sortOrder - b.sortOrder));
+    setCharacterFoldersLoaded(true);
+  });
+
+  const addCharacterFolder = (name: string) => run(async () => {
+    const folder: CharacterFolderDto = { id: crypto.randomUUID(), name, sortOrder: characterFolders.length + 1 };
+    const updated = [...characterFolders, folder];
+    await charactersApi.saveCharacterFolders(updated);
+    setCharacterFolders(updated);
+    setCharacterFoldersLoaded(true);
+  });
+
+  const renameCharacterFolder = (id: string, name: string) => run(async () => {
+    const updated = characterFolders.map(f => f.id === id ? { ...f, name } : f);
+    await charactersApi.saveCharacterFolders(updated);
+    setCharacterFolders(updated);
+  });
+
+  const deleteCharacterFolder = (id: string) => run(async () => {
+    const updated = characterFolders.filter(f => f.id !== id);
+    await charactersApi.saveCharacterFolders(updated);
+    setCharacterFolders(updated);
+    setCharacters(prev => prev.map(c => c.folderId === id ? { ...c, folderId: null } : c));
+  });
+
+  const reorderCharacterFolders = (ids: string[]) => {
+    const updated = ids
+      .map(id => characterFolders.find(f => f.id === id))
+      .filter(Boolean)
+      .map((f, i) => ({ ...f!, sortOrder: i + 1 }));
+    setCharacterFolders(updated);
+    charactersApi.saveCharacterFolders(updated).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder folders.')
+    );
+  };
+
+  const setCharacterFolder = (characterId: string, folderId: string | null) => run(async () => {
+    const updated = await charactersApi.setCharacterFolder(characterId, folderId);
+    setCharacters(prev => prev.map(c => c.id === characterId ? updated : c));
+  });
 
   const loadLocations = () => run(async () => {
     const list = await locationsApi.getLocations();
@@ -203,11 +285,63 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   });
 
   const patchLocationInList = (location: LocationDto) => {
-    setLocations(prev =>
-      prev.map(l => l.id === location.id ? location : l)
-          .sort((a, b) => a.name.localeCompare(b.name))
+    setLocations(prev => prev.map(l => l.id === location.id ? location : l));
+  };
+
+  const reorderLocations = (ids: string[]) => {
+    setLocations(prev => {
+      const map = new Map(prev.map(l => [l.id, l]));
+      const ordered = ids.map(id => map.get(id)).filter(Boolean) as LocationDto[];
+      const rest = prev.filter(l => !ids.includes(l.id));
+      return [...ordered, ...rest];
+    });
+    locationsApi.reorderLocations(ids).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder locations.')
     );
   };
+
+  const loadLocationFolders = () => run(async () => {
+    const list = await locationsApi.getLocationFolders();
+    setLocationFolders(list.sort((a, b) => a.sortOrder - b.sortOrder));
+    setLocationFoldersLoaded(true);
+  });
+
+  const addLocationFolder = (name: string) => run(async () => {
+    const folder: LocationFolderDto = { id: crypto.randomUUID(), name, sortOrder: locationFolders.length + 1 };
+    const updated = [...locationFolders, folder];
+    await locationsApi.saveLocationFolders(updated);
+    setLocationFolders(updated);
+    setLocationFoldersLoaded(true);
+  });
+
+  const renameLocationFolder = (id: string, name: string) => run(async () => {
+    const updated = locationFolders.map(f => f.id === id ? { ...f, name } : f);
+    await locationsApi.saveLocationFolders(updated);
+    setLocationFolders(updated);
+  });
+
+  const deleteLocationFolder = (id: string) => run(async () => {
+    const updated = locationFolders.filter(f => f.id !== id);
+    await locationsApi.saveLocationFolders(updated);
+    setLocationFolders(updated);
+    setLocations(prev => prev.map(l => l.folderId === id ? { ...l, folderId: null } : l));
+  });
+
+  const reorderLocationFolders = (ids: string[]) => {
+    const updated = ids
+      .map(id => locationFolders.find(f => f.id === id))
+      .filter(Boolean)
+      .map((f, i) => ({ ...f!, sortOrder: i + 1 }));
+    setLocationFolders(updated);
+    locationsApi.saveLocationFolders(updated).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder folders.')
+    );
+  };
+
+  const setLocationFolder = (locationId: string, folderId: string | null) => run(async () => {
+    const updated = await locationsApi.setLocationFolder(locationId, folderId);
+    setLocations(prev => prev.map(l => l.id === locationId ? updated : l));
+  });
 
   const loadOutlines = () => run(async () => {
     const list = await outlinesApi.getOutlines();
@@ -233,6 +367,18 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     setOutlines(prev => prev.filter(o => o.id !== id));
   });
 
+  const reorderOutlines = (ids: string[]) => {
+    setOutlines(prev => {
+      const map = new Map(prev.map(o => [o.id, o]));
+      const ordered = ids.map(id => map.get(id)).filter(Boolean) as OutlineDto[];
+      const rest = prev.filter(o => !ids.includes(o.id));
+      return [...ordered, ...rest];
+    });
+    outlinesApi.reorderOutlines(ids).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder outlines.')
+    );
+  };
+
   const loadPlotGrids = () => run(async () => {
     const list = await plotGridsApi.getPlotGrids();
     setPlotGrids(list);
@@ -257,17 +403,23 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   });
 
   const patchPlotGridInList = (dto: PlotGridDto) => {
-    setPlotGrids(prev =>
-      prev.map(g => g.id === dto.id ? { ...g, name: dto.name } : g)
-          .sort((a, b) => a.name.localeCompare(b.name))
+    setPlotGrids(prev => prev.map(g => g.id === dto.id ? { ...g, name: dto.name } : g));
+  };
+
+  const reorderPlotGrids = (ids: string[]) => {
+    setPlotGrids(prev => {
+      const map = new Map(prev.map(g => [g.id, g]));
+      const ordered = ids.map(id => map.get(id)).filter(Boolean) as PlotGridMeta[];
+      const rest = prev.filter(g => !ids.includes(g.id));
+      return [...ordered, ...rest];
+    });
+    plotGridsApi.reorderPlotGrids(ids).catch(e =>
+      showToast((e as { message?: string }).message ?? 'Failed to reorder plot grids.')
     );
   };
 
   const patchOutlineInList = (outline: OutlineDto) => {
-    setOutlines(prev =>
-      prev.map(o => o.id === outline.id ? { ...o, name: outline.name } : o)
-          .sort((a, b) => a.name.localeCompare(b.name))
-    );
+    setOutlines(prev => prev.map(o => o.id === outline.id ? { ...o, name: outline.name } : o));
   };
 
   const addBook = () => run(async () => {
@@ -420,12 +572,20 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     addBook, renameBook, deleteBook, reorderBooks,
     addChapter, renameChapter, deleteChapter, reorderChapters,
     addScene, renameScene, deleteScene, reorderScenes, moveScene,
-    loadCharacters, addCharacter, renameCharacter, deleteCharacter, patchCharacterInList,
+    loadCharacters, addCharacter, renameCharacter, deleteCharacter,
+    reorderCharacters, patchCharacterInList,
+    characterFolders, characterFoldersLoaded,
+    loadCharacterFolders, addCharacterFolder, renameCharacterFolder, deleteCharacterFolder,
+    reorderCharacterFolders, setCharacterFolder,
     locations, locationsLoaded,
-    loadLocations, addLocation, renameLocation, deleteLocation, patchLocationInList,
+    loadLocations, addLocation, renameLocation, deleteLocation,
+    reorderLocations, patchLocationInList,
+    locationFolders, locationFoldersLoaded,
+    loadLocationFolders, addLocationFolder, renameLocationFolder, deleteLocationFolder,
+    reorderLocationFolders, setLocationFolder,
     outlines, outlinesLoaded,
-    loadOutlines, addOutline, renameOutline, deleteOutline, patchOutlineInList,
+    loadOutlines, addOutline, renameOutline, deleteOutline, reorderOutlines, patchOutlineInList,
     plotGrids, plotGridsLoaded,
-    loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid, patchPlotGridInList,
+    loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid, reorderPlotGrids, patchPlotGridInList,
   };
 }

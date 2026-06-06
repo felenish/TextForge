@@ -575,6 +575,7 @@ input, textarea {
 .tree-row.dragging { opacity: 0.4; }
 .tree-row.drop-before { box-shadow: 0 -2px 0 var(--accent); }
 .tree-row.drop-after  { box-shadow: 0  2px 0 var(--accent); }
+.tree-row.drop-folder { background: color-mix(in srgb, var(--accent) 18%, transparent); outline: 1px solid var(--accent); outline-offset: -1px; }
 .tree-row.active::before {
   content: "";
   position: absolute;

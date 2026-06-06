@@ -16,6 +16,14 @@ export interface CharacterDto {
   biography: string | null;
   hasImage: boolean;
   customSections: CharacterSectionDto[];
+  sortOrder: number;
+  folderId: string | null;
+}
+
+export interface WorldFolderDto {
+  id: string;
+  name: string;
+  sortOrder: number;
 }
 
 export interface PutCharacterBody {
@@ -59,3 +67,15 @@ export const deleteCharacterImage = (id: string): Promise<void> =>
 
 export const getCharacterImageUrl = (id: string): string =>
   `/api/characters/${id}/image`;
+
+export const reorderCharacters = (ids: string[]): Promise<void> =>
+  post('/api/characters/reorder', { ids });
+
+export const getCharacterFolders = (): Promise<WorldFolderDto[]> =>
+  get('/api/characters/folders');
+
+export const saveCharacterFolders = (folders: WorldFolderDto[]): Promise<WorldFolderDto[]> =>
+  put('/api/characters/folders', folders);
+
+export const setCharacterFolder = (id: string, folderId: string | null): Promise<CharacterDto> =>
+  patch(`/api/characters/${id}/folder`, { folderId });

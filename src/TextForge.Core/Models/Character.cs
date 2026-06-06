@@ -11,6 +11,8 @@ public sealed class Character
     public string? Biography { get; set; }
     public string? ImageFileName { get; set; }
     public List<CharacterSection> CustomSections { get; set; } = [];
+    public int SortOrder { get; set; }
+    public string? FolderId { get; set; }
 }
 
 public sealed class CharacterSection

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useDialog } from '../../contexts/DialogContext';
-import type { LocationDto } from '../../api/locations';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 import * as shellApi from '../../api/shell';
@@ -17,6 +16,7 @@ interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onPlotGridOpen: (plotGridId: string, name: string) => void;
   onOpenHelp: () => void;
 }
+
 
 interface DragState {
   kind: 'book' | 'chapter' | 'scene';
@@ -47,16 +47,22 @@ function applyReorder<T extends { id: string }>(
 export function ManuscriptSidebar({
   series, loading, error,
   characters, charactersLoaded,
+  characterFolders, characterFoldersLoaded,
   locations, locationsLoaded,
+  locationFolders, locationFoldersLoaded,
   outlines, outlinesLoaded,
   plotGrids, plotGridsLoaded,
   createSeries, openSeries, addBook, renameBook, deleteBook, reorderBooks,
   addChapter, renameChapter, deleteChapter, reorderChapters,
   addScene, renameScene, deleteScene, reorderScenes, moveScene,
-  loadCharacters, addCharacter, renameCharacter, deleteCharacter,
-  loadLocations, addLocation, renameLocation, deleteLocation,
-  loadOutlines, addOutline, renameOutline, deleteOutline,
-  loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid,
+  loadCharacters, addCharacter, renameCharacter, deleteCharacter, reorderCharacters,
+  loadCharacterFolders, addCharacterFolder, renameCharacterFolder, deleteCharacterFolder,
+  reorderCharacterFolders, setCharacterFolder,
+  loadLocations, addLocation, renameLocation, deleteLocation, reorderLocations,
+  loadLocationFolders, addLocationFolder, renameLocationFolder, deleteLocationFolder,
+  reorderLocationFolders, setLocationFolder,
+  loadOutlines, addOutline, renameOutline, deleteOutline, reorderOutlines,
+  loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid, reorderPlotGrids,
   onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen, onOpenHelp,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId, patchSceneMeta } = useWorkspace();
@@ -73,6 +79,9 @@ export function ManuscriptSidebar({
   const [menu, setMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+  const [wbDragId, setWbDragId] = useState<string | null>(null);
+  const [wbDragSection, setWbDragSection] = useState<'character' | 'location' | 'outline' | 'plotgrid' | 'char-folder' | 'loc-folder' | null>(null);
+  const [wbDropTarget, setWbDropTarget] = useState<DropTarget | null>(null);
 
   const assetsLoaded = !!assetsCache && !!series && assetsCache.seriesId === series.id;
   const assets = assetsLoaded ? assetsCache!.filenames : [];
@@ -217,6 +226,114 @@ export function ManuscriptSidebar({
   const dropClass = (id: string) =>
     dropTarget?.id === id ? ` drop-${dropTarget.position}` : '';
 
+  const onWbDragStart = (
+    e: React.DragEvent,
+    id: string,
+    section: typeof wbDragSection,
+  ) => {
+    e.stopPropagation();
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', id);
+    setWbDragId(id);
+    setWbDragSection(section);
+  };
+
+  const onWbDragOver = (e: React.DragEvent, id: string, section: typeof wbDragSection) => {
+    if (!wbDragId || wbDragSection !== section) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const position: 'before' | 'after' = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    setWbDropTarget(prev => prev?.id === id && prev.position === position ? prev : { id, position });
+  };
+
+  // Allow an item to be dragged onto a folder header (accepts 'character' dragged onto 'char-folder', etc.)
+  const onWbDragOverFolder = (e: React.DragEvent, folderId: string, itemSection: 'character' | 'location') => {
+    if (!wbDragId || wbDragSection !== itemSection) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setWbDropTarget(prev => prev?.id === folderId && prev.position === 'after' ? prev : { id: folderId, position: 'after' });
+  };
+
+  // Allow an item to be dragged onto the root drop zone (top of section, no folder)
+  const onWbDragOverRoot = (e: React.DragEvent, section: 'character' | 'location') => {
+    if (!wbDragId || wbDragSection !== section) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const onWbDragEnd = () => { setWbDragId(null); setWbDragSection(null); setWbDropTarget(null); };
+
+  // Generic reorder drop — also handles moving items between folders or to root
+  const onWbDropItem = <T extends { id: string; folderId?: string | null }>(
+    e: React.DragEvent,
+    targetId: string,
+    targetFolderId: string | null,
+    items: T[],
+    reorder: (ids: string[]) => void,
+    setFolder?: (itemId: string, folderId: string | null) => Promise<void>,
+  ) => {
+    e.preventDefault();
+    if (!wbDragId || !wbDropTarget) return;
+    const draggedItem = items.find(i => i.id === wbDragId);
+    const draggedFolderId = draggedItem?.folderId ?? null;
+
+    if (setFolder && draggedFolderId !== targetFolderId) {
+      // Moving across folder boundary — update folder membership first, then reorder within target group
+      setFolder(wbDragId, targetFolderId);
+    } else {
+      const scopedItems = items.filter(i => (i.folderId ?? null) === targetFolderId);
+      const reordered = applyReorder(scopedItems, wbDragId, targetId, wbDropTarget.position);
+      if (reordered) {
+        const otherItems = items.filter(i => (i.folderId ?? null) !== targetFolderId);
+        reorder([...otherItems, ...reordered].map(i => i.id));
+      }
+    }
+    setWbDragId(null); setWbDragSection(null); setWbDropTarget(null);
+  };
+
+  const onWbDropOnFolder = (
+    e: React.DragEvent,
+    folderId: string,
+    setFolder: (itemId: string, folderId: string | null) => Promise<void>,
+  ) => {
+    e.preventDefault();
+    if (!wbDragId) return;
+    setFolder(wbDragId, folderId);
+    setWbDragId(null); setWbDragSection(null); setWbDropTarget(null);
+  };
+
+  const onWbDropOnRoot = (
+    e: React.DragEvent,
+    itemSection: 'character' | 'location',
+    setFolder: (itemId: string, folderId: string | null) => Promise<void>,
+  ) => {
+    e.preventDefault();
+    if (!wbDragId || wbDragSection !== itemSection) return;
+    setFolder(wbDragId, null);
+    setWbDragId(null); setWbDragSection(null); setWbDropTarget(null);
+  };
+
+  // Folder reorder only (no items involved)
+  const onWbDropFolderReorder = <T extends { id: string }>(
+    e: React.DragEvent,
+    targetId: string,
+    items: T[],
+    reorder: (ids: string[]) => void,
+  ) => {
+    e.preventDefault();
+    if (!wbDragId || !wbDropTarget) return;
+    const reordered = applyReorder(items, wbDragId, targetId, wbDropTarget.position);
+    if (reordered) reorder(reordered.map(i => i.id));
+    setWbDragId(null); setWbDragSection(null); setWbDropTarget(null);
+  };
+
+  const wbDropClass = (id: string, section: typeof wbDragSection) =>
+    wbDropTarget?.id === id && wbDragSection === section ? ` drop-${wbDropTarget.position}` : '';
+
+  const wbFolderDropClass = (folderId: string, itemSection: 'character' | 'location') =>
+    wbDropTarget?.id === folderId && wbDragSection === itemSection ? ' drop-folder' : '';
+
   const showMenu = (e: React.MouseEvent, items: ContextMenuEntry[]) => {
     e.preventDefault();
     e.stopPropagation();
@@ -225,6 +342,7 @@ export function ManuscriptSidebar({
 
   const toggleChars = () => {
     if (!charsOpen && !charactersLoaded) loadCharacters();
+    if (!charsOpen && !characterFoldersLoaded) loadCharacterFolders();
     setCharsOpen(v => !v);
   };
 
@@ -249,6 +367,7 @@ export function ManuscriptSidebar({
 
   const toggleLocs = () => {
     if (!locsOpen && !locationsLoaded) loadLocations();
+    if (!locsOpen && !locationFoldersLoaded) loadLocationFolders();
     setLocsOpen(v => !v);
   };
 
@@ -646,6 +765,13 @@ export function ManuscriptSidebar({
                       addCharacter(name, role ?? '');
                     },
                   },
+                  {
+                    label: 'New Folder',
+                    onClick: async () => {
+                      const name = await prompt({ title: 'New Folder', placeholder: 'Folder name', confirmLabel: 'Add' });
+                      if (name) addCharacterFolder(name);
+                    },
+                  },
                 ])}
               >
                 <span className={`chev${charsOpen ? ' open' : ''}`}>
@@ -669,17 +795,100 @@ export function ManuscriptSidebar({
                       const role = await prompt({ title: 'New Character', placeholder: 'Role (e.g. Protagonist)', confirmLabel: 'Add' });
                       addCharacter(name, role ?? '');
                     }}
+                    onDragOver={e => onWbDragOverRoot(e, 'character')}
+                    onDrop={e => onWbDropOnRoot(e, 'character', setCharacterFolder)}
                   >
                     <span className="icon"><Icon name="plus" size={12} /></span>
                     <span className="label" style={{ fontSize: 11 }}>New Character…</span>
                   </div>
-                  {characters.map(ch => (
+                  {characterFolders.map(folder => {
+                    const folderChars = characters.filter(c => c.folderId === folder.id);
+                    const folderOpen = isExpanded(`char-folder-${folder.id}`);
+                    return (
+                      <div key={folder.id}>
+                        <div
+                          className={`tree-row is-chapter${wbDragId === folder.id ? ' dragging' : ''}${wbDropClass(folder.id, 'char-folder')}${wbFolderDropClass(folder.id, 'character')}`}
+                          style={{ paddingLeft: 20 }}
+                          draggable
+                          onDragStart={e => onWbDragStart(e, folder.id, 'char-folder')}
+                          onDragOver={e => { onWbDragOver(e, folder.id, 'char-folder'); onWbDragOverFolder(e, folder.id, 'character'); }}
+                          onDrop={e => {
+                            if (wbDragSection === 'character') onWbDropOnFolder(e, folder.id, setCharacterFolder);
+                            else onWbDropFolderReorder(e, folder.id, characterFolders, reorderCharacterFolders);
+                          }}
+                          onDragEnd={onWbDragEnd}
+                          onClick={() => toggle(`char-folder-${folder.id}`)}
+                          onContextMenu={e => showMenu(e, [
+                            {
+                              label: 'Rename Folder',
+                              onClick: async () => {
+                                const n = await prompt({ title: 'Rename Folder', defaultValue: folder.name, placeholder: 'Folder name' });
+                                if (n && n !== folder.name) renameCharacterFolder(folder.id, n);
+                              },
+                            },
+                            { type: 'separator' },
+                            {
+                              label: 'Delete Folder',
+                              danger: true,
+                              onClick: async () => {
+                                const ok = await confirm({ title: 'Delete Folder', message: `Delete "${folder.name}"? Characters will be moved out of the folder.`, confirmLabel: 'Delete', dangerous: true });
+                                if (ok) deleteCharacterFolder(folder.id);
+                              },
+                            },
+                          ])}
+                        >
+                          <span className={`chev${folderOpen ? ' open' : ''}`}><Icon name="chev-right" size={11} /></span>
+                          <span className="icon"><Icon name="folder" size={13} /></span>
+                          <span className="label">{folder.name}</span>
+                          <span className="meta-right">{folderChars.length}</span>
+                        </div>
+                        {folderOpen && folderChars.map(ch => (
+                          <div
+                            key={ch.id}
+                            className={`tree-row${wbDragId === ch.id ? ' dragging' : ''}${wbDropClass(ch.id, 'character')}`}
+                            style={{ paddingLeft: 36 }}
+                            draggable
+                            onDragStart={e => onWbDragStart(e, ch.id, 'character')}
+                            onDragOver={e => onWbDragOver(e, ch.id, 'character')}
+                            onDrop={e => onWbDropItem(e, ch.id, folder.id, characters, reorderCharacters, setCharacterFolder)}
+                            onDragEnd={onWbDragEnd}
+                            onClick={() => onCharacterOpen(ch.id, ch.name)}
+                            onContextMenu={e => showMenu(e, [
+                              ...characterMenuItems(ch.id, ch.name),
+                              { type: 'separator' },
+                              { label: 'Remove from Folder', onClick: () => setCharacterFolder(ch.id, null) },
+                            ])}
+                          >
+                            <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                            <span className="icon"><Icon name="user" size={13} /></span>
+                            <span className="label">{ch.name}</span>
+                            {ch.role && <span className="meta-right" style={{ fontSize: 10 }}>{ch.role}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                  {characters.filter(c => !c.folderId).map(ch => (
                     <div
                       key={ch.id}
-                      className="tree-row"
+                      className={`tree-row${wbDragId === ch.id ? ' dragging' : ''}${wbDropClass(ch.id, 'character')}`}
                       style={{ paddingLeft: 20 }}
+                      draggable
+                      onDragStart={e => onWbDragStart(e, ch.id, 'character')}
+                      onDragOver={e => onWbDragOver(e, ch.id, 'character')}
+                      onDrop={e => onWbDropItem(e, ch.id, null, characters, reorderCharacters, setCharacterFolder)}
+                      onDragEnd={onWbDragEnd}
                       onClick={() => onCharacterOpen(ch.id, ch.name)}
-                      onContextMenu={e => showMenu(e, characterMenuItems(ch.id, ch.name))}
+                      onContextMenu={e => showMenu(e, [
+                        ...characterMenuItems(ch.id, ch.name),
+                        ...(characterFolders.length > 0 ? [
+                          { type: 'separator' as const },
+                          ...characterFolders.map(f => ({
+                            label: `Move to: ${f.name}`,
+                            onClick: () => setCharacterFolder(ch.id, f.id),
+                          })),
+                        ] : []),
+                      ])}
                     >
                       <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
                       <span className="icon"><Icon name="user" size={13} /></span>
@@ -709,6 +918,13 @@ export function ManuscriptSidebar({
                       if (name) addLocation(name);
                     },
                   },
+                  {
+                    label: 'New Folder',
+                    onClick: async () => {
+                      const name = await prompt({ title: 'New Folder', placeholder: 'Folder name', confirmLabel: 'Add' });
+                      if (name) addLocationFolder(name);
+                    },
+                  },
                 ])}
               >
                 <span className={`chev${locsOpen ? ' open' : ''}`}>
@@ -730,17 +946,99 @@ export function ManuscriptSidebar({
                       const name = await prompt({ title: 'New Location', placeholder: 'Location name', confirmLabel: 'Add' });
                       if (name) addLocation(name);
                     }}
+                    onDragOver={e => onWbDragOverRoot(e, 'location')}
+                    onDrop={e => onWbDropOnRoot(e, 'location', setLocationFolder)}
                   >
                     <span className="icon"><Icon name="plus" size={12} /></span>
                     <span className="label" style={{ fontSize: 11 }}>New Location…</span>
                   </div>
-                  {(locations as LocationDto[]).map(loc => (
+                  {locationFolders.map(folder => {
+                    const folderLocs = locations.filter(l => l.folderId === folder.id);
+                    const folderOpen = isExpanded(`loc-folder-${folder.id}`);
+                    return (
+                      <div key={folder.id}>
+                        <div
+                          className={`tree-row is-chapter${wbDragId === folder.id ? ' dragging' : ''}${wbDropClass(folder.id, 'loc-folder')}${wbFolderDropClass(folder.id, 'location')}`}
+                          style={{ paddingLeft: 20 }}
+                          draggable
+                          onDragStart={e => onWbDragStart(e, folder.id, 'loc-folder')}
+                          onDragOver={e => { onWbDragOver(e, folder.id, 'loc-folder'); onWbDragOverFolder(e, folder.id, 'location'); }}
+                          onDrop={e => {
+                            if (wbDragSection === 'location') onWbDropOnFolder(e, folder.id, setLocationFolder);
+                            else onWbDropFolderReorder(e, folder.id, locationFolders, reorderLocationFolders);
+                          }}
+                          onDragEnd={onWbDragEnd}
+                          onClick={() => toggle(`loc-folder-${folder.id}`)}
+                          onContextMenu={e => showMenu(e, [
+                            {
+                              label: 'Rename Folder',
+                              onClick: async () => {
+                                const n = await prompt({ title: 'Rename Folder', defaultValue: folder.name, placeholder: 'Folder name' });
+                                if (n && n !== folder.name) renameLocationFolder(folder.id, n);
+                              },
+                            },
+                            { type: 'separator' },
+                            {
+                              label: 'Delete Folder',
+                              danger: true,
+                              onClick: async () => {
+                                const ok = await confirm({ title: 'Delete Folder', message: `Delete "${folder.name}"? Locations will be moved out of the folder.`, confirmLabel: 'Delete', dangerous: true });
+                                if (ok) deleteLocationFolder(folder.id);
+                              },
+                            },
+                          ])}
+                        >
+                          <span className={`chev${folderOpen ? ' open' : ''}`}><Icon name="chev-right" size={11} /></span>
+                          <span className="icon"><Icon name="folder" size={13} /></span>
+                          <span className="label">{folder.name}</span>
+                          <span className="meta-right">{folderLocs.length}</span>
+                        </div>
+                        {folderOpen && folderLocs.map(loc => (
+                          <div
+                            key={loc.id}
+                            className={`tree-row${wbDragId === loc.id ? ' dragging' : ''}${wbDropClass(loc.id, 'location')}`}
+                            style={{ paddingLeft: 36 }}
+                            draggable
+                            onDragStart={e => onWbDragStart(e, loc.id, 'location')}
+                            onDragOver={e => onWbDragOver(e, loc.id, 'location')}
+                            onDrop={e => onWbDropItem(e, loc.id, folder.id, locations, reorderLocations, setLocationFolder)}
+                            onDragEnd={onWbDragEnd}
+                            onClick={() => onLocationOpen(loc.id, loc.name)}
+                            onContextMenu={e => showMenu(e, [
+                              ...locationMenuItems(loc.id, loc.name),
+                              { type: 'separator' },
+                              { label: 'Remove from Folder', onClick: () => setLocationFolder(loc.id, null) },
+                            ])}
+                          >
+                            <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                            <span className="icon"><Icon name="map-pin" size={13} /></span>
+                            <span className="label">{loc.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                  {locations.filter(l => !l.folderId).map(loc => (
                     <div
                       key={loc.id}
-                      className="tree-row"
+                      className={`tree-row${wbDragId === loc.id ? ' dragging' : ''}${wbDropClass(loc.id, 'location')}`}
                       style={{ paddingLeft: 20 }}
+                      draggable
+                      onDragStart={e => onWbDragStart(e, loc.id, 'location')}
+                      onDragOver={e => onWbDragOver(e, loc.id, 'location')}
+                      onDrop={e => onWbDropItem(e, loc.id, null, locations, reorderLocations, setLocationFolder)}
+                      onDragEnd={onWbDragEnd}
                       onClick={() => onLocationOpen(loc.id, loc.name)}
-                      onContextMenu={e => showMenu(e, locationMenuItems(loc.id, loc.name))}
+                      onContextMenu={e => showMenu(e, [
+                        ...locationMenuItems(loc.id, loc.name),
+                        ...(locationFolders.length > 0 ? [
+                          { type: 'separator' as const },
+                          ...locationFolders.map(f => ({
+                            label: `Move to: ${f.name}`,
+                            onClick: () => setLocationFolder(loc.id, f.id),
+                          })),
+                        ] : []),
+                      ])}
                     >
                       <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
                       <span className="icon"><Icon name="map-pin" size={13} /></span>
@@ -797,8 +1095,13 @@ export function ManuscriptSidebar({
                   {outlines.map(o => (
                     <div
                       key={o.id}
-                      className="tree-row"
+                      className={`tree-row${wbDragId === o.id ? ' dragging' : ''}${wbDropClass(o.id, 'outline')}`}
                       style={{ paddingLeft: 20 }}
+                      draggable
+                      onDragStart={e => onWbDragStart(e, o.id, 'outline')}
+                      onDragOver={e => onWbDragOver(e, o.id, 'outline')}
+                      onDrop={e => onWbDropFolderReorder(e, o.id, outlines, reorderOutlines)}
+                      onDragEnd={onWbDragEnd}
                       onClick={() => onOutlineOpen(o.id, o.name)}
                       onContextMenu={e => showMenu(e, outlineMenuItems(o.id, o.name))}
                     >
@@ -857,8 +1160,13 @@ export function ManuscriptSidebar({
                   {plotGrids.map(g => (
                     <div
                       key={g.id}
-                      className="tree-row"
+                      className={`tree-row${wbDragId === g.id ? ' dragging' : ''}${wbDropClass(g.id, 'plotgrid')}`}
                       style={{ paddingLeft: 20 }}
+                      draggable
+                      onDragStart={e => onWbDragStart(e, g.id, 'plotgrid')}
+                      onDragOver={e => onWbDragOver(e, g.id, 'plotgrid')}
+                      onDrop={e => onWbDropFolderReorder(e, g.id, plotGrids, reorderPlotGrids)}
+                      onDragEnd={onWbDragEnd}
                       onClick={() => onPlotGridOpen(g.id, g.name)}
                       onContextMenu={e => showMenu(e, plotGridMenuItems(g.id, g.name))}
                     >

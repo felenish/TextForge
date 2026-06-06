@@ -31,7 +31,9 @@ public sealed class PlotGridStorageService : IPlotGridStorageService
                 grids.Add(grid);
         }
 
-        grids.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+        grids.Sort((a, b) => a.SortOrder != b.SortOrder
+            ? a.SortOrder.CompareTo(b.SortOrder)
+            : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
         return grids;
     }
 
@@ -39,10 +41,14 @@ public sealed class PlotGridStorageService : IPlotGridStorageService
     {
         EnsureFolder(plotGridsPath);
 
+        var existing = await GetAllAsync(plotGridsPath, ct);
+        var maxOrder = existing.Count > 0 ? existing.Max(g => g.SortOrder) : 0;
+
         var grid = new PlotGrid
         {
             Id = Guid.NewGuid(),
             Name = name,
+            SortOrder = maxOrder + 1,
             Columns =
             [
                 new PlotGridColumn { Id = Guid.NewGuid().ToString(), Label = "Main Plot" },
@@ -80,6 +86,18 @@ public sealed class PlotGridStorageService : IPlotGridStorageService
         var path = FilePath(plotGridsPath, id);
         if (File.Exists(path)) File.Delete(path);
         return Task.CompletedTask;
+    }
+
+    public async Task ReorderAsync(string plotGridsPath, IReadOnlyList<Guid> ids, CancellationToken ct = default)
+    {
+        EnsureFolder(plotGridsPath);
+        for (var i = 0; i < ids.Count; i++)
+        {
+            var grid = await GetAsync(plotGridsPath, ids[i], ct);
+            if (grid is null) continue;
+            grid.SortOrder = i + 1;
+            await SaveAsync(plotGridsPath, grid, ct);
+        }
     }
 
     private static string FilePath(string plotGridsPath, Guid id)

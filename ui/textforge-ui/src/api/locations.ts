@@ -12,6 +12,14 @@ export interface LocationDto {
   description: string | null;
   hasImage: boolean;
   customSections: LocationSectionDto[];
+  sortOrder: number;
+  folderId: string | null;
+}
+
+export interface WorldFolderDto {
+  id: string;
+  name: string;
+  sortOrder: number;
 }
 
 export const getLocations = (): Promise<LocationDto[]> =>
@@ -45,3 +53,15 @@ export const deleteLocationImage = (id: string): Promise<void> =>
 
 export const getLocationImageUrl = (id: string): string =>
   `/api/locations/${id}/image`;
+
+export const reorderLocations = (ids: string[]): Promise<void> =>
+  post('/api/locations/reorder', { ids });
+
+export const getLocationFolders = (): Promise<WorldFolderDto[]> =>
+  get('/api/locations/folders');
+
+export const saveLocationFolders = (folders: WorldFolderDto[]): Promise<WorldFolderDto[]> =>
+  put('/api/locations/folders', folders);
+
+export const setLocationFolder = (id: string, folderId: string | null): Promise<LocationDto> =>
+  patch(`/api/locations/${id}/folder`, { folderId });

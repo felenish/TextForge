@@ -1,9 +1,8 @@
 namespace TextForge.Core.Models;
 
-public sealed class Outline
+public sealed class WorldFolder
 {
-    public Guid Id { get; init; }
+    public string Id { get; init; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public string? Content { get; set; }
     public int SortOrder { get; set; }
 }

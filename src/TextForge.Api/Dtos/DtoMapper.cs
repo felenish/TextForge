@@ -17,12 +17,14 @@ internal static class DtoMapper
 
     public static LocationDto ToLocationDto(Location l) => new(
         l.Id, l.Name, l.Description, l.ImageFileName is not null,
-        l.CustomSections.Select(s => new LocationSectionDto(s.Id, s.Title, s.Content)).ToArray());
+        l.CustomSections.Select(s => new LocationSectionDto(s.Id, s.Title, s.Content)).ToArray(),
+        l.SortOrder, l.FolderId);
 
     public static CharacterDto ToCharacterDto(Character c) => new(
         c.Id, c.Name, c.Role, c.Age, c.Gender, c.Personality, c.Biography,
         c.ImageFileName is not null,
-        c.CustomSections.Select(s => new CharacterSectionDto(s.Id, s.Title, s.Content)).ToArray());
+        c.CustomSections.Select(s => new CharacterSectionDto(s.Id, s.Title, s.Content)).ToArray(),
+        c.SortOrder, c.FolderId);
     public static SeriesDto ToSeriesDto(Series series) => new(
         series.Id,
         series.Title,

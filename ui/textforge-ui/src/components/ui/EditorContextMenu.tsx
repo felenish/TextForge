@@ -242,7 +242,8 @@ export function EditorContextMenu() {
             </div>
           ))}
           {linkOpen && linkSubMenu && (() => {
-            const cat = linkCategories.find(c => c.key === linkSubMenu)!;
+            const activeSubMenu = linkSubMenu;
+            const cat = linkCategories.find(c => c.key === activeSubMenu)!;
             return (
               <>
                 <div className="ctx-item ctx-link-back" onClick={() => setLinkSubMenu(null)}>
@@ -253,7 +254,8 @@ export function EditorContextMenu() {
                   <div className="ctx-item ctx-disabled ctx-link-empty">No {cat.label.toLowerCase()}s yet</div>
                 )}
                 {cat.items.map(item => (
-                  <div key={item.id} className="ctx-item ctx-link-item" onClick={() => insertLink(linkSubMenu, item.id, item.name)}>
+                  // eslint-disable-next-line react-hooks/refs
+                  <div key={item.id} className="ctx-item ctx-link-item" onClick={() => insertLink(activeSubMenu, item.id, item.name)}>
                     {item.name}
                   </div>
                 ))}

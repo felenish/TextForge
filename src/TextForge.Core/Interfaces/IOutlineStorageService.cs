@@ -10,4 +10,5 @@ public interface IOutlineStorageService
     Task<Outline?> GetAsync(string outlinesPath, Guid id, CancellationToken ct = default);
     Task SaveAsync(string outlinesPath, Outline outline, CancellationToken ct = default);
     Task DeleteAsync(string outlinesPath, Guid id, CancellationToken ct = default);
+    Task ReorderAsync(string outlinesPath, IReadOnlyList<Guid> ids, CancellationToken ct = default);
 }
