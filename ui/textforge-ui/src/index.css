@@ -849,6 +849,24 @@ input, textarea {
 }
 .char-ed-textarea:focus { border-color: var(--accent); outline: none; }
 .char-ed-biography { min-height: 160px; }
+
+/* RichTextarea — contentEditable replacement for textarea in character/location editors */
+.richtextarea-wrap {
+  display: grid;
+}
+.richtextarea-wrap:focus-within { border-color: var(--accent) !important; }
+/* Both children overlap in the single grid cell */
+.richtextarea-wrap > * { grid-area: 1 / 1; }
+.richtextarea {
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.richtextarea-placeholder {
+  color: var(--text-faint);
+  pointer-events: none;
+  user-select: none;
+}
 .char-ed-custom-section {
   display: flex;
   flex-direction: column;
@@ -2303,6 +2321,29 @@ input, textarea {
 .ctx-item.ctx-ai-toggle .ctx-chevron { margin-left: auto; font-size: 10px; color: var(--text-faint); }
 .ctx-item.ctx-ai-item { padding-left: 28px; color: var(--text-muted); }
 .ctx-item.ctx-ai-item:hover { color: var(--text-strong); }
+.ctx-item.ctx-link-toggle { gap: 6px; }
+.ctx-item.ctx-link-toggle .ctx-chevron { margin-left: auto; font-size: 10px; color: var(--text-faint); }
+.ctx-item.ctx-link-cat { padding-left: 24px; gap: 8px; color: var(--text-muted); }
+.ctx-item.ctx-link-cat .ctx-chevron { margin-left: auto; font-size: 10px; color: var(--text-faint); }
+.ctx-item.ctx-link-cat:hover { color: var(--text-strong); }
+.ctx-item.ctx-link-back { gap: 6px; color: var(--text-muted); font-style: italic; }
+.ctx-item.ctx-link-back:hover { color: var(--text-strong); }
+.ctx-item.ctx-link-item { padding-left: 28px; color: var(--text-muted); }
+.ctx-item.ctx-link-item:hover { color: var(--text-strong); }
+.ctx-item.ctx-link-empty { padding-left: 28px; font-style: italic; }
+
+/* Internal hyperlinks inserted into rich-text editors */
+a.tf-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+a.tf-link:hover { text-decoration-color: var(--accent); }
+[data-theme="light"] a.tf-link { color: var(--accent); }
+[data-theme="sepia"] a.tf-link { color: color-mix(in srgb, var(--accent) 80%, #6b4c2a); }
 
 /* ===================== COMMAND PALETTE ===================== */
 .cmd-overlay {

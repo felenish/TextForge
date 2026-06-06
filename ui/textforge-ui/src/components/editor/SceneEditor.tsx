@@ -392,6 +392,7 @@ export function SceneEditor({ sceneId, sceneTitle, isActive, onRegisterSave, onU
               <div
                 ref={editorRef}
                 className="prose prose-editable"
+                data-scene-editor="true"
                 contentEditable
                 suppressContentEditableWarning
                 spellCheck

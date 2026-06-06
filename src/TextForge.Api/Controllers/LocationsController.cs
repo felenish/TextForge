@@ -81,6 +81,9 @@ public sealed class LocationsController : ControllerBase
 
         location.Name = request.Name;
         location.Description = string.IsNullOrEmpty(request.Description) ? null : request.Description;
+        location.CustomSections = request.CustomSections
+            .Select(s => new TextForge.Core.Models.LocationSection { Id = s.Id, Title = s.Title, Content = s.Content })
+            .ToList();
 
         await _storage.SaveAsync(path, location, ct);
         return Ok(DtoMapper.ToLocationDto(location));
@@ -146,4 +149,5 @@ public sealed class LocationsController : ControllerBase
 
 public sealed record CreateLocationBody(string Name);
 public sealed record PatchLocationBody(string? Name);
-public sealed record PutLocationBody(string Name, string? Description);
+public sealed record PutLocationBody(string Name, string? Description, IReadOnlyList<PutLocationSectionBody> CustomSections);
+public sealed record PutLocationSectionBody(Guid Id, string Title, string Content);

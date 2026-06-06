@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { CharacterDto, CharacterSectionDto } from '../../api/characters';
 import * as charactersApi from '../../api/characters';
 import { Icon } from '../ui/Icon';
+import { RichTextarea } from '../ui/RichTextarea';
 
 interface CharacterEditorProps {
   characterId: string;
@@ -233,24 +234,24 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
           {/* Personality */}
           <div className="char-ed-section">
             <label className="char-ed-label">Personality</label>
-            <textarea
-              className="char-ed-textarea char-ed-personality"
-              value={character.personality ?? ''}
-              onChange={e => update({ personality: e.target.value || null })}
+            <RichTextarea
+              value={character.personality}
+              onChange={html => update({ personality: html })}
               placeholder="Describe their personality traits, quirks, and mannerisms…"
-              rows={3}
+              className="char-ed-textarea char-ed-personality"
+              minRows={3}
             />
           </div>
 
           {/* Biography */}
           <div className="char-ed-section">
             <label className="char-ed-label">Biography</label>
-            <textarea
-              className="char-ed-textarea char-ed-biography"
-              value={character.biography ?? ''}
-              onChange={e => update({ biography: e.target.value || null })}
+            <RichTextarea
+              value={character.biography}
+              onChange={html => update({ biography: html })}
               placeholder="Background, history, and story arc…"
-              rows={8}
+              className="char-ed-textarea char-ed-biography"
+              minRows={8}
             />
           </div>
 
@@ -272,12 +273,12 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
                   <Icon name="x" size={14} />
                 </button>
               </div>
-              <textarea
-                className="char-ed-textarea char-ed-custom-section-content"
-                value={section.content}
-                onChange={e => updateSection(section.id, { content: e.target.value })}
+              <RichTextarea
+                value={section.content || null}
+                onChange={html => updateSection(section.id, { content: html ?? '' })}
                 placeholder="Notes, details, continuity…"
-                rows={4}
+                className="char-ed-textarea char-ed-custom-section-content"
+                minRows={4}
               />
             </div>
           ))}

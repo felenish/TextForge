@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
+import { useInternalLink } from '../../contexts/InternalLinkContext';
+import type { InternalLinkType } from '../../contexts/InternalLinkContext';
 
 const AI_ACTIONS = [
   { id: 'copy-edit', label: 'Copy Edit'    },
@@ -17,6 +19,16 @@ function isEditable(el: EventTarget | null): el is HTMLElement {
   }
   if (el instanceof HTMLTextAreaElement) return !el.disabled && !el.readOnly;
   return el.isContentEditable;
+}
+
+// Returns true if the element is (or is inside) a scene editor — excluded from link feature.
+function isInSceneEditor(el: HTMLElement): boolean {
+  let node: HTMLElement | null = el;
+  while (node) {
+    if (node.dataset?.sceneEditor === 'true') return true;
+    node = node.parentElement;
+  }
+  return false;
 }
 
 // Capture the selection at contextmenu time — before the menu appears and
@@ -39,16 +51,27 @@ function captureSel(target: HTMLElement): { text: string; sel: SavedSel } {
   return { text, sel };
 }
 
+type LinkSubMenu = 'character' | 'location' | 'outline' | null;
+
 export function EditorContextMenu() {
+  const { characters, locations, outlines } = useInternalLink();
   const [visible, setVisible]             = useState(false);
   const [pos, setPos]                     = useState({ x: 0, y: 0 });
   const [selectedText, setSelected]       = useState('');
   const [aiOpen, setAiOpen]               = useState(false);
+  const [linkOpen, setLinkOpen]           = useState(false);
+  const [linkSubMenu, setLinkSubMenu]     = useState<LinkSubMenu>(null);
   const [inContentEditable, setInCE]      = useState(false);
+  const [canLink, setCanLink]             = useState(false);
   const menuRef  = useRef<HTMLDivElement>(null);
   const savedSel = useRef<SavedSel>(null);
 
-  const close = useCallback(() => { setVisible(false); setAiOpen(false); }, []);
+  const close = useCallback(() => {
+    setVisible(false);
+    setAiOpen(false);
+    setLinkOpen(false);
+    setLinkSubMenu(null);
+  }, []);
 
   useEffect(() => {
     const onContext = (e: MouseEvent) => {
@@ -59,7 +82,10 @@ export function EditorContextMenu() {
       savedSel.current = sel;
       setSelected(text);
       setInCE(sel?.kind === 'range');
+      setCanLink(sel?.kind === 'range' && !isInSceneEditor(target));
       setAiOpen(false);
+      setLinkOpen(false);
+      setLinkSubMenu(null);
       setPos({ x: e.clientX, y: e.clientY });
       setVisible(true);
     };
@@ -90,7 +116,7 @@ export function EditorContextMenu() {
       x: rect.right  > vw ? Math.max(0, vw - rect.width  - 4) : prev.x,
       y: rect.bottom > vh ? Math.max(0, vh - rect.height - 4) : prev.y,
     }));
-  }, [visible]);
+  }, [visible, linkOpen, linkSubMenu, aiOpen]);
 
   if (!visible) return null;
 
@@ -110,7 +136,6 @@ export function EditorContextMenu() {
   }
 
   // Route all mutations through execCommand so the browser's undo stack stays intact.
-  // setRangeText / deleteContents are direct DOM mutations that bypass undo history.
   function execOnSel(cmd: string, value?: string) {
     const s = savedSel.current;
     if (!s) return;
@@ -157,6 +182,29 @@ export function EditorContextMenu() {
     close();
   }
 
+  function insertLink(type: InternalLinkType, id: string, name: string) {
+    const s = savedSel.current;
+    if (!s || s.kind !== 'range') { close(); return; }
+    restoreSel();
+    const html = `<a class="tf-link" data-tf-type="${type}" data-tf-id="${id}" data-tf-name="${escapeAttr(name)}" contenteditable="false" title="Ctrl+click to open">${escapeHtml(selectedText)}</a>`;
+    document.execCommand('insertHTML', false, html);
+    close();
+  }
+
+  function escapeHtml(s: string) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function escapeAttr(s: string) {
+    return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  const linkCategories: { key: LinkSubMenu; label: string; icon: string; items: { id: string; name: string }[] }[] = [
+    { key: 'character', label: 'Character',  icon: 'user',    items: characters.map(c => ({ id: c.id, name: c.name })) },
+    { key: 'location',  label: 'Location',   icon: 'map-pin', items: locations.map(l => ({ id: l.id, name: l.name })) },
+    { key: 'outline',   label: 'Outline',    icon: 'layout',  items: outlines.map(o => ({ id: o.id, name: o.name })) },
+  ];
+
   return (
     // onMouseDown preventDefault keeps the editor focused and preserves its
     // DOM selection so cut/copy/paste can act on the right content.
@@ -178,10 +226,47 @@ export function EditorContextMenu() {
       <div className="ctx-item" onClick={() => void paste()}>Paste</div>
       <div className="ctx-item" onClick={() => void pastePlain()}>Paste as Plain Text</div>
 
+      {hasSelection && canLink && (
+        <>
+          <div className="ctx-sep" />
+          <div className="ctx-item ctx-link-toggle" onClick={() => { setLinkOpen(o => !o); setLinkSubMenu(null); setAiOpen(false); }}>
+            <Icon name="link" size={11} />
+            <span>Link to…</span>
+            <span className="ctx-chevron">{linkOpen ? '▾' : '▸'}</span>
+          </div>
+          {linkOpen && !linkSubMenu && linkCategories.map(cat => (
+            <div key={cat.key} className="ctx-item ctx-link-cat" onClick={() => setLinkSubMenu(cat.key)}>
+              <Icon name={cat.icon as Parameters<typeof Icon>[0]['name']} size={12} />
+              <span>{cat.label}</span>
+              <span className="ctx-chevron">▸</span>
+            </div>
+          ))}
+          {linkOpen && linkSubMenu && (() => {
+            const cat = linkCategories.find(c => c.key === linkSubMenu)!;
+            return (
+              <>
+                <div className="ctx-item ctx-link-back" onClick={() => setLinkSubMenu(null)}>
+                  <span className="ctx-chevron">◂</span>
+                  <span>{cat.label}</span>
+                </div>
+                {cat.items.length === 0 && (
+                  <div className="ctx-item ctx-disabled ctx-link-empty">No {cat.label.toLowerCase()}s yet</div>
+                )}
+                {cat.items.map(item => (
+                  <div key={item.id} className="ctx-item ctx-link-item" onClick={() => insertLink(linkSubMenu, item.id, item.name)}>
+                    {item.name}
+                  </div>
+                ))}
+              </>
+            );
+          })()}
+        </>
+      )}
+
       {hasSelection && (
         <>
           <div className="ctx-sep" />
-          <div className="ctx-item ctx-ai-toggle" onClick={() => setAiOpen(o => !o)}>
+          <div className="ctx-item ctx-ai-toggle" onClick={() => { setAiOpen(o => !o); setLinkOpen(false); setLinkSubMenu(null); }}>
             <Icon name="sparkles" size={11} />
             <span>AI Assistant</span>
             <span className="ctx-chevron">{aiOpen ? '▾' : '▸'}</span>

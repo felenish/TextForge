@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { LocationDto } from '../../api/locations';
+import type { LocationDto, LocationSectionDto } from '../../api/locations';
 import * as locationsApi from '../../api/locations';
 import { Icon } from '../ui/Icon';
+import { RichTextarea } from '../ui/RichTextarea';
 
 interface LocationEditorProps {
   locationId: string;
@@ -9,6 +10,10 @@ interface LocationEditorProps {
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+function newSection(): LocationSectionDto {
+  return { id: crypto.randomUUID(), title: '', content: '' };
+}
 
 export function LocationEditor({ locationId, onSaved }: LocationEditorProps) {
   const [location, setLocation] = useState<LocationDto | null>(null);
@@ -44,6 +49,7 @@ export function LocationEditor({ locationId, onSaved }: LocationEditorProps) {
       const saved = await locationsApi.saveLocationDetails(l.id, {
         name: l.name,
         description: l.description,
+        customSections: l.customSections,
       });
       setSaveStatus('saved');
       onSaved?.(saved);
@@ -63,6 +69,36 @@ export function LocationEditor({ locationId, onSaved }: LocationEditorProps) {
     setLocation(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...patch };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const addSection = useCallback(() => {
+    setLocation(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, customSections: [...prev.customSections, newSection()] };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const updateSection = useCallback((id: string, patch: Partial<LocationSectionDto>) => {
+    setLocation(prev => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        customSections: prev.customSections.map(s => s.id === id ? { ...s, ...patch } : s),
+      };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const removeSection = useCallback((id: string) => {
+    setLocation(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, customSections: prev.customSections.filter(s => s.id !== id) };
       scheduleSave(updated);
       return updated;
     });
@@ -155,14 +191,46 @@ export function LocationEditor({ locationId, onSaved }: LocationEditorProps) {
           {/* Description */}
           <div className="char-ed-section">
             <label className="char-ed-label">Description</label>
-            <textarea
-              className="char-ed-textarea char-ed-biography"
-              value={location.description ?? ''}
-              onChange={e => update({ description: e.target.value || null })}
+            <RichTextarea
+              value={location.description}
+              onChange={html => update({ description: html })}
               placeholder="Describe this place — its appearance, atmosphere, and significance to the story…"
-              rows={10}
+              className="char-ed-textarea char-ed-biography"
+              minRows={10}
             />
           </div>
+
+          {/* Custom sections */}
+          {location.customSections.map(section => (
+            <div key={section.id} className="char-ed-custom-section">
+              <div className="char-ed-custom-section-header">
+                <input
+                  className="char-ed-custom-section-title"
+                  value={section.title}
+                  onChange={e => updateSection(section.id, { title: e.target.value })}
+                  placeholder="Section title…"
+                />
+                <button
+                  className="char-ed-custom-section-remove"
+                  onClick={() => removeSection(section.id)}
+                  title="Remove section"
+                >
+                  <Icon name="x" size={14} />
+                </button>
+              </div>
+              <RichTextarea
+                value={section.content || null}
+                onChange={html => updateSection(section.id, { content: html ?? '' })}
+                placeholder="Notes, details, continuity…"
+                className="char-ed-textarea char-ed-custom-section-content"
+                minRows={4}
+              />
+            </div>
+          ))}
+
+          <button className="char-ed-add-section" onClick={addSection}>
+            <Icon name="plus" size={14} /> Add section
+          </button>
 
         </div>
       </div>

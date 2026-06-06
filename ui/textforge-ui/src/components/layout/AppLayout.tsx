@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { useSeriesExplorer } from '../../hooks/useSeriesExplorer';
@@ -22,6 +22,8 @@ import { UpdateBanner } from '../ui/UpdateBanner';
 import { BackendBanner } from '../ui/BackendBanner';
 import { AboutModal } from '../ui/AboutModal';
 import { EditorContextMenu } from '../ui/EditorContextMenu';
+import { InternalLinkContext } from '../../contexts/InternalLinkContext';
+import type { InternalLinkType } from '../../contexts/InternalLinkContext';
 import { getWebView, requestUpdate } from '../../lib/webview';
 import { logInfo } from '../../lib/logger';
 import * as shellApi from '../../api/shell';
@@ -173,6 +175,45 @@ export function AppLayout() {
     explorer.openSeriesFromPath(path);
   }, [explorer]);
 
+  // Eagerly load characters/locations/outlines when a series opens so the
+  // "Link to…" context menu works without requiring sidebar expansion first.
+  useEffect(() => {
+    if (!explorer.series) return;
+    if (!explorer.charactersLoaded) void explorer.loadCharacters();
+    if (!explorer.locationsLoaded) void explorer.loadLocations();
+    if (!explorer.outlinesLoaded) void explorer.loadOutlines();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [explorer.series]);
+
+  const navigateTo = useCallback((type: InternalLinkType, id: string, name: string) => {
+    if (type === 'character') editorRef.current?.openCharacter(id, name);
+    else if (type === 'location') editorRef.current?.openLocation(id, name);
+    else if (type === 'outline') editorRef.current?.openOutline(id, name);
+  }, []);
+
+  // Ctrl+click on internal links to navigate
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const target = (e.target as HTMLElement).closest?.('.tf-link') as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      const type = target.dataset.tfType as InternalLinkType | undefined;
+      const id = target.dataset.tfId;
+      const name = target.dataset.tfName ?? '';
+      if (type && id) navigateTo(type, id, name);
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [navigateTo]);
+
+  const internalLinkValue = useMemo(() => ({
+    characters: explorer.characters,
+    locations: explorer.locations,
+    outlines: explorer.outlines,
+    navigateTo,
+  }), [explorer.characters, explorer.locations, explorer.outlines, navigateTo]);
+
   // WebView2 message bridge
   useEffect(() => {
     const webview = getWebView();
@@ -253,6 +294,7 @@ export function AppLayout() {
   }, [explorer.loading]);
 
   return (
+    <InternalLinkContext.Provider value={internalLinkValue}>
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
       <TitleBar />
       <MenuBar
@@ -366,5 +408,6 @@ export function AppLayout() {
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
       <EditorContextMenu />
     </Shell>
+    </InternalLinkContext.Provider>
   );
 }

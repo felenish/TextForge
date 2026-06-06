@@ -1,10 +1,17 @@
 import { del, get, patch, post, put } from './client';
 
+export interface LocationSectionDto {
+  id: string;
+  title: string;
+  content: string;
+}
+
 export interface LocationDto {
   id: string;
   name: string;
   description: string | null;
   hasImage: boolean;
+  customSections: LocationSectionDto[];
 }
 
 export const getLocations = (): Promise<LocationDto[]> =>
@@ -19,7 +26,7 @@ export const createLocation = (name: string): Promise<LocationDto> =>
 export const updateLocation = (id: string, patch_: { name?: string }): Promise<LocationDto> =>
   patch(`/api/locations/${id}`, patch_);
 
-export const saveLocationDetails = (id: string, body: { name: string; description: string | null }): Promise<LocationDto> =>
+export const saveLocationDetails = (id: string, body: { name: string; description: string | null; customSections: LocationSectionDto[] }): Promise<LocationDto> =>
   put(`/api/locations/${id}`, body);
 
 export const deleteLocation = (id: string): Promise<void> =>

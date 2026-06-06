@@ -15,7 +15,9 @@ internal static class DtoMapper
     public static OutlineDto ToOutlineMeta(Outline o) => new(o.Id, o.Name, null);
     public static OutlineDto ToOutlineDto(Outline o) => new(o.Id, o.Name, o.Content);
 
-    public static LocationDto ToLocationDto(Location l) => new(l.Id, l.Name, l.Description, l.ImageFileName is not null);
+    public static LocationDto ToLocationDto(Location l) => new(
+        l.Id, l.Name, l.Description, l.ImageFileName is not null,
+        l.CustomSections.Select(s => new LocationSectionDto(s.Id, s.Title, s.Content)).ToArray());
 
     public static CharacterDto ToCharacterDto(Character c) => new(
         c.Id, c.Name, c.Role, c.Age, c.Gender, c.Personality, c.Biography,

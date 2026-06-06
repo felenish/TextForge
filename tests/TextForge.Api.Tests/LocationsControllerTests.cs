@@ -50,7 +50,7 @@ public sealed class LocationsControllerTests
     public async Task Put_WhenNoSeriesOpen_ReturnsBadRequest()
     {
         var sut = MakeSut(series: null);
-        var result = await sut.Put(Guid.NewGuid(), new PutLocationBody("Castle", null), CancellationToken.None);
+        var result = await sut.Put(Guid.NewGuid(), new PutLocationBody("Castle", null, []), CancellationToken.None);
         AssertNoSeries(result);
     }
 
@@ -110,7 +110,7 @@ public sealed class LocationsControllerTests
     public async Task Put_WhenLocationNotFound_ReturnsNotFound()
     {
         var sut = MakeSut(series: MakeSeries());
-        var result = await sut.Put(Guid.NewGuid(), new PutLocationBody("Castle", "A keep"), CancellationToken.None);
+        var result = await sut.Put(Guid.NewGuid(), new PutLocationBody("Castle", "A keep", []), CancellationToken.None);
         result.Should().BeOfType<NotFoundObjectResult>();
     }
 
@@ -206,7 +206,7 @@ public sealed class LocationsControllerTests
         var storage = new FakeLocationStorage(location);
         var sut = MakeSut(series: MakeSeries(), storage: storage);
 
-        await sut.Put(location.Id, new PutLocationBody("Castle", Description: ""), CancellationToken.None);
+        await sut.Put(location.Id, new PutLocationBody("Castle", Description: "", CustomSections: []), CancellationToken.None);
 
         location.Description.Should().BeNull();
     }
@@ -218,7 +218,7 @@ public sealed class LocationsControllerTests
         var storage = new FakeLocationStorage(location);
         var sut = MakeSut(series: MakeSeries(), storage: storage);
 
-        await sut.Put(location.Id, new PutLocationBody("Tower", "A tall tower"), CancellationToken.None);
+        await sut.Put(location.Id, new PutLocationBody("Tower", "A tall tower", []), CancellationToken.None);
 
         location.Name.Should().Be("Tower");
         location.Description.Should().Be("A tall tower");
