@@ -21,6 +21,7 @@ interface MenuBarProps {
   onFindReplace: () => void;
   onOpenSettings: () => void;
   onOpenHelp: () => void;
+  onOpenLogFolder: () => void;
   onAbout: () => void;
   bottomOpen: boolean;
   onBottomToggle: () => void;
@@ -30,7 +31,7 @@ interface MenuBarProps {
 export function MenuBar({
   focusMode, onFocusToggle, onPaletteOpen,
   onOpenSeries, onCreateSeries, onSave, onSaveAll, onOpenRecentSeries, onCloseSeries,
-  onFind, onFindReplace, onOpenSettings, onOpenHelp, onAbout,
+  onFind, onFindReplace, onOpenSettings, onOpenHelp, onOpenLogFolder, onAbout,
   bottomOpen, onBottomToggle, onViewHistory,
 }: MenuBarProps) {
   const { theme, cycleTheme, seriesTitle } = useWorkspace();
@@ -58,7 +59,12 @@ export function MenuBar({
           onBottomToggle={onBottomToggle}
           onPaletteOpen={onPaletteOpen}
         />
-        <HelpMenu onOpenSettings={onOpenSettings} onOpenHelp={onOpenHelp} onAbout={onAbout} />
+        <HelpMenu
+          onOpenSettings={onOpenSettings}
+          onOpenHelp={onOpenHelp}
+          onOpenLogFolder={onOpenLogFolder}
+          onAbout={onAbout}
+        />
       </nav>
       <div className="mb-actions">
         <button onClick={onPaletteOpen} title="Command Palette (Ctrl+P)">

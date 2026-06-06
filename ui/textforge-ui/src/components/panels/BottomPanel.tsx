@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useOutput } from '../../contexts/OutputContext';
 import { Icon } from '../ui/Icon';
+import { getScene, patchScene } from '../../api/scenes';
 
 type BottomTab = 'wordcount' | 'notes' | 'output' | 'problems';
 
@@ -23,35 +24,136 @@ function fmtTime(d: Date) {
 
 export function BottomPanel({ onClose }: BottomPanelProps) {
   const [activeTab, setActiveTab] = useState<BottomTab>('wordcount');
-  const { series, wordCount, totalWordCount, sceneWordCounts } = useWorkspace();
+  const { series, wordCount, totalWordCount, sceneWordCounts, activeSceneId } = useWorkspace();
   const { lines, clear } = useOutput();
 
   // ── Notes ───────────────────────────────────────────────────────────────
-  const [notes, setNotes] = useState<Note[]>(() => {
-    try {
-      const raw = localStorage.getItem('tf-notes');
-      return raw ? (JSON.parse(raw) as Note[]) : [];
-    } catch { return []; }
-  });
+  const [notes, setNotes] = useState<Note[]>([]);
   const [newNoteText, setNewNoteText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('tf-notes', JSON.stringify(notes));
-  }, [notes]);
+    let cancelled = false;
+
+    // Reset interaction state synchronously when the active scene changes so stale
+    // editing/drag UI from the previous scene is never visible on the new scene.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEditingId(null);
+    setEditingText('');
+    setDraggingId(null);
+    setDragOverId(null);
+
+    if (!activeSceneId) {
+      setNotes([]);
+      return () => { cancelled = true; };
+    }
+
+    (async () => {
+      try {
+        const scene = await getScene(activeSceneId);
+        if (cancelled) return;
+        setNotes(scene.checklistItems ?? []);
+      } catch {
+        if (cancelled) return;
+        setNotes([]);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSceneId]);
+
+  function updateNotes(updater: (prev: Note[]) => Note[]) {
+    setNotes(prev => {
+      const next = updater(prev);
+      if (activeSceneId)
+      {
+        void patchScene(activeSceneId, { checklistItems: next });
+      }
+      return next;
+    });
+  }
 
   function addNote() {
+    if (!activeSceneId) return;
     const text = newNoteText.trim();
     if (!text) return;
-    setNotes(prev => [...prev, { id: crypto.randomUUID(), text, done: false }]);
+    updateNotes(prev => [...prev, { id: crypto.randomUUID(), text, done: false }]);
     setNewNoteText('');
   }
 
   function toggleNote(id: string) {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, done: !n.done } : n));
+    updateNotes(prev => prev.map(n => n.id === id ? { ...n, done: !n.done } : n));
   }
 
   function deleteNote(id: string) {
-    setNotes(prev => prev.filter(n => n.id !== id));
+    updateNotes(prev => prev.filter(n => n.id !== id));
+  }
+
+  function reorderNotes(dragId: string, targetId: string) {
+    if (dragId === targetId) return;
+    updateNotes(prev => {
+      const from = prev.findIndex(n => n.id === dragId);
+      const to = prev.findIndex(n => n.id === targetId);
+      if (from < 0 || to < 0 || from === to) return prev;
+
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  }
+
+  function startEditing(note: Note) {
+    setEditingId(note.id);
+    setEditingText(note.text);
+  }
+
+  function commitEditing(id: string) {
+    const text = editingText.trim();
+    if (text) {
+      updateNotes(prev => prev.map(n => (n.id === id ? { ...n, text } : n)));
+    }
+    setEditingId(null);
+    setEditingText('');
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setEditingText('');
+  }
+
+  function onNoteDragStart(id: string, event: React.DragEvent<HTMLDivElement>) {
+    if (editingId) {
+      event.preventDefault();
+      return;
+    }
+    setDraggingId(id);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', id);
+  }
+
+  function onNoteDragOver(id: string, event: React.DragEvent<HTMLDivElement>) {
+    if (!draggingId || draggingId === id) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    setDragOverId(id);
+  }
+
+  function onNoteDrop(id: string, event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    if (!draggingId || draggingId === id) return;
+    reorderNotes(draggingId, id);
+    setDragOverId(null);
+  }
+
+  function onNoteDragEnd() {
+    setDraggingId(null);
+    setDragOverId(null);
   }
 
   // ── Word Count ───────────────────────────────────────────────────────────
@@ -172,7 +274,12 @@ export function BottomPanel({ onClose }: BottomPanelProps) {
         {/* E.3 Notes */}
         {activeTab === 'notes' && (
           <div className="notes-board">
-            {notes.length === 0 && (
+            {!activeSceneId && (
+              <div style={{ color: 'var(--text-faint)', fontSize: 'var(--fs-mono-sm)', padding: '4px 0' }}>
+                Open a scene to view checklist notes.
+              </div>
+            )}
+            {activeSceneId && notes.length === 0 && (
               <div style={{ color: 'var(--text-faint)', fontSize: 'var(--fs-mono-sm)', padding: '4px 0' }}>
                 No notes yet.
               </div>
@@ -181,17 +288,68 @@ export function BottomPanel({ onClose }: BottomPanelProps) {
               <div
                 key={note.id}
                 className={`nb-item${note.done ? ' done' : ''}`}
-                onClick={() => toggleNote(note.id)}
+                draggable={editingId !== note.id}
+                onDragStart={e => onNoteDragStart(note.id, e)}
+                onDragOver={e => onNoteDragOver(note.id, e)}
+                onDrop={e => onNoteDrop(note.id, e)}
+                onDragEnd={onNoteDragEnd}
+                onClick={() => {
+                  if (editingId !== note.id) toggleNote(note.id);
+                }}
+                style={{
+                  border: dragOverId === note.id ? '1px dashed var(--border-strong)' : undefined,
+                }}
               >
-                <div className="check" />
-                <span className="text">{note.text}</span>
-                <button
-                  style={{ background: 'none', color: 'var(--text-faint)', padding: '0 2px' }}
-                  onClick={e => { e.stopPropagation(); deleteNote(note.id); }}
-                  title="Delete note"
+                <span
+                  className="drag-handle"
+                  title="Drag to reorder"
+                  onClick={e => e.stopPropagation()}
                 >
-                  <Icon name="x" size={11} />
-                </button>
+                  ⋮⋮
+                </span>
+                <div className="check" />
+                {editingId === note.id ? (
+                  <input
+                    value={editingText}
+                    onChange={e => setEditingText(e.target.value)}
+                    onClick={e => e.stopPropagation()}
+                    onBlur={() => commitEditing(note.id)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        commitEditing(note.id);
+                      }
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        cancelEditing();
+                      }
+                    }}
+                    autoFocus
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      background: 'var(--bg-editor)',
+                      border: '1px solid var(--border-strong)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '2px 6px',
+                      color: 'var(--text)',
+                      fontSize: 'var(--fs-mono-sm)',
+                    }}
+                  />
+                ) : (
+                  <span className="text" onDoubleClick={e => { e.stopPropagation(); startEditing(note); }}>
+                    {note.text}
+                  </span>
+                )}
+                <div className="note-actions">
+                  <button
+                    style={{ background: 'none', color: 'var(--text-faint)', padding: '0 2px' }}
+                    onClick={e => { e.stopPropagation(); deleteNote(note.id); }}
+                    title="Delete note"
+                  >
+                    <Icon name="x" size={11} />
+                  </button>
+                </div>
               </div>
             ))}
             <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
@@ -200,6 +358,7 @@ export function BottomPanel({ onClose }: BottomPanelProps) {
                 onChange={e => setNewNoteText(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addNote()}
                 placeholder="+ Add a note…"
+                disabled={!activeSceneId}
                 style={{
                   flex: 1, background: 'var(--bg-editor)', border: '1px dashed var(--border-strong)',
                   borderRadius: 'var(--radius-sm)', padding: '5px 10px',

@@ -125,11 +125,22 @@ public sealed class ChaptersController : ControllerBase
         if (chapter is null)
             return NotFound(new ErrorDto("Chapter not found."));
 
-        var ordered = request.Ids
-            .Select(id => Guid.TryParse(id, out var g) ? chapter.Scenes.FirstOrDefault(s => s.Id == g) : null)
+        var requestedIds = request.Ids
+            .Select(id => Guid.TryParse(id, out var g) ? (Guid?)g : null)
+            .Where(g => g.HasValue)
+            .Select(g => g!.Value)
+            .ToHashSet();
+
+        // Scenes mentioned in the request get explicit sort positions;
+        // any scenes NOT in the request are appended after, preserving them.
+        var ordered = requestedIds
+            .Select(id => chapter.Scenes.FirstOrDefault(s => s.Id == id))
             .Where(s => s is not null)
             .Select(s => s!)
             .ToList();
+
+        var remainder = chapter.Scenes.Where(s => !requestedIds.Contains(s.Id)).ToList();
+        ordered.AddRange(remainder);
 
         for (var i = 0; i < ordered.Count; i++)
             ordered[i].SortOrder = i + 1;

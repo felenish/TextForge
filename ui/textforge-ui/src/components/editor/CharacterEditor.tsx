@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { CharacterDto } from '../../api/characters';
+import type { CharacterDto, CharacterSectionDto } from '../../api/characters';
 import * as charactersApi from '../../api/characters';
 import { Icon } from '../ui/Icon';
+import { RichTextarea } from '../ui/RichTextarea';
 
 interface CharacterEditorProps {
   characterId: string;
@@ -11,6 +12,10 @@ interface CharacterEditorProps {
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 const GENDER_OPTIONS = ['', 'Male', 'Female', 'Non-binary', 'Other'];
+
+function newSection(): CharacterSectionDto {
+  return { id: crypto.randomUUID(), title: '', content: '' };
+}
 
 export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) {
   const [character, setCharacter] = useState<CharacterDto | null>(null);
@@ -50,6 +55,7 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
         gender: c.gender,
         personality: c.personality,
         biography: c.biography,
+        customSections: c.customSections,
       });
       setSaveStatus('saved');
       onSaved?.(saved);
@@ -69,6 +75,36 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
     setCharacter(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...patch };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const addSection = useCallback(() => {
+    setCharacter(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, customSections: [...prev.customSections, newSection()] };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const updateSection = useCallback((id: string, patch: Partial<CharacterSectionDto>) => {
+    setCharacter(prev => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        customSections: prev.customSections.map(s => s.id === id ? { ...s, ...patch } : s),
+      };
+      scheduleSave(updated);
+      return updated;
+    });
+  }, [scheduleSave]);
+
+  const removeSection = useCallback((id: string) => {
+    setCharacter(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, customSections: prev.customSections.filter(s => s.id !== id) };
       scheduleSave(updated);
       return updated;
     });
@@ -198,26 +234,58 @@ export function CharacterEditor({ characterId, onSaved }: CharacterEditorProps) 
           {/* Personality */}
           <div className="char-ed-section">
             <label className="char-ed-label">Personality</label>
-            <textarea
-              className="char-ed-textarea char-ed-personality"
-              value={character.personality ?? ''}
-              onChange={e => update({ personality: e.target.value || null })}
+            <RichTextarea
+              value={character.personality}
+              onChange={html => update({ personality: html })}
               placeholder="Describe their personality traits, quirks, and mannerisms…"
-              rows={3}
+              className="char-ed-textarea char-ed-personality"
+              minRows={3}
             />
           </div>
 
           {/* Biography */}
           <div className="char-ed-section">
             <label className="char-ed-label">Biography</label>
-            <textarea
-              className="char-ed-textarea char-ed-biography"
-              value={character.biography ?? ''}
-              onChange={e => update({ biography: e.target.value || null })}
+            <RichTextarea
+              value={character.biography}
+              onChange={html => update({ biography: html })}
               placeholder="Background, history, and story arc…"
-              rows={8}
+              className="char-ed-textarea char-ed-biography"
+              minRows={8}
             />
           </div>
+
+          {/* Custom sections */}
+          {character.customSections.map(section => (
+            <div key={section.id} className="char-ed-custom-section">
+              <div className="char-ed-custom-section-header">
+                <input
+                  className="char-ed-custom-section-title"
+                  value={section.title}
+                  onChange={e => updateSection(section.id, { title: e.target.value })}
+                  placeholder="Section title…"
+                />
+                <button
+                  className="char-ed-custom-section-remove"
+                  onClick={() => removeSection(section.id)}
+                  title="Remove section"
+                >
+                  <Icon name="x" size={14} />
+                </button>
+              </div>
+              <RichTextarea
+                value={section.content || null}
+                onChange={html => updateSection(section.id, { content: html ?? '' })}
+                placeholder="Notes, details, continuity…"
+                className="char-ed-textarea char-ed-custom-section-content"
+                minRows={4}
+              />
+            </div>
+          ))}
+
+          <button className="char-ed-add-section" onClick={addSection}>
+            <Icon name="plus" size={14} /> Add section
+          </button>
 
         </div>
       </div>

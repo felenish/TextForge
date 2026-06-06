@@ -4,6 +4,7 @@ export interface OutlineDto {
   id: string;
   name: string;
   content: string | null;
+  sortOrder?: number;
 }
 
 export const getOutlines = (): Promise<OutlineDto[]> =>
@@ -23,3 +24,6 @@ export const saveOutlineDetails = (id: string, body: { name: string; content: st
 
 export const deleteOutline = (id: string): Promise<void> =>
   del(`/api/outlines/${id}`);
+
+export const reorderOutlines = (ids: string[]): Promise<void> =>
+  post('/api/outlines/reorder', { ids });

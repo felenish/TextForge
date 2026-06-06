@@ -95,9 +95,9 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
     }, []);
 
     const saveAll = useCallback(async () => {
-      await Promise.all(
-        Array.from(saveRegistry.current.values()).map(save => save().catch(() => {}))
-      );
+      for (const save of saveRegistry.current.values()) {
+        await save().catch(() => {});
+      }
     }, []);
 
     const activeIdRef = useRef(activeId);

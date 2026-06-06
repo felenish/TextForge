@@ -15,11 +15,16 @@ internal static class DtoMapper
     public static OutlineDto ToOutlineMeta(Outline o) => new(o.Id, o.Name, null);
     public static OutlineDto ToOutlineDto(Outline o) => new(o.Id, o.Name, o.Content);
 
-    public static LocationDto ToLocationDto(Location l) => new(l.Id, l.Name, l.Description, l.ImageFileName is not null);
+    public static LocationDto ToLocationDto(Location l) => new(
+        l.Id, l.Name, l.Description, l.ImageFileName is not null,
+        l.CustomSections.Select(s => new LocationSectionDto(s.Id, s.Title, s.Content)).ToArray(),
+        l.SortOrder, l.FolderId);
 
     public static CharacterDto ToCharacterDto(Character c) => new(
         c.Id, c.Name, c.Role, c.Age, c.Gender, c.Personality, c.Biography,
-        c.ImageFileName is not null);
+        c.ImageFileName is not null,
+        c.CustomSections.Select(s => new CharacterSectionDto(s.Id, s.Title, s.Content)).ToArray(),
+        c.SortOrder, c.FolderId);
     public static SeriesDto ToSeriesDto(Series series) => new(
         series.Id,
         series.Title,
@@ -51,7 +56,10 @@ internal static class DtoMapper
         scene.Status,
         scene.Pov,
         scene.CharacterIds.Select(id => id.ToString()).ToArray(),
-        scene.Notes);
+        scene.Notes,
+        scene.ChecklistItems
+            .Select(i => new ChecklistItemDto(i.Id.ToString(), i.Text, i.Done))
+            .ToArray());
 
     public static SceneDto ToSceneMeta(Scene scene) => new(
         scene.Id,
@@ -62,5 +70,6 @@ internal static class DtoMapper
         scene.Status,
         null,
         [],
-        null);
+        null,
+        []);
 }

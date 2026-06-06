@@ -97,6 +97,18 @@ public sealed class OutlinesController : ControllerBase
         await _storage.DeleteAsync(path, id, ct);
         return NoContent();
     }
+
+    [HttpPost("reorder")]
+    public async Task<IActionResult> Reorder([FromBody] ReorderWorldItemsBody request, CancellationToken ct)
+    {
+        var path = OutlinesPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+
+        var ids = request.Ids.Select(s => Guid.TryParse(s, out var g) ? g : (Guid?)null)
+            .Where(g => g.HasValue).Select(g => g!.Value).ToList();
+        await _storage.ReorderAsync(path, ids, ct);
+        return NoContent();
+    }
 }
 
 public sealed record CreateOutlineBody(string Name);

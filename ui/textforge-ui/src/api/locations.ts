@@ -1,10 +1,25 @@
 import { del, get, patch, post, put } from './client';
 
+export interface LocationSectionDto {
+  id: string;
+  title: string;
+  content: string;
+}
+
 export interface LocationDto {
   id: string;
   name: string;
   description: string | null;
   hasImage: boolean;
+  customSections: LocationSectionDto[];
+  sortOrder: number;
+  folderId: string | null;
+}
+
+export interface WorldFolderDto {
+  id: string;
+  name: string;
+  sortOrder: number;
 }
 
 export const getLocations = (): Promise<LocationDto[]> =>
@@ -19,7 +34,7 @@ export const createLocation = (name: string): Promise<LocationDto> =>
 export const updateLocation = (id: string, patch_: { name?: string }): Promise<LocationDto> =>
   patch(`/api/locations/${id}`, patch_);
 
-export const saveLocationDetails = (id: string, body: { name: string; description: string | null }): Promise<LocationDto> =>
+export const saveLocationDetails = (id: string, body: { name: string; description: string | null; customSections: LocationSectionDto[] }): Promise<LocationDto> =>
   put(`/api/locations/${id}`, body);
 
 export const deleteLocation = (id: string): Promise<void> =>
@@ -38,3 +53,15 @@ export const deleteLocationImage = (id: string): Promise<void> =>
 
 export const getLocationImageUrl = (id: string): string =>
   `/api/locations/${id}/image`;
+
+export const reorderLocations = (ids: string[]): Promise<void> =>
+  post('/api/locations/reorder', { ids });
+
+export const getLocationFolders = (): Promise<WorldFolderDto[]> =>
+  get('/api/locations/folders');
+
+export const saveLocationFolders = (folders: WorldFolderDto[]): Promise<WorldFolderDto[]> =>
+  put('/api/locations/folders', folders);
+
+export const setLocationFolder = (id: string, folderId: string | null): Promise<LocationDto> =>
+  patch(`/api/locations/${id}/folder`, { folderId });

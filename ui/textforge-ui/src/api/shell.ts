@@ -16,3 +16,6 @@ export const openFileDialog = async (title: string, filter: string): Promise<str
 
 export const revealScene = (sceneId: string): Promise<void> =>
   post('/api/shell/reveal', { sceneId });
+
+export const openLogFolder = (): Promise<void> =>
+  post('/api/shell/open-log-folder', {});

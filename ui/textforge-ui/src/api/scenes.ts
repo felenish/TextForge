@@ -1,5 +1,11 @@
 import { del, get, patch, post, put } from './client';
 
+export interface ChecklistItemDto {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface SceneDto {
   id: string;
   title: string;
@@ -10,6 +16,7 @@ export interface SceneDto {
   pov: string | null;
   characterIds: string[];
   notes: string | null;
+  checklistItems: ChecklistItemDto[];
 }
 
 export interface PatchSceneBody {
@@ -18,6 +25,7 @@ export interface PatchSceneBody {
   pov?: string;
   characterIds?: string[];
   notes?: string;
+  checklistItems?: ChecklistItemDto[];
 }
 
 export const getScene = (sceneId: string): Promise<SceneDto> =>

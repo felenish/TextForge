@@ -122,10 +122,18 @@ export function Inspector({ onViewHistory }: InspectorProps) {
     catch { setStatus(prev); }
   }
 
+  function handlePovFocus() {
+    setPov('');
+  }
+
   async function handlePovBlur() {
-    if (!activeSceneId || pov === povSavedRef.current) return;
-    povSavedRef.current = pov;
-    try { await patchScene(activeSceneId, { pov: pov || '' }); }
+    if (!activeSceneId) return;
+    // If the user dismissed without selecting, restore the previously saved value.
+    const resolved = pov !== '' ? pov : (povSavedRef.current ?? '');
+    setPov(resolved);
+    if (resolved === povSavedRef.current) return;
+    povSavedRef.current = resolved;
+    try { await patchScene(activeSceneId, { pov: resolved }); }
     catch { /* ignore */ }
   }
 
@@ -245,6 +253,7 @@ export function Inspector({ onViewHistory }: InspectorProps) {
             className="insp-input"
             value={pov}
             onChange={e => setPov(e.target.value)}
+            onFocus={handlePovFocus}
             onBlur={handlePovBlur}
             onKeyDown={handlePovKeyDown}
             placeholder="Point of view character…"

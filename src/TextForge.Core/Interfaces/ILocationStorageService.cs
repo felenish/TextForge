@@ -13,4 +13,7 @@ public interface ILocationStorageService
     Task SaveImageAsync(string locationsPath, Guid id, Stream imageStream, string extension, CancellationToken ct = default);
     Task<(Stream Stream, string ContentType)?> GetImageAsync(string locationsPath, Guid id, CancellationToken ct = default);
     void DeleteImage(string locationsPath, Guid id);
+    Task ReorderAsync(string locationsPath, IReadOnlyList<Guid> ids, CancellationToken ct = default);
+    Task<IReadOnlyList<WorldFolder>> GetFoldersAsync(string locationsPath, CancellationToken ct = default);
+    Task SaveFoldersAsync(string locationsPath, IReadOnlyList<WorldFolder> folders, CancellationToken ct = default);
 }

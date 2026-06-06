@@ -5,6 +5,7 @@ import { getAiConfig, streamComplete } from '../../api/ai';
 import { getScene } from '../../api/scenes';
 import { Icon } from '../ui/Icon';
 import { AiConfigPanel } from './AiConfigPanel';
+import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 
 interface Template {
   id: string;
@@ -124,6 +125,7 @@ export function AiPanel({ pendingAction, onActionConsumed }: AiPanelProps) {
   const [output, setOutput] = useState('');
   const [running, setRunning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; selection: string } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const runningRef = useRef(false);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -212,6 +214,38 @@ export function AiPanel({ pendingAction, onActionConsumed }: AiPanelProps) {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  function handleOutputContextMenu(e: React.MouseEvent) {
+    if (!output) return;
+    e.preventDefault();
+    const selection = window.getSelection()?.toString() ?? '';
+    setCtxMenu({ x: e.clientX, y: e.clientY, selection });
+  }
+
+  const outputCtxItems: ContextMenuEntry[] = [
+    ...(ctxMenu?.selection ? [{
+      label: 'Copy Selection',
+      kbd: 'Ctrl+C',
+      onClick: () => { void navigator.clipboard.writeText(ctxMenu.selection); },
+    }] : []),
+    {
+      label: 'Copy All',
+      onClick: () => { void navigator.clipboard.writeText(output); },
+    },
+    { type: 'separator' as const },
+    {
+      label: 'Select All',
+      kbd: 'Ctrl+A',
+      onClick: () => {
+        if (!outputRef.current) return;
+        const range = document.createRange();
+        range.selectNodeContents(outputRef.current);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      },
+    },
+  ];
+
   if (configured === null) return null;
 
   if (mode === 'config' || !configured) {
@@ -296,7 +330,7 @@ export function AiPanel({ pendingAction, onActionConsumed }: AiPanelProps) {
         )}
       </div>
 
-      <div className="ai-panel-output" ref={outputRef}>
+      <div className="ai-panel-output" ref={outputRef} onContextMenu={handleOutputContextMenu}>
         {output ? (
           <div className="ai-output-text">
             <ReactMarkdown>{output}</ReactMarkdown>
@@ -307,6 +341,14 @@ export function AiPanel({ pendingAction, onActionConsumed }: AiPanelProps) {
           </div>
         )}
       </div>
+
+      {ctxMenu && (
+        <ContextMenu
+          items={outputCtxItems}
+          position={{ x: ctxMenu.x, y: ctxMenu.y }}
+          onClose={() => setCtxMenu(null)}
+        />
+      )}
     </div>
   );
 }

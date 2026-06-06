@@ -9,4 +9,5 @@ public sealed record SceneDto(
     string Status,
     string? Pov,
     IReadOnlyList<string> CharacterIds,
-    string? Notes);
+    string? Notes,
+    IReadOnlyList<ChecklistItemDto> ChecklistItems);

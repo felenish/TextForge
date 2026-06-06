@@ -239,6 +239,56 @@ public sealed class BookStorageServiceTests : IDisposable
         onDisk.Should().Be("Updated content.");
     }
 
+    [Fact]
+    public async Task SaveBookAsync_RoundTrips_SceneChecklistItems()
+    {
+        var book = await _sut.CreateBookAsync(new CreateBookRequest { Title = "Checklist Round Trip", ParentDirectory = _tempDir });
+        AddChapterWithScene(book, "Chapter", "Scene", "Body");
+
+        var scene = book.Chapters[0].Scenes[0];
+        scene.ChecklistItems =
+        [
+            new SceneChecklistItem { Id = Guid.NewGuid(), Text = "Beat setup", Done = false },
+            new SceneChecklistItem { Id = Guid.NewGuid(), Text = "Conflict hit", Done = true },
+        ];
+
+        await _sut.SaveBookAsync(book);
+        var reopened = await _sut.OpenBookAsync(Path.Combine(book.RootPath, "book.tfbook"));
+
+        var reopenedScene = reopened.Chapters[0].Scenes[0];
+        reopenedScene.ChecklistItems.Should().HaveCount(2);
+        reopenedScene.ChecklistItems[0].Text.Should().Be("Beat setup");
+        reopenedScene.ChecklistItems[0].Done.Should().BeFalse();
+        reopenedScene.ChecklistItems[1].Text.Should().Be("Conflict hit");
+        reopenedScene.ChecklistItems[1].Done.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SaveBookAsync_Preserves_SceneChecklistItemOrder()
+    {
+        var book = await _sut.CreateBookAsync(new CreateBookRequest { Title = "Checklist Order", ParentDirectory = _tempDir });
+        AddChapterWithScene(book, "Chapter", "Scene", "Body");
+
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var thirdId = Guid.NewGuid();
+
+        book.Chapters[0].Scenes[0].ChecklistItems =
+        [
+            new SceneChecklistItem { Id = firstId, Text = "First", Done = false },
+            new SceneChecklistItem { Id = secondId, Text = "Second", Done = true },
+            new SceneChecklistItem { Id = thirdId, Text = "Third", Done = false },
+        ];
+
+        await _sut.SaveBookAsync(book);
+        var reopened = await _sut.OpenBookAsync(Path.Combine(book.RootPath, "book.tfbook"));
+
+        reopened.Chapters[0].Scenes[0].ChecklistItems
+            .Select(i => i.Id)
+            .Should()
+            .ContainInOrder(firstId, secondId, thirdId);
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static void AddChapterWithScene(

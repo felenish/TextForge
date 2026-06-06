@@ -31,7 +31,9 @@ public sealed class CharacterStorageService : ICharacterStorageService
                 characters.Add(character);
         }
 
-        characters.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+        characters.Sort((a, b) => a.SortOrder != b.SortOrder
+            ? a.SortOrder.CompareTo(b.SortOrder)
+            : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
         return characters;
     }
 
@@ -39,11 +41,15 @@ public sealed class CharacterStorageService : ICharacterStorageService
     {
         EnsureFolder(charactersPath);
 
+        var existing = await GetAllAsync(charactersPath, ct);
+        var maxOrder = existing.Count > 0 ? existing.Max(c => c.SortOrder) : 0;
+
         var character = new Character
         {
             Id = Guid.NewGuid(),
             Name = name,
             Role = role,
+            SortOrder = maxOrder + 1,
         };
 
         await SaveAsync(charactersPath, character, ct);
@@ -98,6 +104,39 @@ public sealed class CharacterStorageService : ICharacterStorageService
     {
         var file = FindImageFile(charactersPath, id);
         if (file is not null) File.Delete(file);
+    }
+
+    public async Task ReorderAsync(string charactersPath, IReadOnlyList<Guid> ids, CancellationToken ct = default)
+    {
+        EnsureFolder(charactersPath);
+        for (var i = 0; i < ids.Count; i++)
+        {
+            var character = await GetAsync(charactersPath, ids[i], ct);
+            if (character is null) continue;
+            character.SortOrder = i + 1;
+            await SaveAsync(charactersPath, character, ct);
+        }
+    }
+
+    public async Task<IReadOnlyList<WorldFolder>> GetFoldersAsync(string charactersPath, CancellationToken ct = default)
+    {
+        EnsureFolder(charactersPath);
+        var path = Path.Combine(charactersPath, "_folders.json");
+        if (!File.Exists(path)) return [];
+        try
+        {
+            var json = await File.ReadAllTextAsync(path, ct);
+            return JsonSerializer.Deserialize<List<WorldFolder>>(json, JsonOpts) ?? [];
+        }
+        catch { return []; }
+    }
+
+    public async Task SaveFoldersAsync(string charactersPath, IReadOnlyList<WorldFolder> folders, CancellationToken ct = default)
+    {
+        EnsureFolder(charactersPath);
+        var path = Path.Combine(charactersPath, "_folders.json");
+        var json = JsonSerializer.Serialize(folders, JsonOpts);
+        await File.WriteAllTextAsync(path, json, ct);
     }
 
     private static string? FindImageFile(string charactersPath, Guid id)

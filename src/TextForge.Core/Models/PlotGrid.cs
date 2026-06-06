@@ -7,6 +7,7 @@ public sealed class PlotGrid
     public List<PlotGridColumn> Columns { get; set; } = [];
     public List<PlotGridRow> Rows { get; set; } = [];
     public List<PlotGridCell> Cells { get; set; } = [];
+    public int SortOrder { get; set; }
 }
 
 public sealed class PlotGridColumn

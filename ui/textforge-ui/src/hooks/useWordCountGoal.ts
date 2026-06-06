@@ -1,21 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-const KEYS = {
-  daily:    'tf-goal-daily',
-  project:  'tf-goal-project',
-  progress: 'tf-goal-progress', // { date: string; written: number }
-} as const;
+import { useWorkspace } from '../contexts/WorkspaceContext';
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
-}
-
-function loadProgress(): { date: string; written: number } {
-  try {
-    const s = localStorage.getItem(KEYS.progress);
-    if (s) return JSON.parse(s) as { date: string; written: number };
-  } catch { /* ignore */ }
-  return { date: todayStr(), written: 0 };
 }
 
 export interface WordCountGoal {
@@ -28,22 +15,28 @@ export interface WordCountGoal {
 }
 
 export function useWordCountGoal(totalWordCount: number): WordCountGoal {
-  const [dailyGoal, setDailyGoalState] = useState(
-    () => Number(localStorage.getItem(KEYS.daily) ?? '0'),
-  );
-  const [projectGoal, setProjectGoalState] = useState(
-    () => Number(localStorage.getItem(KEYS.project) ?? '0'),
-  );
-  const [dailyWritten, setDailyWritten] = useState(() => {
-    const { date, written } = loadProgress();
-    return date === todayStr() ? written : 0;
-  });
+  const { loadedPrefs, savePrefs } = useWorkspace();
+
+  // User-driven overrides; null = use loaded value
+  const [dailyGoalOverride, setDailyGoalOverride] = useState<number | null>(null);
+  const [projectGoalOverride, setProjectGoalOverride] = useState<number | null>(null);
+  const [dailyWrittenOverride, setDailyWrittenOverride] = useState<number | null>(null);
+
+  const dailyGoal = dailyGoalOverride ?? loadedPrefs?.dailyGoal ?? 0;
+  const projectGoal = projectGoalOverride ?? loadedPrefs?.projectGoal ?? 0;
+
+  // Resolve the initial dailyWritten from loaded prefs (resets if the date differs)
+  const loadedDailyWritten = (() => {
+    const p = loadedPrefs?.dailyProgress;
+    return p?.date === todayStr() ? p.written : 0;
+  })();
+  const dailyWritten = dailyWrittenOverride ?? loadedDailyWritten;
 
   const prevTotalRef = useRef<number>(totalWordCount);
   const initialised = useRef(false);
 
   useEffect(() => {
-    // Skip the first render — we don't want to count the initial load as writing.
+    // Skip the first render — don't count the initial load as writing.
     if (!initialised.current) {
       initialised.current = true;
       prevTotalRef.current = totalWordCount;
@@ -54,30 +47,30 @@ export function useWordCountGoal(totalWordCount: number): WordCountGoal {
     if (delta <= 0) return;
 
     const today = todayStr();
-    setDailyWritten(() => {
-      const stored = loadProgress();
-      const base = stored.date === today ? stored.written : 0;
+    setDailyWrittenOverride(prev => {
+      const base = prev ?? loadedDailyWritten;
       const next = base + delta;
-      localStorage.setItem(KEYS.progress, JSON.stringify({ date: today, written: next }));
+      savePrefs({ dailyProgress: { date: today, written: next } });
       return next;
     });
-  }, [totalWordCount]);
+  // loadedDailyWritten is stable within a session; intentionally omitted from deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalWordCount, savePrefs]);
 
   const setDailyGoal = useCallback((v: number) => {
-    localStorage.setItem(KEYS.daily, String(v));
-    setDailyGoalState(v);
-  }, []);
+    setDailyGoalOverride(v);
+    savePrefs({ dailyGoal: v });
+  }, [savePrefs]);
 
   const setProjectGoal = useCallback((v: number) => {
-    localStorage.setItem(KEYS.project, String(v));
-    setProjectGoalState(v);
-  }, []);
+    setProjectGoalOverride(v);
+    savePrefs({ projectGoal: v });
+  }, [savePrefs]);
 
   const resetDailyProgress = useCallback(() => {
-    const today = todayStr();
-    localStorage.setItem(KEYS.progress, JSON.stringify({ date: today, written: 0 }));
-    setDailyWritten(0);
-  }, []);
+    setDailyWrittenOverride(0);
+    savePrefs({ dailyProgress: { date: todayStr(), written: 0 } });
+  }, [savePrefs]);
 
   return { dailyGoal, projectGoal, dailyWritten, setDailyGoal, setProjectGoal, resetDailyProgress };
 }

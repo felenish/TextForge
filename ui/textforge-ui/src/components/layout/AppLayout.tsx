@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { useSeriesExplorer } from '../../hooks/useSeriesExplorer';
@@ -22,13 +22,26 @@ import { UpdateBanner } from '../ui/UpdateBanner';
 import { BackendBanner } from '../ui/BackendBanner';
 import { AboutModal } from '../ui/AboutModal';
 import { EditorContextMenu } from '../ui/EditorContextMenu';
+import { InternalLinkContext } from '../../contexts/InternalLinkContext';
+import type { InternalLinkType } from '../../contexts/InternalLinkContext';
 import { getWebView, requestUpdate } from '../../lib/webview';
+import { logInfo } from '../../lib/logger';
+import * as shellApi from '../../api/shell';
 
 export function AppLayout() {
+  const [bootStart] = useState<number>(() => performance.now());
+  const bootStartRef = useRef<number>(bootStart);
+  const startupLoggedRef = useRef(false);
+  const autoOpenStartedAtRef = useRef<number | null>(null);
+  const autoOpenAttemptedRef = useRef(false);
+  const autoOpenLoggedRef = useRef(false);
+
   const editorRef = useRef<SceneEditorAreaHandle>(null);
   const {
     seriesTitle, dirtySceneIds,
     typewriterMode, inspectorOpen, setSeries, totalWordCount,
+    bottomOpen, setBottomOpen,
+    prefsLoaded, getPrefs,
   } = useWorkspace();
   const editorSettings = useEditorSettings();
   const goalSettings = useWordCountGoal(totalWordCount);
@@ -51,7 +64,6 @@ export function AppLayout() {
 
   const [focusMode, setFocusMode] = useState(false);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>('manuscript');
-  const [bottomOpen, setBottomOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -149,7 +161,7 @@ export function AppLayout() {
   }, [explorer]);
 
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
-  const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
+  const toggleBottom = useCallback(() => setBottomOpen(!bottomOpen), [bottomOpen, setBottomOpen]);
 
   const handleSave = useCallback(() => editorRef.current?.saveActive(), []);
   const handleSaveAll = useCallback(() => editorRef.current?.saveAll(), []);
@@ -164,12 +176,52 @@ export function AppLayout() {
     explorer.openSeriesFromPath(path);
   }, [explorer]);
 
+  // Eagerly load characters/locations/outlines when a series opens so the
+  // "Link to…" context menu works without requiring sidebar expansion first.
+  useEffect(() => {
+    if (!explorer.series) return;
+    if (!explorer.charactersLoaded) void explorer.loadCharacters();
+    if (!explorer.locationsLoaded) void explorer.loadLocations();
+    if (!explorer.outlinesLoaded) void explorer.loadOutlines();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [explorer.series]);
+
+  const navigateTo = useCallback((type: InternalLinkType, id: string, name: string) => {
+    if (type === 'character') editorRef.current?.openCharacter(id, name);
+    else if (type === 'location') editorRef.current?.openLocation(id, name);
+    else if (type === 'outline') editorRef.current?.openOutline(id, name);
+  }, []);
+
+  // Ctrl+click on internal links to navigate
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const target = (e.target as HTMLElement).closest?.('.tf-link') as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      const type = target.dataset.tfType as InternalLinkType | undefined;
+      const id = target.dataset.tfId;
+      const name = target.dataset.tfName ?? '';
+      if (type && id) navigateTo(type, id, name);
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [navigateTo]);
+
+  const internalLinkValue = useMemo(() => ({
+    characters: explorer.characters,
+    locations: explorer.locations,
+    outlines: explorer.outlines,
+    navigateTo,
+  }), [explorer.characters, explorer.locations, explorer.outlines, navigateTo]);
+
   // WebView2 message bridge
   useEffect(() => {
     const webview = getWebView();
     if (!webview) return;
 
     // Signal the host that React is mounted and ready to receive messages.
+    logInfo(`[perf] app_ready_post_message ms=${Math.round(performance.now() - bootStartRef.current)}`);
     webview.postMessage('app-ready');
 
     const handler = async (e: MessageEvent) => {
@@ -194,12 +246,43 @@ export function AppLayout() {
     return () => webview.removeEventListener('message', handler);
   }, []);
 
-  // Auto-open last series on startup (persisted in localStorage by useSeriesExplorer).
   useEffect(() => {
-    const last = localStorage.getItem('tf-last-series');
-    if (last) explorer.openSeriesFromPath(last);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (!nav) return;
+
+    logInfo(
+      `[perf] navigation dcl=${Math.round(nav.domContentLoadedEventEnd)}ms load=${Math.round(nav.loadEventEnd)}ms response=${Math.round(nav.responseEnd)}ms`
+    );
   }, []);
+
+  // Auto-open last series once prefs have loaded from the backend.
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    const last = getPrefs().lastSeriesPath;
+    if (last) {
+      autoOpenAttemptedRef.current = true;
+      autoOpenStartedAtRef.current = performance.now();
+      void explorer.openSeriesFromPath(last);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefsLoaded]);
+
+  useEffect(() => {
+    if (autoOpenAttemptedRef.current && !autoOpenLoggedRef.current && !explorer.loading) {
+      autoOpenLoggedRef.current = true;
+      const started = autoOpenStartedAtRef.current ?? bootStartRef.current;
+      const elapsed = Math.round(performance.now() - started);
+      logInfo(`[perf] auto_open_complete ms=${elapsed} seriesLoaded=${explorer.series ? 'yes' : 'no'}`);
+    }
+  }, [explorer.loading, explorer.series]);
+
+  useEffect(() => {
+    if (startupLoggedRef.current || explorer.loading) return;
+    startupLoggedRef.current = true;
+    logInfo(
+      `[perf] startup_settled ms=${Math.round(performance.now() - bootStartRef.current)} seriesLoaded=${explorer.series ? 'yes' : 'no'}`
+    );
+  }, [explorer.loading, explorer.series]);
 
   // First-run: auto-open HelpTab once after the initial load settles.
   const firstRunChecked = useRef(false);
@@ -213,6 +296,7 @@ export function AppLayout() {
   }, [explorer.loading]);
 
   return (
+    <InternalLinkContext.Provider value={internalLinkValue}>
     <Shell focusMode={focusMode} typewriterMode={typewriterMode}>
       <TitleBar />
       <MenuBar
@@ -229,6 +313,7 @@ export function AppLayout() {
         onFindReplace={() => editorRef.current?.openFind(true)}
         onOpenSettings={() => { setSettingsSection('appearance'); setSettingsOpen(true); }}
         onOpenHelp={() => editorRef.current?.openHelp()}
+        onOpenLogFolder={() => { void shellApi.openLogFolder(); }}
         onAbout={() => setAboutOpen(true)}
         bottomOpen={bottomOpen}
         onBottomToggle={toggleBottom}
@@ -325,5 +410,6 @@ export function AppLayout() {
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
       <EditorContextMenu />
     </Shell>
+    </InternalLinkContext.Provider>
   );
 }

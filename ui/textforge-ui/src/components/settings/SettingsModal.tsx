@@ -52,8 +52,9 @@ export function SettingsModal({ editorSettings, goalSettings, initialSection = '
     typewriterMode, setTypewriterMode,
     inspectorOpen, setInspectorOpen,
     minimapOpen, setMinimapOpen,
+    bottomOpen, setBottomOpen,
   } = useWorkspace();
-  const { font, fontSize, lineHeight, autosaveInterval, setFont, setFontSize, setLineHeight, setAutosaveInterval } = editorSettings;
+  const { font, fontSize, lineHeight, paragraphIndent, autosaveInterval, setFont, setFontSize, setLineHeight, setParagraphIndent, setAutosaveInterval } = editorSettings;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -120,6 +121,10 @@ export function SettingsModal({ editorSettings, goalSettings, initialSection = '
                     <span>Minimap</span>
                     <Toggle on={minimapOpen} onChange={setMinimapOpen} />
                   </div>
+                  <div className="sett-toggle-row">
+                    <span>Bottom Panel</span>
+                    <Toggle on={bottomOpen} onChange={setBottomOpen} />
+                  </div>
                 </div>
               </>
             )}
@@ -162,6 +167,19 @@ export function SettingsModal({ editorSettings, goalSettings, initialSection = '
                       onChange={e => setLineHeight(Number(e.target.value))}
                     />
                     <span className="sett-slider-val">{lineHeight.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="sett-field">
+                  <div className="sett-field-label">Paragraph indent</div>
+                  <div className="sett-slider-row">
+                    <input
+                      type="range" min={0} max={4} step={0.5} value={paragraphIndent}
+                      onChange={e => setParagraphIndent(Number(e.target.value))}
+                    />
+                    <span className="sett-slider-val">
+                      {paragraphIndent === 0 ? 'None' : `${paragraphIndent}em`}
+                    </span>
                   </div>
                 </div>
 

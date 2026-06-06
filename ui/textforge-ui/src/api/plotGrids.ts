@@ -12,7 +12,7 @@ export interface PlotGridDto {
   cells: PlotGridCell[];
 }
 
-export type PlotGridMeta = Pick<PlotGridDto, 'id' | 'name'>;
+export interface PlotGridMeta { id: string; name: string; sortOrder?: number; }
 
 export const getPlotGrids = (): Promise<PlotGridMeta[]> =>
   get('/api/plotgrids');
@@ -31,3 +31,6 @@ export const savePlotGrid = (id: string, data: PlotGridDto): Promise<PlotGridDto
 
 export const deletePlotGrid = (id: string): Promise<void> =>
   del(`/api/plotgrids/${id}`);
+
+export const reorderPlotGrids = (ids: string[]): Promise<void> =>
+  post('/api/plotgrids/reorder', { ids });

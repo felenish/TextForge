@@ -81,6 +81,9 @@ public sealed class LocationsController : ControllerBase
 
         location.Name = request.Name;
         location.Description = string.IsNullOrEmpty(request.Description) ? null : request.Description;
+        location.CustomSections = request.CustomSections
+            .Select(s => new TextForge.Core.Models.LocationSection { Id = s.Id, Title = s.Title, Content = s.Content })
+            .ToList();
 
         await _storage.SaveAsync(path, location, ct);
         return Ok(DtoMapper.ToLocationDto(location));
@@ -142,8 +145,52 @@ public sealed class LocationsController : ControllerBase
         await _storage.SaveAsync(path, location, ct);
         return NoContent();
     }
+
+    [HttpPost("reorder")]
+    public async Task<IActionResult> Reorder([FromBody] ReorderWorldItemsBody request, CancellationToken ct)
+    {
+        var path = LocationsPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+
+        var ids = request.Ids.Select(s => Guid.TryParse(s, out var g) ? g : (Guid?)null)
+            .Where(g => g.HasValue).Select(g => g!.Value).ToList();
+        await _storage.ReorderAsync(path, ids, ct);
+        return NoContent();
+    }
+
+    [HttpGet("folders")]
+    public async Task<IActionResult> GetFolders(CancellationToken ct)
+    {
+        var path = LocationsPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+        var folders = await _storage.GetFoldersAsync(path, ct);
+        return Ok(folders.Select(f => new WorldFolderDto(f.Id, f.Name, f.SortOrder)));
+    }
+
+    [HttpPut("folders")]
+    public async Task<IActionResult> SaveFolders([FromBody] IReadOnlyList<WorldFolderDto> request, CancellationToken ct)
+    {
+        var path = LocationsPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+        var folders = request.Select(f => new TextForge.Core.Models.WorldFolder { Id = f.Id, Name = f.Name, SortOrder = f.SortOrder }).ToList();
+        await _storage.SaveFoldersAsync(path, folders, ct);
+        return Ok(request);
+    }
+
+    [HttpPatch("{id:guid}/folder")]
+    public async Task<IActionResult> SetFolder(Guid id, [FromBody] SetFolderBody request, CancellationToken ct)
+    {
+        var path = LocationsPath();
+        if (path is null) return BadRequest(new ErrorDto("No series is open."));
+        var location = await _storage.GetAsync(path, id, ct);
+        if (location is null) return NotFound(new ErrorDto("Location not found."));
+        location.FolderId = string.IsNullOrEmpty(request.FolderId) ? null : request.FolderId;
+        await _storage.SaveAsync(path, location, ct);
+        return Ok(DtoMapper.ToLocationDto(location));
+    }
 }
 
 public sealed record CreateLocationBody(string Name);
 public sealed record PatchLocationBody(string? Name);
-public sealed record PutLocationBody(string Name, string? Description);
+public sealed record PutLocationBody(string Name, string? Description, IReadOnlyList<PutLocationSectionBody> CustomSections);
+public sealed record PutLocationSectionBody(Guid Id, string Title, string Content);

@@ -87,12 +87,14 @@ export function FileMenu({
           {item('Save All', 'Ctrl+Shift+S', onSaveAll, !hasSeries)}
           <div className="filemenu-sep" />
           <div
-            className={`filemenu-item has-sub${!recent.length && recentHover ? ' empty-sub' : ''}`}
+            className="filemenu-sub-container"
             onMouseEnter={() => setRecentHover(true)}
             onMouseLeave={() => setRecentHover(false)}
           >
-            <span>Recent Series</span>
-            <span className="filemenu-arrow">›</span>
+            <div className={`filemenu-item has-sub${recentHover ? ' hovered' : ''}`}>
+              <span>Recent Series</span>
+              <span className="filemenu-arrow">›</span>
+            </div>
             {recentHover && (
               <div className="filemenu-sub">
                 {recent.length === 0 ? (
