@@ -25,7 +25,7 @@ export function TweaksPanel({ editorSettings, onClose }: TweaksPanelProps) {
     inspectorOpen, setInspectorOpen,
     minimapOpen, setMinimapOpen,
   } = useWorkspace();
-  const { font, fontSize, lineHeight, setFont, setFontSize, setLineHeight } = editorSettings;
+  const { font, fontSize, lineHeight, paragraphIndent, setFont, setFontSize, setLineHeight, setParagraphIndent } = editorSettings;
 
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +92,14 @@ export function TweaksPanel({ editorSettings, onClose }: TweaksPanelProps) {
             onChange={e => setLineHeight(Number(e.target.value))}
           />
           <span className="val">{lineHeight.toFixed(2)}</span>
+        </div>
+        <div className="tweaks-slider-row">
+          <label>Paragraph indent</label>
+          <input
+            type="range" min={0} max={4} step={0.5} value={paragraphIndent}
+            onChange={e => setParagraphIndent(Number(e.target.value))}
+          />
+          <span className="val">{paragraphIndent === 0 ? 'None' : `${paragraphIndent}em`}</span>
         </div>
       </div>
 

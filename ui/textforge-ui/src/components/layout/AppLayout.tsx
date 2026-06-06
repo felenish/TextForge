@@ -40,6 +40,8 @@ export function AppLayout() {
   const {
     seriesTitle, dirtySceneIds,
     typewriterMode, inspectorOpen, setSeries, totalWordCount,
+    bottomOpen, setBottomOpen,
+    prefsLoaded, getPrefs,
   } = useWorkspace();
   const editorSettings = useEditorSettings();
   const goalSettings = useWordCountGoal(totalWordCount);
@@ -62,7 +64,6 @@ export function AppLayout() {
 
   const [focusMode, setFocusMode] = useState(false);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>('manuscript');
-  const [bottomOpen, setBottomOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -160,7 +161,7 @@ export function AppLayout() {
   }, [explorer]);
 
   const toggleFocus = useCallback(() => setFocusMode(f => !f), []);
-  const toggleBottom = useCallback(() => setBottomOpen(b => !b), []);
+  const toggleBottom = useCallback(() => setBottomOpen(!bottomOpen), [bottomOpen, setBottomOpen]);
 
   const handleSave = useCallback(() => editorRef.current?.saveActive(), []);
   const handleSaveAll = useCallback(() => editorRef.current?.saveAll(), []);
@@ -254,16 +255,17 @@ export function AppLayout() {
     );
   }, []);
 
-  // Auto-open last series on startup (persisted in localStorage by useSeriesExplorer).
+  // Auto-open last series once prefs have loaded from the backend.
   useEffect(() => {
-    const last = localStorage.getItem('tf-last-series');
+    if (!prefsLoaded) return;
+    const last = getPrefs().lastSeriesPath;
     if (last) {
       autoOpenAttemptedRef.current = true;
       autoOpenStartedAtRef.current = performance.now();
       void explorer.openSeriesFromPath(last);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [prefsLoaded]);
 
   useEffect(() => {
     if (autoOpenAttemptedRef.current && !autoOpenLoggedRef.current && !explorer.loading) {

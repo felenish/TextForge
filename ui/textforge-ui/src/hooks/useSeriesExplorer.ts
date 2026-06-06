@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import type { SeriesDto } from '../api/series';
 import type { BookDto, SceneMetaDto } from '../api/books';
 import type { CharacterDto } from '../api/characters';
@@ -111,6 +112,7 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
   const [plotGridsLoaded, setPlotGridsLoaded] = useState(false);
   const { showToast } = useToast();
   const { prompt } = useDialog();
+  const { savePrefs } = useWorkspace();
 
   async function run(fn: () => Promise<void>): Promise<void> {
     setLoading(true);
@@ -163,17 +165,17 @@ export function useSeriesExplorer(): UseSeriesExplorerResult {
     const path = await shellApi.openFileDialog('Open Series', 'TextForge Series (*.tfseries)|*.tfseries');
     if (!path) return;
     resetSeries(await seriesApi.openSeries(path));
-    localStorage.setItem('tf-last-series', path);
+    savePrefs({ lastSeriesPath: path });
   });
 
   const openSeriesFromPath = (path: string) => run(async () => {
     resetSeries(await seriesApi.openSeries(path));
-    localStorage.setItem('tf-last-series', path);
+    savePrefs({ lastSeriesPath: path });
   });
 
   const closeSeries = () => run(async () => {
     await seriesApi.closeSeries();
-    localStorage.removeItem('tf-last-series');
+    savePrefs({ lastSeriesPath: null });
     resetSeries(null);
   });
 

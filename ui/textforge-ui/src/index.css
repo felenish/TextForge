@@ -1617,6 +1617,7 @@ input, textarea {
 .prose-editable p {
   margin-bottom: 1.1em;
   text-wrap: pretty;
+  text-indent: var(--editor-para-indent, 0);
 }
 .prose-editable p:first-child::first-letter {
   font-size: 1.05em;

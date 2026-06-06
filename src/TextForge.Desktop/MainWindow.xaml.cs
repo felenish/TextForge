@@ -122,13 +122,6 @@ public partial class MainWindow : Window
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "TextForge", "WebView2");
 
-        if (Directory.Exists(userDataFolder))
-        {
-            try { Directory.Delete(userDataFolder, true); }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
-        }
-
         QuoteText.Text = _quotes[Random.Shared.Next(_quotes.Length)];
 
         var env = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
