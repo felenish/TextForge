@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using TextForge.Core.Exceptions;
@@ -14,6 +15,10 @@ namespace TextForge.Storage.Services;
 public sealed class BookStorageService : IBookStorageService
 {
     private const string ManifestFileName = "book.tfbook";
+
+    // One semaphore per book root path — serialises all manifest writes for the same book
+    // so concurrent autosave calls don't race on book.tfbook.tmp.
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _bookLocks = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -106,6 +111,20 @@ public sealed class BookStorageService : IBookStorageService
 
     public async Task SaveBookAsync(BookProject book, CancellationToken ct = default)
     {
+        var sem = GetBookLock(book.RootPath);
+        await sem.WaitAsync(ct);
+        try
+        {
+            await SaveBookCoreAsync(book, ct);
+        }
+        finally
+        {
+            sem.Release();
+        }
+    }
+
+    private async Task SaveBookCoreAsync(BookProject book, CancellationToken ct)
+    {
         book.ModifiedUtc = DateTimeOffset.UtcNow;
 
         var manifest = MapToManifest(book);
@@ -171,14 +190,26 @@ public sealed class BookStorageService : IBookStorageService
         if (dir is not null && !Directory.Exists(dir))
             Directory.CreateDirectory(dir);
 
+        // Write the scene file outside the book lock — each scene has its own path.
         await SafeFileWriter.WriteAsync(absPath, content, ct);
         scene.Content = content;
         _logger.LogDebug("Saved scene '{Title}' to {Path}", scene.Title, absPath);
 
-        book.ModifiedUtc = DateTimeOffset.UtcNow;
-        var manifestPath = Path.Combine(book.RootPath, ManifestFileName);
-        await SafeFileWriter.WriteAsync(manifestPath, Serialize(MapToManifest(book)), ct);
-        _logger.LogDebug("Updated manifest ModifiedUtc for '{Title}'", book.Title);
+        // Update ModifiedUtc in the manifest under the book lock so concurrent scene saves
+        // don't race on book.tfbook.tmp.
+        var sem = GetBookLock(book.RootPath);
+        await sem.WaitAsync(ct);
+        try
+        {
+            book.ModifiedUtc = DateTimeOffset.UtcNow;
+            var manifestPath = Path.Combine(book.RootPath, ManifestFileName);
+            await SafeFileWriter.WriteAsync(manifestPath, Serialize(MapToManifest(book)), ct);
+            _logger.LogDebug("Updated manifest ModifiedUtc for '{Title}'", book.Title);
+        }
+        finally
+        {
+            sem.Release();
+        }
     }
 
     private static BookProject MapToProject(BookManifest manifest, string rootPath)
@@ -289,4 +320,7 @@ public sealed class BookStorageService : IBookStorageService
 
     private static string Serialize(BookManifest manifest) =>
         JsonSerializer.Serialize(manifest, JsonOptions);
+
+    private static SemaphoreSlim GetBookLock(string rootPath) =>
+        _bookLocks.GetOrAdd(rootPath, _ => new SemaphoreSlim(1, 1));
 }
