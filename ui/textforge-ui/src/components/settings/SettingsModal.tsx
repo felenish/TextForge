@@ -239,23 +239,27 @@ function ModulesSection() {
   const { activeBookId } = useWorkspace();
   const { modules, loading } = useModules(activeBookId);
   const [toggling, setToggling] = useState<string | null>(null);
-  const [localModules, setLocalModules] = useState<ModuleDto[]>([]);
+  // Optimistic enabled-state overrides: id → true|false. Cleared when `modules` refreshes.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
 
-  useEffect(() => { setLocalModules(modules); }, [modules]);
+  const displayedModules: ModuleDto[] = modules.map(m =>
+    m.id in overrides ? { ...m, enabled: overrides[m.id] } : m
+  );
 
   const handleToggle = useCallback(async (mod: ModuleDto) => {
     if (!activeBookId || mod.builtIn || toggling) return;
+    const nextEnabled = !mod.enabled;
     setToggling(mod.id);
+    setOverrides(prev => ({ ...prev, [mod.id]: nextEnabled }));
     try {
       if (mod.enabled) {
         await disableModule(mod.id, activeBookId);
-        setLocalModules(prev => prev.map(m => m.id === mod.id ? { ...m, enabled: false } : m));
       } else {
         await enableModule(mod.id, activeBookId);
-        setLocalModules(prev => prev.map(m => m.id === mod.id ? { ...m, enabled: true } : m));
       }
     } catch {
-      // revert on error — re-render will reconcile with server state next fetch
+      // roll back optimistic update on error
+      setOverrides(prev => ({ ...prev, [mod.id]: mod.enabled }));
     } finally {
       setToggling(null);
     }
@@ -266,18 +270,18 @@ function ModulesSection() {
       <div className="sett-section-title">Modules</div>
 
       {!activeBookId && (
-        <p className="ai-cfg-hint">Open a book to manage its modules.</p>
+        <p className="ai-cfg-hint">Open a series to manage its modules.</p>
       )}
 
       {activeBookId && loading && (
         <p className="ai-cfg-hint">Loading modules…</p>
       )}
 
-      {activeBookId && !loading && localModules.length === 0 && (
+      {activeBookId && !loading && displayedModules.length === 0 && (
         <p className="ai-cfg-hint">No modules installed. Drop module folders into the <code>modules/</code> directory and restart.</p>
       )}
 
-      {activeBookId && !loading && localModules.map(mod => (
+      {activeBookId && !loading && displayedModules.map(mod => (
         <div key={mod.id} className="sett-field" style={{ paddingBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="puzzle" size={14} />

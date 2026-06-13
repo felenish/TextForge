@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ModuleProps, LinkableMeta } from '../../api/modules';
+import { moduleCache } from './moduleCache';
 
 /** Shape of an external module bundle's exports. */
 export interface ModuleExports {
@@ -21,9 +22,6 @@ interface ModuleLoaderProps {
 }
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
-
-/** Registry of already-loaded module exports, keyed by entryPoint URL. */
-const moduleCache = new Map<string, ModuleExports>();
 
 /**
  * Loads an external module bundle (UMD or ESM) and mounts it into a container div.
@@ -117,12 +115,6 @@ export function ModuleLoader({ moduleId, boardId, boardName, entryPoint, project
       <div ref={containerRef} style={{ flex: 1, minHeight: 0, display: loadState === 'ready' ? 'flex' : 'none', flexDirection: 'column' }} />
     </div>
   );
-}
-
-/** Resolve a linkable entity from an already-loaded module bundle. */
-export function resolveModuleLinkable(entryPoint: string, entityId: string): LinkableMeta | null {
-  const exports = moduleCache.get(entryPoint);
-  return exports?.resolveLinkable?.(entityId) ?? null;
 }
 
 function loadUmd(src: string): Promise<ModuleExports> {
