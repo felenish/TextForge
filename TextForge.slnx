@@ -4,12 +4,14 @@
     <Project Path="src/TextForge.Core/TextForge.Core.csproj" />
     <Project Path="src/TextForge.Desktop/TextForge.Desktop.csproj" />
     <Project Path="src/TextForge.Export/TextForge.Export.csproj" />
+    <Project Path="src/TextForge.Modules/TextForge.Modules.csproj" />
     <Project Path="src/TextForge.Storage/TextForge.Storage.csproj" />
     <Project Path="src/TextForge.Versioning/TextForge.Versioning.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/TextForge.Api.Tests/TextForge.Api.Tests.csproj" />
     <Project Path="tests/TextForge.Core.Tests/TextForge.Core.Tests.csproj" />
+    <Project Path="tests/TextForge.Modules.Tests/TextForge.Modules.Tests.csproj" />
     <Project Path="tests/TextForge.Storage.Tests/TextForge.Storage.Tests.csproj" />
     <Project Path="tests/TextForge.Versioning.Tests/TextForge.Versioning.Tests.csproj" />
   </Folder>

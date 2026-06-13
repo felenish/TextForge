@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useDialog } from '../../contexts/DialogContext';
+import { useModules, BUILTIN_MODULE_IDS } from '../../hooks/useModules';
+import { useModuleBoards } from '../../hooks/useModuleBoards';
+import type { ModuleDto } from '../../api/modules';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 import * as shellApi from '../../api/shell';
@@ -14,6 +17,7 @@ interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onLocationOpen: (locationId: string, name: string) => void;
   onOutlineOpen: (outlineId: string, name: string) => void;
   onPlotGridOpen: (plotGridId: string, name: string) => void;
+  onModuleOpen: (moduleId: string, boardId: string, boardName: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
   onOpenHelp: () => void;
 }
 
@@ -63,10 +67,19 @@ export function ManuscriptSidebar({
   reorderLocationFolders, setLocationFolder,
   loadOutlines, addOutline, renameOutline, deleteOutline, reorderOutlines,
   loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid, reorderPlotGrids,
-  onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen, onOpenHelp,
+  onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen, onModuleOpen, onOpenHelp,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId, patchSceneMeta } = useWorkspace();
   const { prompt, confirm } = useDialog();
+  const { modules, enabledIds: enabledModuleIds, loading: modulesLoading } = useModules(activeBookId);
+
+  // While the module list is loading, fall back to showing all built-in sections
+  // so there's no flash of empty content on first render.
+  const showCharacters = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.characters);
+  const showLocations  = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.locations);
+  const showOutlines   = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.outlines);
+  const showPlotGrids  = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.plotGrids);
+  const externalModules: ModuleDto[] = modules.filter(m => !m.builtIn && m.enabled && m.id);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const skipExpandedSave = useRef(false);
@@ -751,7 +764,7 @@ export function ManuscriptSidebar({
               </div>
             )}
 
-            <div>
+            {showCharacters && <div>
               <div
                 className="tree-row is-book"
                 onClick={toggleChars}
@@ -903,10 +916,9 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
 
-            {/* Locations */}
-            <div>
+            {showLocations && <div>
               <div
                 className="tree-row is-book"
                 onClick={toggleLocs}
@@ -1052,10 +1064,9 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
 
-            {/* Outlines */}
-            <div>
+            {showOutlines && <div>
               <div
                 className="tree-row is-book"
                 onClick={toggleOutlines}
@@ -1117,10 +1128,9 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
 
-            {/* Plot Grids */}
-            <div>
+            {showPlotGrids && <div>
               <div
                 className="tree-row is-book"
                 onClick={togglePlotGrids}
@@ -1182,7 +1192,18 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
+
+            {externalModules.map(mod => (
+              <ModuleBoardsSection
+                key={mod.id}
+                mod={mod}
+                bookId={activeBookId}
+                onOpen={onModuleOpen}
+                onPrompt={prompt}
+                onConfirm={confirm}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -1202,5 +1223,106 @@ export function ManuscriptSidebar({
         <ContextMenu items={menu.items} position={menu} onClose={() => setMenu(null)} />
       )}
     </>
+  );
+}
+
+// ── ModuleBoardsSection ───────────────────────────────────────────────────────
+
+interface ModuleBoardsSectionProps {
+  mod: ModuleDto;
+  bookId: string | null;
+  onOpen: (moduleId: string, boardId: string, boardName: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
+  onPrompt: (opts: { title: string; placeholder?: string; confirmLabel?: string }) => Promise<string | null>;
+  onConfirm: (opts: { title: string; message: string; confirmLabel?: string; danger?: boolean }) => Promise<boolean>;
+}
+
+function ModuleBoardsSection({ mod, bookId, onOpen, onPrompt, onConfirm }: ModuleBoardsSectionProps) {
+  const [open, setOpen] = useState(false);
+  const [boardMenu, setBoardMenu] = useState<{ x: number; y: number; items: ContextMenuEntry[] } | null>(null);
+  const storageBase = `/api/modules/${mod.id}/storage`;
+  const entryPoint = `/api/modules/${mod.id}/asset?path=${encodeURIComponent('index.js')}`;
+  const { boards, loading, addBoard, renameBoard, deleteBoard } = useModuleBoards(mod.id, storageBase, bookId);
+
+  const handleAdd = async () => {
+    const name = await onPrompt({ title: `New ${mod.name}`, placeholder: 'Board name', confirmLabel: 'Create' });
+    if (!name?.trim()) return;
+    const board = await addBoard(name.trim());
+    setOpen(true);
+    onOpen(mod.id, board.id, board.name, entryPoint, null, mod.version);
+  };
+
+  return (
+    <div>
+      <div
+        className="tree-row is-book"
+        onClick={() => setOpen(v => !v)}
+        onContextMenu={e => {
+          e.preventDefault();
+          // context menu handled inline via right-click on board rows
+        }}
+      >
+        <span className={`chev${open ? ' open' : ''}`}><Icon name="chev-right" size={11} /></span>
+        <span className="icon"><Icon name="puzzle" size={13} /></span>
+        <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>{mod.name}</span>
+        {boards.length > 0 && <span className="meta-right">{boards.length}</span>}
+      </div>
+
+      {open && (
+        <>
+          <div
+            className="tree-row"
+            style={{ paddingLeft: 20, cursor: 'pointer', color: 'var(--text-faint)' }}
+            onClick={handleAdd}
+          >
+            <span className="icon"><Icon name="plus" size={12} /></span>
+            <span className="label" style={{ fontSize: 11 }}>New {mod.name}…</span>
+          </div>
+
+          {loading && (
+            <div style={{ color: 'var(--text-faint)', fontSize: 11, padding: '4px 14px 4px 36px' }}>Loading…</div>
+          )}
+
+          {boards.map(board => (
+            <div
+              key={board.id}
+              className="tree-row is-scene"
+              style={{ paddingLeft: 36 }}
+              onClick={() => onOpen(mod.id, board.id, board.name, entryPoint, null, mod.version)}
+              onContextMenu={e => {
+                e.preventDefault();
+                setBoardMenu({
+                  x: e.clientX, y: e.clientY,
+                  items: [
+                    {
+                      label: 'Open',
+                      onClick: () => onOpen(mod.id, board.id, board.name, entryPoint, null, mod.version),
+                    },
+                    {
+                      label: 'Rename',
+                      onClick: async () => {
+                        const name = await onPrompt({ title: 'Rename Board', placeholder: board.name, confirmLabel: 'Rename' });
+                        if (name?.trim() && name.trim() !== board.name) await renameBoard(board.id, name.trim());
+                      },
+                    },
+                    {
+                      label: 'Delete',
+                      onClick: async () => {
+                        const ok = await onConfirm({ title: 'Delete Board', message: `Delete "${board.name}"? This cannot be undone.`, confirmLabel: 'Delete', danger: true });
+                        if (ok) await deleteBoard(board.id);
+                      },
+                    },
+                  ],
+                });
+              }}
+            >
+              <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+              <span className="icon"><Icon name="layout-grid" size={12} /></span>
+              <span className="label">{board.name}</span>
+            </div>
+          ))}
+          {boardMenu && <ContextMenu items={boardMenu.items} position={boardMenu} onClose={() => setBoardMenu(null)} />}
+        </>
+      )}
+    </div>
   );
 }

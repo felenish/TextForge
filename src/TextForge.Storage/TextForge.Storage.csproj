@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TextForge.Core\TextForge.Core.csproj" />
+    <ProjectReference Include="..\TextForge.Modules\TextForge.Modules.csproj" />
   </ItemGroup>
 
 </Project>

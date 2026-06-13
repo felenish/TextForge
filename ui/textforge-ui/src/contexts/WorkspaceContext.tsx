@@ -252,9 +252,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const seriesTitle = series?.title ?? null;
   const activeBookId = useMemo(
-    () => activeSceneId && series
-      ? (series.books.find(b => b.chapters.some(c => c.scenes.some(s => s.id === activeSceneId)))?.id ?? null)
-      : null,
+    () => {
+      if (series && activeSceneId) {
+        const fromScene = series.books.find(b => b.chapters.some(c => c.scenes.some(s => s.id === activeSceneId)))?.id;
+        if (fromScene) return fromScene;
+      }
+      // Fall back to the first book so book-scoped features work without an open scene
+      return series?.books[0]?.id ?? null;
+    },
     [series, activeSceneId],
   );
   const wordCount = activeSceneId ? (sceneWordCountMap.get(activeSceneId) ?? 0) : 0;

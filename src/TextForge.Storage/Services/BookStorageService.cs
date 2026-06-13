@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using TextForge.Core.Exceptions;
 using TextForge.Core.Interfaces;
@@ -27,10 +28,12 @@ public sealed class BookStorageService : IBookStorageService
     };
 
     private readonly ILogger<BookStorageService> _logger;
+    private readonly BookManifestMigrator _migrator;
 
-    public BookStorageService(ILogger<BookStorageService> logger)
+    public BookStorageService(ILogger<BookStorageService> logger, BookManifestMigrator migrator)
     {
         _logger = logger;
+        _migrator = migrator;
     }
 
     public async Task<BookProject> CreateBookAsync(CreateBookRequest request, CancellationToken ct = default)
@@ -82,12 +85,12 @@ public sealed class BookStorageService : IBookStorageService
                 $"Could not read book manifest: {bookFilePath}", ex);
         }
 
-        BookManifest manifest;
+        JsonObject jsonDoc;
         try
         {
-            manifest = JsonSerializer.Deserialize<BookManifest>(json, JsonOptions)
+            jsonDoc = JsonNode.Parse(json)?.AsObject()
                 ?? throw new InvalidManifestException(
-                    $"Manifest file deserialized to null: {bookFilePath}");
+                    $"Manifest file parsed to null: {bookFilePath}");
         }
         catch (JsonException ex)
         {
@@ -95,10 +98,36 @@ public sealed class BookStorageService : IBookStorageService
                 $"Book manifest contains invalid JSON: {bookFilePath}", ex);
         }
 
-        if (manifest.Version != BookManifest.CurrentVersion)
-            _logger.LogWarning(
-                "Manifest version {Version} differs from expected {Expected}. File: {Path}",
-                manifest.Version, BookManifest.CurrentVersion, bookFilePath);
+        if (_migrator.MigrateIfNeeded(jsonDoc))
+        {
+            var backupPath = bookFilePath + ".bak";
+            await File.WriteAllTextAsync(backupPath, json, ct);
+            _logger.LogInformation("Backed up pre-migration manifest to {Backup}", backupPath);
+
+            var sem = GetBookLock(Path.GetDirectoryName(bookFilePath)!);
+            await sem.WaitAsync(ct);
+            try
+            {
+                await File.WriteAllTextAsync(bookFilePath, jsonDoc.ToJsonString(JsonOptions), ct);
+            }
+            finally
+            {
+                sem.Release();
+            }
+        }
+
+        BookManifest manifest;
+        try
+        {
+            manifest = jsonDoc.Deserialize<BookManifest>(JsonOptions)
+                ?? throw new InvalidManifestException(
+                    $"Manifest file deserialized to null: {bookFilePath}");
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidManifestException(
+                $"Book manifest contains invalid JSON after migration: {bookFilePath}", ex);
+        }
 
         var rootPath = Path.GetDirectoryName(bookFilePath)
             ?? throw new InvalidManifestException(
@@ -221,6 +250,8 @@ public sealed class BookStorageService : IBookStorageService
             RootPath = rootPath,
             CreatedUtc = manifest.CreatedUtc,
             ModifiedUtc = manifest.ModifiedUtc,
+            EnabledModules = [.. manifest.Modules.Enabled],
+            ModuleVersions = new Dictionary<string, string>(manifest.Modules.Versions),
         };
 
         foreach (var cm in manifest.Chapters.OrderBy(c => c.SortOrder))
@@ -270,6 +301,11 @@ public sealed class BookStorageService : IBookStorageService
             Title = book.Title,
             CreatedUtc = book.CreatedUtc,
             ModifiedUtc = book.ModifiedUtc,
+            Modules = new BookModulesManifest
+            {
+                Enabled = [.. book.EnabledModules],
+                Versions = new Dictionary<string, string>(book.ModuleVersions),
+            },
             Chapters = book.Chapters
                 .OrderBy(c => c.SortOrder)
                 .Select(c => new ChapterManifest

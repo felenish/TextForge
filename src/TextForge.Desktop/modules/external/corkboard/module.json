@@ -1,0 +1,13 @@
+{
+  "id": "textforge.example.corkboard",
+  "name": "Cork Board",
+  "version": "1.0.0",
+  "minTextForgeVersion": "1.0.0",
+  "description": "A freeform sticky-note board for ideas, scenes, and worldbuilding snippets. Canonical example module.",
+  "author": "TextForge",
+  "icon": null,
+  "entryPoint": "index.js",
+  "storageFolder": "textforge.example.corkboard",
+  "builtIn": false,
+  "linkable": true
+}

@@ -1,0 +1,13 @@
+{
+  "id": "textforge.builtin.outlines",
+  "name": "Outlines",
+  "version": "1.0.0",
+  "minTextForgeVersion": "1.0.0",
+  "description": "Worldbuilding workspace for story outlines.",
+  "author": "TextForge",
+  "icon": null,
+  "entryPoint": null,
+  "storageFolder": "textforge.builtin.outlines",
+  "builtIn": true,
+  "linkable": false
+}

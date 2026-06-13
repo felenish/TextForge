@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { type EditorSettings, type EditorFont } from '../../hooks/useEditorSettings';
 import { type WordCountGoal } from '../../hooks/useWordCountGoal';
+import { useModules } from '../../hooks/useModules';
+import { enableModule, disableModule, type ModuleDto } from '../../api/modules';
 import { AiConfigPanel } from '../ai/AiConfigPanel';
 import { Icon } from '../ui/Icon';
 
-type Section = 'appearance' | 'editor' | 'goals' | 'ai';
+type Section = 'appearance' | 'editor' | 'goals' | 'ai' | 'modules';
 
 const NAV: { id: Section; label: string; icon: string }[] = [
   { id: 'appearance', label: 'Appearance',  icon: 'sun'      },
   { id: 'editor',     label: 'Editor',      icon: 'type'     },
   { id: 'goals',      label: 'Goals',       icon: 'target'   },
   { id: 'ai',         label: 'AI Provider', icon: 'sparkles' },
+  { id: 'modules',    label: 'Modules',     icon: 'puzzle'   },
 ];
 
 type Theme = 'dark' | 'light' | 'sepia';
@@ -33,6 +36,9 @@ interface Props {
   initialSection?: Section;
   onClose: () => void;
 }
+
+// Update AppLayout type
+export type { Section as SettingsSection };
 
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -219,11 +225,90 @@ export function SettingsModal({ editorSettings, goalSettings, initialSection = '
               </>
             )}
 
+            {section === 'modules' && <ModulesSection />}
+
           </div>
         </div>
 
       </div>
     </div>
+  );
+}
+
+function ModulesSection() {
+  const { activeBookId } = useWorkspace();
+  const { modules, loading } = useModules(activeBookId);
+  const [toggling, setToggling] = useState<string | null>(null);
+  // Optimistic enabled-state overrides: id → true|false. Cleared when `modules` refreshes.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+
+  const displayedModules: ModuleDto[] = modules.map(m =>
+    m.id in overrides ? { ...m, enabled: overrides[m.id] } : m
+  );
+
+  const handleToggle = useCallback(async (mod: ModuleDto) => {
+    if (!activeBookId || mod.builtIn || toggling) return;
+    const nextEnabled = !mod.enabled;
+    setToggling(mod.id);
+    setOverrides(prev => ({ ...prev, [mod.id]: nextEnabled }));
+    try {
+      if (mod.enabled) {
+        await disableModule(mod.id, activeBookId);
+      } else {
+        await enableModule(mod.id, activeBookId);
+      }
+    } catch {
+      // roll back optimistic update on error
+      setOverrides(prev => ({ ...prev, [mod.id]: mod.enabled }));
+    } finally {
+      setToggling(null);
+    }
+  }, [activeBookId, toggling]);
+
+  return (
+    <>
+      <div className="sett-section-title">Modules</div>
+
+      {!activeBookId && (
+        <p className="ai-cfg-hint">Open a series to manage its modules.</p>
+      )}
+
+      {activeBookId && loading && (
+        <p className="ai-cfg-hint">Loading modules…</p>
+      )}
+
+      {activeBookId && !loading && displayedModules.length === 0 && (
+        <p className="ai-cfg-hint">No modules installed. Drop module folders into the <code>modules/</code> directory and restart.</p>
+      )}
+
+      {activeBookId && !loading && displayedModules.map(mod => (
+        <div key={mod.id} className="sett-field" style={{ paddingBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Icon name="puzzle" size={14} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 500, color: 'var(--text-strong)', fontSize: 13 }}>{mod.name}</div>
+              {mod.description && (
+                <div style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 2 }}>{mod.description}</div>
+              )}
+              <div style={{ color: 'var(--text-faint)', fontSize: 11, marginTop: 2 }}>
+                v{mod.version}{mod.author ? ` · ${mod.author}` : ''}{mod.builtIn ? ' · built-in' : ''}
+              </div>
+            </div>
+            {mod.builtIn ? (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Always on</span>
+            ) : (
+              <button
+                role="switch"
+                aria-checked={mod.enabled}
+                className={`sett-toggle${mod.enabled ? ' on' : ''}${toggling === mod.id ? ' sett-toggle-busy' : ''}`}
+                onClick={() => handleToggle(mod)}
+                disabled={toggling !== null}
+              />
+            )}
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 

@@ -67,7 +67,7 @@ export function AppLayout() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsSection, setSettingsSection] = useState<'appearance' | 'editor' | 'goals' | 'ai'>('appearance');
+  const [settingsSection, setSettingsSection] = useState<'appearance' | 'editor' | 'goals' | 'ai' | 'modules'>('appearance');
   const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState<'pdf' | 'epub' | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -154,6 +154,10 @@ export function AppLayout() {
 
   const handlePlotGridOpen = useCallback((plotGridId: string, name: string) => {
     editorRef.current?.openPlotGrid(plotGridId, name);
+  }, []);
+
+  const handleModuleOpen = useCallback((moduleId: string, boardId: string, boardName: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => {
+    editorRef.current?.openModule(moduleId, boardId, boardName, entryPoint, previousVersion, currentVersion);
   }, []);
 
   const handlePlotGridSaved = useCallback((dto: import('../../api/plotGrids').PlotGridDto) => {
@@ -324,8 +328,9 @@ export function AppLayout() {
           mode={sidebarMode}
           onModeChange={setSidebarMode}
           dirtyCount={dirtySceneIds.size}
+          onOpenSettings={() => { setSettingsSection('appearance'); setSettingsOpen(true); }}
         />
-        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} onLocationOpen={handleLocationOpen} onOutlineOpen={handleOutlineOpen} onPlotGridOpen={handlePlotGridOpen} onOpenHelp={() => editorRef.current?.openHelp()} />
+        <Sidebar mode={sidebarMode} explorer={explorer} onSceneOpen={handleSceneOpen} onCharacterOpen={handleCharacterOpen} onLocationOpen={handleLocationOpen} onOutlineOpen={handleOutlineOpen} onPlotGridOpen={handlePlotGridOpen} onModuleOpen={handleModuleOpen} onOpenHelp={() => editorRef.current?.openHelp()} />
         <div className={`center-col${bottomOpen ? '' : ' no-bottom'}`}>
           <div className="editor-col">
             <SceneEditorArea ref={editorRef} onCharacterSaved={handleCharacterSaved} onLocationSaved={handleLocationSaved} onOutlineSaved={handleOutlineSaved} onPlotGridSaved={handlePlotGridSaved} />

@@ -9,9 +9,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using TextForge.Api;
 using TextForge.Core.Interfaces;
+using TextForge.Core.Manifests;
+using TextForge.Core.Manifests.Migrations;
 using TextForge.Desktop.Services;
 using TextForge.Export.Interfaces;
 using TextForge.Export.Services;
+using TextForge.Modules;
 using TextForge.Storage.Services;
 using TextForge.Versioning.Interfaces;
 using TextForge.Versioning.Services;
@@ -128,6 +131,15 @@ public partial class App : Application
         builder.Host.UseSerilog();
 
         builder.Services.AddApiServices();
+
+        // Manifest migration chain
+        builder.Services.AddSingleton<IBookManifestMigration, AddModulesKeyMigration>();
+        builder.Services.AddSingleton<BookManifestMigrator>();
+
+        // Module system
+        builder.Services.AddSingleton<ModuleRegistry>();
+        builder.Services.AddSingleton<ModuleStorageService>();
+
         builder.Services.AddSingleton<IBookStorageService, BookStorageService>();
         builder.Services.AddSingleton<ISeriesStorageService, SeriesStorageService>();
         builder.Services.AddSingleton<ICharacterStorageService, CharacterStorageService>();
@@ -140,6 +152,18 @@ public partial class App : Application
         builder.Services.AddSingleton<IWindowService, WpfWindowService>();
 
         var app = builder.Build();
+
+        // Discover modules from the built-in, bundled-external, and user module directories
+        var registry = app.Services.GetRequiredService<ModuleRegistry>();
+        var modulesRoot = Path.Combine(AppContext.BaseDirectory, "modules");
+        var builtInModulesPath = Path.Combine(modulesRoot, "builtin");
+        var bundledExternalPath = Path.Combine(modulesRoot, "external");
+        var userModulesPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TextForge", "modules");
+        registry.Discover(builtInModulesPath);
+        registry.Discover(bundledExternalPath);
+        registry.Discover(userModulesPath);
         app.UseApiExceptionHandler();
         app.UseDefaultFiles();
 #if DEBUG

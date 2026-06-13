@@ -1,0 +1,67 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "TextForge Desktop (.NET)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-desktop",
+      "program": "${workspaceFolder}/src/TextForge.Desktop/bin/Debug/net10.0-windows/TextForge.Desktop.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/TextForge.Desktop",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_URLS": "http://localhost:5000",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "console": "internalConsole"
+    },
+    {
+      "name": "Vite Dev Server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/ui/textforge-ui",
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "pattern": "Local:.*http://localhost:(\\d+)",
+        "uriFormat": "http://localhost:%s",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "Chrome (Frontend Debug)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/ui/textforge-ui/src",
+      "sourceMapPathOverrides": {
+        "/@fs/*": "${workspaceFolder}/ui/textforge-ui/*"
+      }
+    },
+    {
+      "name": "TextForge: .NET Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-tests",
+      "program": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/tests",
+        "--no-build",
+        "--logger",
+        "console;verbosity=detailed"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "TextForge: Full Stack (Desktop + Vite)",
+      "configurations": ["TextForge Desktop (.NET)", "Vite Dev Server"],
+      "stopAll": true
+    }
+  ]
+}
