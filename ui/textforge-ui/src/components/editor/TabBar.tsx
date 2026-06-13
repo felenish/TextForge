@@ -7,6 +7,10 @@ export interface Tab {
   kind: 'scene' | 'character' | 'location' | 'outline' | 'plotgrid' | 'help' | 'module';
   /** Module id — only set when kind === 'module'. */
   moduleId?: string;
+  /** Stable board instance id — only set when kind === 'module'. */
+  boardId?: string;
+  /** User-facing board name — only set when kind === 'module'. */
+  boardName?: string;
   /** Resolved asset URL for the module entry point — only set when kind === 'module'. */
   entryPoint?: string;
   /** Version stored in book.tfbook at last save — only set when kind === 'module'. */

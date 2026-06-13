@@ -153,13 +153,16 @@ public partial class App : Application
 
         var app = builder.Build();
 
-        // Discover modules from the built-in and user module directories
+        // Discover modules from the built-in, bundled-external, and user module directories
         var registry = app.Services.GetRequiredService<ModuleRegistry>();
-        var builtInModulesPath = Path.Combine(AppContext.BaseDirectory, "modules", "builtin");
+        var modulesRoot = Path.Combine(AppContext.BaseDirectory, "modules");
+        var builtInModulesPath = Path.Combine(modulesRoot, "builtin");
+        var bundledExternalPath = Path.Combine(modulesRoot, "external");
         var userModulesPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "TextForge", "modules");
         registry.Discover(builtInModulesPath);
+        registry.Discover(bundledExternalPath);
         registry.Discover(userModulesPath);
         app.UseApiExceptionHandler();
         app.UseDefaultFiles();

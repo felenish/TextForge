@@ -156,8 +156,8 @@ export function AppLayout() {
     editorRef.current?.openPlotGrid(plotGridId, name);
   }, []);
 
-  const handleModuleOpen = useCallback((moduleId: string, name: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => {
-    editorRef.current?.openModule(moduleId, name, entryPoint, previousVersion, currentVersion);
+  const handleModuleOpen = useCallback((moduleId: string, boardId: string, boardName: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => {
+    editorRef.current?.openModule(moduleId, boardId, boardName, entryPoint, previousVersion, currentVersion);
   }, []);
 
   const handlePlotGridSaved = useCallback((dto: import('../../api/plotGrids').PlotGridDto) => {

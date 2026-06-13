@@ -11,6 +11,8 @@ export interface ModuleExports {
 
 interface ModuleLoaderProps {
   moduleId: string;
+  boardId: string;
+  boardName: string;
   entryPoint: string;
   projectId: string;
   previousVersion: string | null;
@@ -31,7 +33,7 @@ const moduleCache = new Map<string, ModuleExports>();
  *
  * The module's mount() receives ModuleProps and returns an optional cleanup fn.
  */
-export function ModuleLoader({ moduleId, entryPoint, projectId, previousVersion, currentVersion, isActive }: ModuleLoaderProps) {
+export function ModuleLoader({ moduleId, boardId, boardName, entryPoint, projectId, previousVersion, currentVersion, isActive }: ModuleLoaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
@@ -68,6 +70,8 @@ export function ModuleLoader({ moduleId, entryPoint, projectId, previousVersion,
         const props: ModuleProps = {
           projectId,
           moduleId,
+          boardId,
+          boardName,
           apiBase: `/api/modules/${moduleId}`,
           storageBase: `/api/modules/${moduleId}/storage`,
           isActive,
@@ -93,9 +97,8 @@ export function ModuleLoader({ moduleId, entryPoint, projectId, previousVersion,
       cleanupRef.current?.();
       cleanupRef.current = null;
     };
-    // entryPoint and IDs are stable for the lifetime of this tab
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entryPoint, moduleId, projectId]);
+  }, [entryPoint, moduleId, boardId, projectId]);
 
   if (loadState === 'error') {
     return (

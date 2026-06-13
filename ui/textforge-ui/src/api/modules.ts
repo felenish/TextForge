@@ -35,6 +35,14 @@ export interface ModuleProps {
   projectId: string;
   /** This module's id from module.json. */
   moduleId: string;
+  /**
+   * Unique identifier for this board instance. Each named board the user creates
+   * gets its own stable boardId so the module can namespace its storage.
+   * Use this as a subfolder key: `{storageBase}/{boardId}/data.json`.
+   */
+  boardId: string;
+  /** Display name the user gave this board. */
+  boardName: string;
   /** Base URL for module management endpoints, e.g. "/api/modules/com.example.corkboard". */
   apiBase: string;
   /** Base URL for generic storage, e.g. "/api/modules/com.example.corkboard/storage". */

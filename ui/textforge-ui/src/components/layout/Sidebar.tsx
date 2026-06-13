@@ -14,7 +14,7 @@ interface SidebarProps {
   onLocationOpen: (locationId: string, name: string) => void;
   onOutlineOpen: (outlineId: string, name: string) => void;
   onPlotGridOpen: (plotGridId: string, name: string) => void;
-  onModuleOpen: (moduleId: string, name: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
+  onModuleOpen: (moduleId: string, boardId: string, boardName: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
   onOpenHelp: () => void;
 }
 

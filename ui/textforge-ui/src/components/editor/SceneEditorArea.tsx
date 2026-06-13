@@ -26,7 +26,7 @@ export interface SceneEditorAreaHandle {
   openLocation: (locationId: string, name: string) => void;
   openOutline: (outlineId: string, name: string) => void;
   openPlotGrid: (plotGridId: string, name: string) => void;
-  openModule: (moduleId: string, name: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
+  openModule: (moduleId: string, boardId: string, boardName: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
   openHelp: () => void;
   saveAll: () => Promise<void>;
   saveActive: () => Promise<void>;
@@ -96,13 +96,13 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       });
     }, []);
 
-    const openModule = useCallback((moduleId: string, name: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => {
-      const tabId = `__module__${moduleId}`;
+    const openModule = useCallback((moduleId: string, boardId: string, boardName: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => {
+      const tabId = `__module__${moduleId}__${boardId}`;
       setState(prev => {
         if (prev.tabs.some(t => t.id === tabId))
           return { ...prev, activeId: tabId };
         return {
-          tabs: [...prev.tabs, { id: tabId, title: name, kind: 'module', moduleId, entryPoint, previousVersion, currentVersion }],
+          tabs: [...prev.tabs, { id: tabId, title: boardName, kind: 'module', moduleId, boardId, boardName, entryPoint, previousVersion, currentVersion }],
           activeId: tabId,
         };
       });
@@ -351,6 +351,8 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
               ) : tab.kind === 'module' ? (
                 <ModuleLoader
                   moduleId={tab.moduleId!}
+                  boardId={tab.boardId!}
+                  boardName={tab.boardName!}
                   entryPoint={tab.entryPoint!}
                   projectId={activeBookId ?? ''}
                   previousVersion={tab.previousVersion ?? null}
