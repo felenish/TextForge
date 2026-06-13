@@ -4,7 +4,15 @@ import { Icon } from '../ui/Icon';
 export interface Tab {
   id: string;
   title: string;
-  kind: 'scene' | 'character' | 'location' | 'outline' | 'plotgrid' | 'help';
+  kind: 'scene' | 'character' | 'location' | 'outline' | 'plotgrid' | 'help' | 'module';
+  /** Module id — only set when kind === 'module'. */
+  moduleId?: string;
+  /** Resolved asset URL for the module entry point — only set when kind === 'module'. */
+  entryPoint?: string;
+  /** Version stored in book.tfbook at last save — only set when kind === 'module'. */
+  previousVersion?: string | null;
+  /** Installed module version — only set when kind === 'module'. */
+  currentVersion?: string;
 }
 
 interface TabBarProps {
@@ -29,7 +37,7 @@ export function TabBar({ tabs, activeId, onSelect, onClose }: TabBarProps) {
             onClick={() => onSelect(tab.id)}
           >
             <span className="tab-icon">
-              <Icon name={tab.kind === 'character' ? 'user' : tab.kind === 'location' ? 'map-pin' : tab.kind === 'outline' ? 'list' : tab.kind === 'plotgrid' ? 'layout-grid' : tab.kind === 'help' ? 'help-circle' : 'scene'} size={13} stroke={1.5} />
+              <Icon name={tab.kind === 'character' ? 'user' : tab.kind === 'location' ? 'map-pin' : tab.kind === 'outline' ? 'list' : tab.kind === 'plotgrid' ? 'layout-grid' : tab.kind === 'help' ? 'help-circle' : tab.kind === 'module' ? 'puzzle' : 'scene'} size={13} stroke={1.5} />
             </span>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
               {tab.title}

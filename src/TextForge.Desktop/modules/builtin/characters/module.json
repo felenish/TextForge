@@ -1,0 +1,13 @@
+{
+  "id": "textforge.builtin.characters",
+  "name": "Characters",
+  "version": "1.0.0",
+  "minTextForgeVersion": "1.0.0",
+  "description": "Worldbuilding workspace for managing characters.",
+  "author": "TextForge",
+  "icon": null,
+  "entryPoint": null,
+  "storageFolder": "textforge.builtin.characters",
+  "builtIn": true,
+  "linkable": true
+}

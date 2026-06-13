@@ -6,6 +6,7 @@ interface ActivityBarProps {
   mode: SidebarMode;
   onModeChange: (mode: SidebarMode) => void;
   dirtyCount?: number;
+  onOpenSettings: () => void;
 }
 
 const MODES: { id: SidebarMode; icon: string; title: string }[] = [
@@ -14,7 +15,7 @@ const MODES: { id: SidebarMode; icon: string; title: string }[] = [
   { id: 'search', icon: 'search', title: 'Search' },
 ];
 
-export function ActivityBar({ mode, onModeChange, dirtyCount = 0 }: ActivityBarProps) {
+export function ActivityBar({ mode, onModeChange, dirtyCount = 0, onOpenSettings }: ActivityBarProps) {
   return (
     <div className="activity">
       {MODES.map(m => (
@@ -31,7 +32,7 @@ export function ActivityBar({ mode, onModeChange, dirtyCount = 0 }: ActivityBarP
         </button>
       ))}
       <div className="spacer" />
-      <button className="act-btn" title="Settings">
+      <button className="act-btn" title="Settings" onClick={onOpenSettings}>
         <Icon name="settings" size={20} stroke={1.5} />
       </button>
     </div>

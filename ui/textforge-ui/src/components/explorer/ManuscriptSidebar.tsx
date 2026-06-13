@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import type { UseSeriesExplorerResult } from '../../hooks/useSeriesExplorer';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useDialog } from '../../contexts/DialogContext';
+import { useModules, BUILTIN_MODULE_IDS } from '../../hooks/useModules';
+import type { ModuleDto } from '../../api/modules';
 import { ContextMenu, type ContextMenuEntry } from '../ui/ContextMenu';
 import { Icon } from '../ui/Icon';
 import * as shellApi from '../../api/shell';
@@ -14,6 +16,7 @@ interface ManuscriptSidebarProps extends UseSeriesExplorerResult {
   onLocationOpen: (locationId: string, name: string) => void;
   onOutlineOpen: (outlineId: string, name: string) => void;
   onPlotGridOpen: (plotGridId: string, name: string) => void;
+  onModuleOpen: (moduleId: string, name: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
   onOpenHelp: () => void;
 }
 
@@ -63,10 +66,19 @@ export function ManuscriptSidebar({
   reorderLocationFolders, setLocationFolder,
   loadOutlines, addOutline, renameOutline, deleteOutline, reorderOutlines,
   loadPlotGrids, addPlotGrid, renamePlotGrid, deletePlotGrid, reorderPlotGrids,
-  onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen, onOpenHelp,
+  onSceneOpen, onCharacterOpen, onLocationOpen, onOutlineOpen, onPlotGridOpen, onModuleOpen, onOpenHelp,
 }: ManuscriptSidebarProps) {
   const { dirtySceneIds, activeSceneId, activeBookId, patchSceneMeta } = useWorkspace();
   const { prompt, confirm } = useDialog();
+  const { modules, enabledIds: enabledModuleIds, loading: modulesLoading } = useModules(activeBookId);
+
+  // While the module list is loading, fall back to showing all built-in sections
+  // so there's no flash of empty content on first render.
+  const showCharacters = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.characters);
+  const showLocations  = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.locations);
+  const showOutlines   = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.outlines);
+  const showPlotGrids  = modulesLoading || enabledModuleIds.size === 0 || enabledModuleIds.has(BUILTIN_MODULE_IDS.plotGrids);
+  const externalModules: ModuleDto[] = modules.filter(m => !m.builtIn && m.enabled && m.id);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const skipExpandedSave = useRef(false);
@@ -751,7 +763,7 @@ export function ManuscriptSidebar({
               </div>
             )}
 
-            <div>
+            {showCharacters && <div>
               <div
                 className="tree-row is-book"
                 onClick={toggleChars}
@@ -903,10 +915,9 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
 
-            {/* Locations */}
-            <div>
+            {showLocations && <div>
               <div
                 className="tree-row is-book"
                 onClick={toggleLocs}
@@ -1052,10 +1063,9 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
 
-            {/* Outlines */}
-            <div>
+            {showOutlines && <div>
               <div
                 className="tree-row is-book"
                 onClick={toggleOutlines}
@@ -1117,10 +1127,9 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
 
-            {/* Plot Grids */}
-            <div>
+            {showPlotGrids && <div>
               <div
                 className="tree-row is-book"
                 onClick={togglePlotGrids}
@@ -1182,7 +1191,23 @@ export function ManuscriptSidebar({
                   )}
                 </>
               )}
-            </div>
+            </div>}
+
+            {externalModules.map(mod => {
+              const entryPoint = `/api/modules/${mod.id}/asset?path=${encodeURIComponent('index.js')}`;
+              return (
+                <div key={mod.id}>
+                  <div
+                    className="tree-row is-book"
+                    onClick={() => onModuleOpen(mod.id, mod.name, entryPoint, null, mod.version)}
+                  >
+                    <span className="chev leaf"><Icon name="chev-right" size={11} /></span>
+                    <span className="icon"><Icon name="puzzle" size={13} /></span>
+                    <span className="label" style={{ fontWeight: 500, color: 'var(--text-strong)' }}>{mod.name}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

@@ -1,0 +1,13 @@
+{
+  "id": "textforge.builtin.plotgrids",
+  "name": "Plot Grids",
+  "version": "1.0.0",
+  "minTextForgeVersion": "1.0.0",
+  "description": "Worldbuilding workspace for plot grid tables.",
+  "author": "TextForge",
+  "icon": null,
+  "entryPoint": null,
+  "storageFolder": "textforge.builtin.plotgrids",
+  "builtIn": true,
+  "linkable": false
+}

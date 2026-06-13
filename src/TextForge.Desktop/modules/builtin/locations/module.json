@@ -1,0 +1,13 @@
+{
+  "id": "textforge.builtin.locations",
+  "name": "Locations",
+  "version": "1.0.0",
+  "minTextForgeVersion": "1.0.0",
+  "description": "Worldbuilding workspace for managing locations.",
+  "author": "TextForge",
+  "icon": null,
+  "entryPoint": null,
+  "storageFolder": "textforge.builtin.locations",
+  "builtIn": true,
+  "linkable": true
+}

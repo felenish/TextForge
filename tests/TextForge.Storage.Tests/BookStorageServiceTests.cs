@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using TextForge.Core.Exceptions;
 using TextForge.Core.Manifests;
+using TextForge.Core.Manifests.Migrations;
 using TextForge.Core.Models;
 using TextForge.Core.Requests;
 using TextForge.Storage.Services;
@@ -24,7 +25,10 @@ public sealed class BookStorageServiceTests : IDisposable
     {
         _tempDir = Path.Combine(Path.GetTempPath(), $"TextForgeTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
-        _sut = new BookStorageService(NullLogger<BookStorageService>.Instance);
+        var migrator = new BookManifestMigrator(
+            [new AddModulesKeyMigration()],
+            NullLogger<BookManifestMigrator>.Instance);
+        _sut = new BookStorageService(NullLogger<BookStorageService>.Instance, migrator);
     }
 
     public void Dispose()

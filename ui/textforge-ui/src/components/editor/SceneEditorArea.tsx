@@ -13,6 +13,7 @@ import { OutlineEditor } from './OutlineEditor';
 import { PlotGridEditor } from './PlotGridEditor';
 import { FindReplaceBar } from './FindReplaceBar';
 import { HelpTab } from './HelpTab';
+import { ModuleLoader } from './ModuleLoader';
 
 interface TabsState {
   tabs: Tab[];
@@ -25,6 +26,7 @@ export interface SceneEditorAreaHandle {
   openLocation: (locationId: string, name: string) => void;
   openOutline: (outlineId: string, name: string) => void;
   openPlotGrid: (plotGridId: string, name: string) => void;
+  openModule: (moduleId: string, name: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => void;
   openHelp: () => void;
   saveAll: () => Promise<void>;
   saveActive: () => Promise<void>;
@@ -43,7 +45,7 @@ interface SceneEditorAreaProps {
 export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorAreaProps>(
   function SceneEditorArea({ onCharacterSaved, onLocationSaved, onOutlineSaved, onPlotGridSaved }, ref) {
     const [{ tabs, activeId }, setState] = useState<TabsState>({ tabs: [], activeId: null });
-    const { dirtySceneIds, markClean, clearSceneWordCount, setActiveScene } = useWorkspace();
+    const { dirtySceneIds, markClean, clearSceneWordCount, setActiveScene, activeBookId } = useWorkspace();
     const saveRegistry = useRef(new Map<string, () => Promise<void>>());
 
     const openScene = useCallback((sceneId: string, sceneTitle: string) => {
@@ -91,6 +93,18 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
         if (prev.tabs.some(t => t.id === '__help__'))
           return { ...prev, activeId: '__help__' };
         return { tabs: [...prev.tabs, { id: '__help__', title: 'Help', kind: 'help' }], activeId: '__help__' };
+      });
+    }, []);
+
+    const openModule = useCallback((moduleId: string, name: string, entryPoint: string, previousVersion: string | null, currentVersion: string) => {
+      const tabId = `__module__${moduleId}`;
+      setState(prev => {
+        if (prev.tabs.some(t => t.id === tabId))
+          return { ...prev, activeId: tabId };
+        return {
+          tabs: [...prev.tabs, { id: tabId, title: name, kind: 'module', moduleId, entryPoint, previousVersion, currentVersion }],
+          activeId: tabId,
+        };
       });
     }, []);
 
@@ -171,7 +185,7 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
       };
     }, [reloadScene]);
 
-    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, openOutline, openPlotGrid, openHelp, saveAll, saveActive, closeAll, openFind, reloadScene }), [openScene, openCharacter, openLocation, openOutline, openPlotGrid, openHelp, saveAll, saveActive, closeAll, openFind, reloadScene]);
+    useImperativeHandle(ref, () => ({ openScene, openCharacter, openLocation, openOutline, openPlotGrid, openModule, openHelp, saveAll, saveActive, closeAll, openFind, reloadScene }), [openScene, openCharacter, openLocation, openOutline, openPlotGrid, openModule, openHelp, saveAll, saveActive, closeAll, openFind, reloadScene]);
 
     const handleRegisterSave = useCallback((sceneId: string, save: () => Promise<void>) => {
       saveRegistry.current.set(sceneId, save);
@@ -334,6 +348,15 @@ export const SceneEditorArea = forwardRef<SceneEditorAreaHandle, SceneEditorArea
                 />
               ) : tab.kind === 'help' ? (
                 <HelpTab />
+              ) : tab.kind === 'module' ? (
+                <ModuleLoader
+                  moduleId={tab.moduleId!}
+                  entryPoint={tab.entryPoint!}
+                  projectId={activeBookId ?? ''}
+                  previousVersion={tab.previousVersion ?? null}
+                  currentVersion={tab.currentVersion ?? ''}
+                  isActive={tab.id === activeId}
+                />
               ) : (
                 <PlotGridEditor
                   plotGridId={tab.id}

@@ -16,10 +16,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TextForge.Api\TextForge.Api.csproj" />
+    <ProjectReference Include="..\TextForge.Modules\TextForge.Modules.csproj" />
+    <ProjectReference Include="..\TextForge.Storage\TextForge.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="wwwroot\**" CopyToOutputDirectory="Always" />
+    <Content Include="modules\**" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>
